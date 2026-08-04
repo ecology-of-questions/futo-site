@@ -109,6 +109,11 @@ src/
 | [`docs/Research_Log/`](./docs/Research_Log/README.md) | ChatGPTとの対話で決まっていく思想的な背景のメモ |
 | [`docs/Project_Journal/`](./docs/Project_Journal/README.md) | プロジェクトの歴史。その日に何が起きたか |
 
+このリポジトリは GitHub Repository である以前に **Research
+Repository** である。[`PROJECT.md`](./PROJECT.md)(人間向け。ビジョン・
+ロードマップ・現在地)と [`CLAUDE.md`](./CLAUDE.md)(AI向け。行動規範・
+開発ルール)も、READMEと同じ重みを持つ一次資料として扱う。
+
 コミットメッセージの書き方は [`CONTRIBUTING.md`](./CONTRIBUTING.md) を参照。
 
 ## セットアップ

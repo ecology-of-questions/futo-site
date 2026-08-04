@@ -87,3 +87,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0012](./0012-research-statement-v0-1.md) | Research Statement v0.1 へ差し替え、propsを段落構造に再設計する |
 | [0013](./0013-latest-version-container.md) | ResearchStatement を「最新版を表示するための器」として位置づける |
 | [0014](./0014-claude-md-charter.md) | CLAUDE.md を「開発ルール集」から「プロジェクト憲章」へ再構成する |
+| [0015](./0015-project-md.md) | PROJECT.md を新設し、CLAUDE.md と役割を分離する |

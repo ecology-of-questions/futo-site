@@ -1,16 +1,15 @@
 # The Project
 
-Project Name
-ふ、と (The Ecology of Questions)
+Project Name: ふ、と (The Ecology of Questions)
+Type: Public Research Studio
+Status: Beta (pre-launch)
+Current Version: Design Spec v0.4
 
-Type
-Public Research Studio
-
-Status
-Beta (pre-launch)
-
-Current Version
-Design Spec v0.4
+Full vision, roadmap, and current-week tasks live in `PROJECT.md`
+(human-facing). This file (`CLAUDE.md`) is the AI-facing counterpart:
+how Claude should behave, not what the project is for. Read both, but
+treat `PROJECT.md` as the source of "why" and this file as the source
+of "how."
 
 ---
 
@@ -25,45 +24,17 @@ The goal is to continuously cultivate the research.
 Everything should be designed to evolve.
 Separate the container from the content.
 
-The research evolves.
-The software evolves.
-The documentation evolves.
-
 Never optimize for completion.
 Always optimize for growth.
 
----
-
-# Product Identity
-
-This repository contains both
-
-- software
-and
-- research.
-
-Treat both equally.
-Research documents are first-class artifacts.
-They are not secondary documentation.
-
-`docs/Design_Spec/`, `docs/Decision_Log/`, `docs/Research_Log/`, and
-`docs/Project_Journal/` are not support material for the code. They are
-the record of how the research studio came to be. Treat writing them
-with the same seriousness as writing a component.
+(Full philosophy and product identity: see `PROJECT.md`.)
 
 ---
 
 # Current Phase
 
-Current milestone
-Open the Public Research Studio (Beta) — "公開研究室、開室。"
-
-Current priorities
-1. Home polish (Hero / Research Statement implemented; Research Statement is v0.1, expected to keep evolving)
-2. About (on hold — information architecture to be finalized just before launch)
-3. Mobile check
-4. OGP / favicon / 404 / other launch checklist items (`docs/beta-launch-checklist.md`)
-5. Beta launch
+Milestone: Open the Public Research Studio (Beta) — "公開研究室、開室。"
+Full roadmap and this week's task list: see `PROJECT.md` ("今週やること").
 
 Current rule
 No new features before beta launch.
@@ -76,7 +47,8 @@ Parking Lot (do not implement until after beta)
 - Research Review detail UI / version history display
 
 If a task in this list comes up, record the reasoning in Decision Log
-and stop. Do not implement it.
+and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
+human reference — keep both in sync when it changes.)
 
 ---
 
@@ -141,6 +113,8 @@ Every implementation change ships with matching documentation updates.
 Code and documentation are committed as part of the same unit of work
 (though usually as separate commits — see Commit Rules).
 
+- `PROJECT.md`: human-facing vision, roadmap, and current-week tasks.
+  Update alongside `Current Phase` in this file when the milestone changes.
 - `docs/Design_Spec/`: finalized design. Never overwritten — new
   versions are added as new files (`v0.4.md`, `v0.5.md`, ...).
 - `docs/Decision_Log/`: implementation decisions. **Decision Log Rule**:
