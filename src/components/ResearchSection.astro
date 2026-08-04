@@ -8,14 +8,19 @@
  *
  * 余白・幅・landmarkなど、セクション共通のレイアウトルールを
  * ここに集約し、各セクション固有の中身はslotで受け取る。
+ * Heroだけは独自レイアウト(左右分割)を持つため対象外。
  * ------------------------------------------------------------
  */
+import styles from "./ResearchSection.module.css";
 
 interface Props {
   ariaLabel?: string;
+  id?: string;
 }
 
-const { ariaLabel } = Astro.props;
+const { ariaLabel, id } = Astro.props;
 ---
 
-<!-- TODO: 実装レベルの仕様到着後に実装 -->
+<section class={styles.section} aria-label={ariaLabel} id={id}>
+  <slot />
+</section>

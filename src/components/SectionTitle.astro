@@ -6,10 +6,12 @@
  * 研究断面 / 研究便り 等)共通の見出しコンポーネント。
  * Design Spec 11 Components: Section Title
  *
- * 各セクションで見出しの見せ方(サイズ・余白)を統一するための
- * 共通部品として切り出す。
+ * Heroの大きな見出しとは対照的に、セクション見出しは控えめな
+ * ラベルとして扱う(余白・思考時間を優先する方針のため、
+ * 各セクションの主役はコピー本文であって見出しではない)。
  * ------------------------------------------------------------
  */
+import styles from "./SectionTitle.module.css";
 
 interface Props {
   as?: "h1" | "h2" | "h3";
@@ -18,4 +20,6 @@ interface Props {
 const { as: Tag = "h2" } = Astro.props;
 ---
 
-<!-- TODO: 実装レベルの仕様到着後に実装 -->
+<Tag class={styles.title}>
+  <slot />
+</Tag>

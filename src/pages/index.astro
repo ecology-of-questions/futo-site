@@ -3,18 +3,25 @@
  * index.astro (Home)
  * ------------------------------------------------------------
  * Home_Hero_v1_mockup.png / Home_Hero_v1_spec.md に基づき Hero を実装済み。
+ * Research Statement は、β公開優先の方針転換に伴い、モックアップを
+ * 待たずにDesign Spec(7. Research Attitude / 8. Design Principles)を
+ * 元に実装した(Decision Log 0007)。
  * 以下の順で残りのセクションを追加していく(Design Spec 4: Home Structure)。
  *
  * 1. Hero                     ← 実装済み
- * 2. Research Statement       ← 次に実装
- * 3. 今、取り組んでいること
+ * 2. Research Statement       ← 実装済み(モックアップなし。レビュー対象)
+ * 3. 今、取り組んでいること     ← β公開では後回し可(優先度: README参照)
  * 4. 研究断面
  * 5. 研究便り
  * 6. Footer (DefaultLayout側で共通配置)
+ *
+ * β公開の優先順位(README「現在の方針: β公開優先」)では、
+ * Home以降 About → Research(プレースホルダー) の順に進める。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import Hero from "@components/Hero.astro";
+import ResearchStatement from "@components/ResearchStatement.astro";
 ---
 
 <DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践">
@@ -36,5 +43,21 @@ import Hero from "@components/Hero.astro";
     hero_ai_v1.png 相当の画像ファイルを受け取り次第、
     /public/images/hero/ に配置し、visualSrc="/images/hero/hero_ai_v1.png" を指定する。
   -->
-  <!-- TODO: 次セクション「Research Statement」実装時、id="research-statement" を付与する -->
+
+  <ResearchStatement
+    title="Research Statement"
+    attitudeLines={[
+      "時の流れに身を任せる。",
+      "数字がすべてではない。感じることがすべて。",
+      "目的的にならない。",
+      "問いを急がない。",
+      "暮らしを研究から切り離さない。",
+    ]}
+    principleLines={[
+      "観察から始める。",
+      "過程こそ主役。",
+      "暮らしに根ざす。",
+      "何度も立ち戻れる場所にする。",
+    ]}
+  />
 </DefaultLayout>

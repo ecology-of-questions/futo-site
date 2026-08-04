@@ -1,0 +1,48 @@
+---
+/**
+ * ResearchStatement.astro
+ * ------------------------------------------------------------
+ * 役割: Homeの2番目のセクション。Design Spec 6(Section Roles)で
+ * 「Research Statement＝思想」と定義されている。
+ *
+ * モックアップは存在しないが、Design Spec 7(Research Attitude)と
+ * 8(Design Principles)に、この研究室の「思想」そのものが
+ * 既に文章として存在していると判断し、これをコンテンツとして採用した
+ * (Decision Log 0007参照。この判断はレビュー対象)。
+ *
+ * Heroの大きな見出しとは対照的に、ここは1文ずつ短い言葉が
+ * 並ぶ静かなセクションとして実装する。ResearchSection + SectionTitle
+ * という共通部品の上に、このセクション固有のコンテンツ(2つの
+ * 短文リスト)を乗せる構成。
+ *
+ * Heroと同様、コンテンツはpropsで受け取り、コンポーネント自体には
+ * ハードコードしない(Decision Log 0003の方針を踏襲)。
+ * ------------------------------------------------------------
+ */
+import ResearchSection from "./ResearchSection.astro";
+import SectionTitle from "./SectionTitle.astro";
+import styles from "./ResearchStatement.module.css";
+
+interface Props {
+  title: string;
+  /** Design Spec 7: Research Attitude */
+  attitudeLines: string[];
+  /** Design Spec 8: Design Principles */
+  principleLines: string[];
+}
+
+const { title, attitudeLines, principleLines } = Astro.props;
+---
+
+<ResearchSection ariaLabel={title} id="research-statement">
+  <SectionTitle>{title}</SectionTitle>
+
+  <div class={styles.statement}>
+    <ul class={styles.list}>
+      {attitudeLines.map((line) => <li>{line}</li>)}
+    </ul>
+    <ul class={styles.list}>
+      {principleLines.map((line) => <li>{line}</li>)}
+    </ul>
+  </div>
+</ResearchSection>

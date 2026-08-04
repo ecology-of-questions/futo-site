@@ -1,0 +1,6 @@
+.section {
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding-inline);
+  padding-block: var(--space-6);
+}
