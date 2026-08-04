@@ -1,0 +1,27 @@
+.frame {
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* src未指定時の仮表示。本番では表示されない想定 */
+.placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--color-ink);
+  opacity: 0.35;
+}
+
+.placeholderLabel {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+}

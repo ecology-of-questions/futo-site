@@ -1,0 +1,84 @@
+---
+/**
+ * Hero.astro
+ * ------------------------------------------------------------
+ * 役割: Homeの最初のセクション。役割は「研究内容」ではなく「空気」を
+ * 伝えること(Design Spec 5)。左にコピー、右にVisual Fragment。
+ * 実装元: Home_Hero_v1_mockup.png / Home_Hero_v1_spec.md
+ *
+ * レイアウト:
+ * - Desktop: 左42% コピー / 右58% ビジュアル(Hero Spec準拠)
+ * - Mobile: 縦積み(コピー → ビジュアル)
+ *
+ * コンテンツ(コピー・CTA・画像)はこのコンポーネント内にハードコードせず、
+ * すべて props として呼び出し側(pages/index.astro)から渡す。
+ * 「世界観・コピーは変更しない」方針のもと、コピー修正が発生した場合に
+ * コンポーネントのロジックへ触れずに page 側だけで完結させるため。
+ *
+ * スクロール誘導は装飾ではなく体験の一部として最小限で実装する
+ * (Implementation Notes for Claude より)。
+ * ------------------------------------------------------------
+ */
+import VisualFragment from "./VisualFragment.astro";
+import styles from "./Hero.module.css";
+
+interface Props {
+  /** 見出し(複数行を配列で渡す。改行位置はコピーの意図そのものなので変更しない) */
+  headingLines: string[];
+  /** サブコピー(複数行) */
+  bodyLines: string[];
+  ctaLabel: string;
+  ctaHref: string;
+  /** スクロール誘導の遷移先(未指定時はScroll表示を出さない) */
+  scrollTargetId?: string;
+  visualSrc?: string;
+  visualAlt?: string;
+}
+
+const {
+  headingLines,
+  bodyLines,
+  ctaLabel,
+  ctaHref,
+  scrollTargetId,
+  visualSrc,
+  visualAlt,
+} = Astro.props;
+---
+
+<section class={styles.hero} aria-label="ふ、とについて">
+  <div class={styles.copy}>
+    <h1 class={styles.heading}>
+      {
+        headingLines.map((line, i) => (
+          <Fragment>
+            {i > 0 && <br />}
+            {line}
+          </Fragment>
+        ))
+      }
+    </h1>
+
+    <div class={styles.body}>
+      {bodyLines.map((line) => <p>{line}</p>)}
+    </div>
+
+    <a class={styles.cta} href={ctaHref}>
+      {ctaLabel}
+      <span aria-hidden="true" class={styles.ctaArrow}>→</span>
+    </a>
+
+    {
+      scrollTargetId && (
+        <a class={styles.scroll} href={`#${scrollTargetId}`}>
+          <span>Scroll</span>
+          <span aria-hidden="true" class={styles.scrollArrow}>↓</span>
+        </a>
+      )
+    }
+  </div>
+
+  <div class={styles.visual}>
+    <VisualFragment src={visualSrc} alt={visualAlt} />
+  </div>
+</section>

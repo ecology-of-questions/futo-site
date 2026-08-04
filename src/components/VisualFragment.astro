@@ -1,0 +1,41 @@
+---
+/**
+ * VisualFragment.astro
+ * ------------------------------------------------------------
+ * 役割: Hero等に配置するビジュアル要素。
+ * 現在はAIイラスト、将来的には手描きスケッチへ置き換える前提
+ * (Design Spec 9: Visual Direction / Future)。
+ *
+ * 設計方針:
+ * - 画像ソースは props (src, alt) で外部から差し込む。
+ *   コンポーネント内部に「AIか手描きか」の分岐ロジックは持たせない。
+ *   差し替え時は呼び出し側の src を変更するだけで完結する。
+ * - alt はデフォルトで空文字(装飾画像として扱う)。
+ *   このビジュアルは「空気を伝える」ためのものであり、
+ *   固有の情報を伝える画像ではないため(Design Spec 5)。
+ *   意味のある画像として使う場合のみ、呼び出し側で alt を渡す。
+ * - src が未指定の場合はプレースホルダーを表示する
+ *   (アセット未到着の状態でもレイアウト確認ができるようにするため)。
+ * ------------------------------------------------------------
+ */
+import styles from "./VisualFragment.module.css";
+
+interface Props {
+  src?: string;
+  alt?: string;
+}
+
+const { src, alt = "" } = Astro.props;
+---
+
+<div class={styles.frame}>
+  {
+    src ? (
+      <img class={styles.image} src={src} alt={alt} loading="eager" />
+    ) : (
+      <div class={styles.placeholder} aria-hidden="true">
+        <span class={styles.placeholderLabel}>Visual Fragment(画像未設定)</span>
+      </div>
+    )
+  }
+</div>

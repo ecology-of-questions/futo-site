@@ -1,0 +1,21 @@
+---
+/**
+ * ResearchSection.astro
+ * ------------------------------------------------------------
+ * 役割: 「Research Statement」「今、取り組んでいること」等、
+ * Homeを構成する各セクションの共通ラッパー。
+ * Design Spec 11 Components: Research Block に対応。
+ *
+ * 余白・幅・landmarkなど、セクション共通のレイアウトルールを
+ * ここに集約し、各セクション固有の中身はslotで受け取る。
+ * ------------------------------------------------------------
+ */
+
+interface Props {
+  ariaLabel?: string;
+}
+
+const { ariaLabel } = Astro.props;
+---
+
+<!-- TODO: 実装レベルの仕様到着後に実装 -->

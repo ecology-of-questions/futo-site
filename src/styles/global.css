@@ -1,0 +1,75 @@
+/**
+ * global.css
+ * ------------------------------------------------------------
+ * サイト全体に適用する最小限のリセット + ベーススタイル。
+ * 見た目の作り込みはコンポーネント側のCSS Modulesで行う。
+ * ここでは「土台」のみを整える。
+ * ------------------------------------------------------------
+ */
+
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  /* 静かな雑誌の読書体験(Design Spec 9)を前提に、フォントレンダリングを整える */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+picture,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  line-height: var(--lh-heading);
+  font-weight: 500; /* 太すぎる見出しは「静かな」トーンを崩すため控えめに */
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+}
+
+/* prefers-reduced-motion への配慮(アクセシビリティ方針) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

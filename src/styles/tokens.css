@@ -1,0 +1,68 @@
+/**
+ * tokens.css
+ * ------------------------------------------------------------
+ * 「ふ、と」デザイントークン集約ファイル。
+ * Design Spec v0.3 が唯一のデザインソース。
+ *
+ * 【重要】色の正確なHEX値・フォント名は Design Spec に記載がないため、
+ * 現時点では仮値を置いている。Home_Hero_v1_spec 到着時、または
+ * ChatGPT(Creative Director)からの正式な値が来た時点で必ず更新すること。
+ * 実装者が独自に「見やすさ」判断で変更しないこと。
+ * ------------------------------------------------------------
+ */
+
+:root {
+  /* -----------------------------
+   * Color
+   * Design Spec 10: Paper(生成り) / Ink(柔らかい黒) / Accent(淡い緑・ベージュ)
+   * ----------------------------- */
+  --color-paper: #f7f3ea;      /* 仮値: 生成り */
+  --color-ink: #2b2a26;         /* 仮値: 柔らかい黒(純黒 #000 は使わない) */
+  --color-accent-green: #a9b79c; /* 仮値: 淡い緑 */
+  --color-accent-beige: #d8cbb0; /* 仮値: ベージュ */
+
+  /* -----------------------------
+   * Typography
+   * フォントファミリーは Design Spec 未指定。
+   * 決定次第ここに反映する。当面はシステムフォントで仮組み。
+   * ----------------------------- */
+  --font-body: "Hiragino Mincho ProN", "Yu Mincho", serif; /* 仮: 静かな雑誌の質感を想定した仮フォント */
+  --font-sans: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+
+  --fs-base: 1rem;
+  --fs-sm: 0.875rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.75rem;
+  --fs-2xl: 2.5rem;
+  --fs-3xl: clamp(2.25rem, 1.6rem + 2.6vw, 3.25rem); /* Hero見出し用(Home_Hero_v1_mockupの見出しサイズを参照) */
+
+  --lh-body: 1.9;   /* 余白=思考時間の思想に合わせ、行間はゆったり */
+  --lh-heading: 1.5;
+  --lh-hero-heading: 1.35; /* Heroの2行見出しはやや詰め気味(モックアップ準拠) */
+
+  /* -----------------------------
+   * Spacing
+   * 「余白を思考時間として扱う」(Design Spec 10)ため、
+   * 一般的なUIより広めのスケールを基準にする。
+   * ----------------------------- */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: 6rem;
+  --space-7: 9rem;
+
+  /* -----------------------------
+   * Layout
+   * ----------------------------- */
+  --content-max-width: 1120px;
+  --content-padding-inline: var(--space-3);
+
+  /* -----------------------------
+   * Motion
+   * アニメーションライブラリ不使用の方針のため、
+   * 素朴な transition の基準値のみ用意する。
+   * ----------------------------- */
+  --transition-base: 240ms ease;
+}
