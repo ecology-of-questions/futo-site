@@ -5,18 +5,18 @@
  * 役割: Homeの2番目のセクション。Design Spec 6(Section Roles)で
  * 「Research Statement＝思想」と定義されている。
  *
- * モックアップは存在しないが、Design Spec 7(Research Attitude)と
- * 8(Design Principles)に、この研究室の「思想」そのものが
- * 既に文章として存在していると判断し、これをコンテンツとして採用した
- * (Decision Log 0007参照。この判断はレビュー対象)。
+ * 【重要】このコンポーネントは「文章を受け取る器」である。
+ * コンテンツ(attitudeLines / principleLines)は差し替えられることを
+ * 前提としている。現在 index.astro から渡している文章
+ * (Design Spec 7: Research Attitude / 8: Design Principles)は、
+ * 正式なResearch Statement(「問いの生態系」のステートメント)が
+ * 執筆されるまでの仮コンテンツである(Decision Log 0008参照)。
+ * レイアウト・タイポグラフィ・余白は確定事項として扱ってよい。
  *
- * Heroの大きな見出しとは対照的に、ここは1文ずつ短い言葉が
- * 並ぶ静かなセクションとして実装する。ResearchSection + SectionTitle
- * という共通部品の上に、このセクション固有のコンテンツ(2つの
- * 短文リスト)を乗せる構成。
- *
- * Heroと同様、コンテンツはpropsで受け取り、コンポーネント自体には
+ * コンテンツはpropsで受け取り、コンポーネント自体には
  * ハードコードしない(Decision Log 0003の方針を踏襲)。
+ * 正式なステートメントが届いたら、index.astro側のpropsを
+ * 差し替えるだけで反映できる。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
