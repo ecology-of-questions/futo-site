@@ -80,3 +80,5 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0005](./0005-research-status.md) | ResearchStatus を「出版状態」ではなく「研究状態」として再定義する |
 | [0006](./0006-research-state-model.md) | ResearchStatus を状態遷移込みの Research State Model として設計する |
 | [0007](./0007-research-statement.md) | Research Statement をモックアップなしで実装する |
+| [0008](./0008-research-statement-container.md) | ResearchStatement を「文章を受け取る器」として位置づけ直す |
+| [0009](./0009-research-placeholder-page.md) | Research ページ(プレースホルダー)を About より先に実装する |
