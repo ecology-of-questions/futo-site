@@ -1,79 +1,172 @@
-# CLAUDE.md
+# The Project
 
-このファイルは、Claude Code がこのリポジトリで作業する際に
-毎セッション開始時に読み込む、永続的なプロジェクト指示です。
-ここに書かれたことは、チャットで毎回説明し直す必要はありません。
+Project Name
+ふ、と (The Ecology of Questions)
 
-## Project Philosophy
+Type
+Public Research Studio
 
-「ふ、と」は公開研究室である。ポートフォリオでもブログでもない。
-訪れた人が完成した知識を読む場所ではなく、現在進行形の研究に
-触れられる場所として育てていく。
+Status
+Beta (pre-launch)
 
-- 完成ではなく、育つことを優先する。
-- 空の棚や "Coming Soon" は隠すべき未完成ではなく、積極的に使ってよい。
-- 公開したら終わりではなく、公開してからが開発のスタート。
-- 「器と中身を分ける」がこのプロジェクト全体を貫く設計原則。
-  コンポーネント(器)はコンテンツ(中身)の変化を前提に設計する。
-  ResearchStatus・ResearchStatement・Decision Logは、すべてこの
-  構造を持つ。
+Current Version
+Design Spec v0.4
 
-詳細は `docs/Design_Spec/`(最新版を参照)・`docs/Research_Log/` を参照。
+---
 
-## 体制
+# Philosophy
 
-| 役割 | 担当 |
+This project is not a portfolio website.
+It is a public research studio.
+
+The goal is not to ship a finished product.
+The goal is to continuously cultivate the research.
+
+Everything should be designed to evolve.
+Separate the container from the content.
+
+The research evolves.
+The software evolves.
+The documentation evolves.
+
+Never optimize for completion.
+Always optimize for growth.
+
+---
+
+# Product Identity
+
+This repository contains both
+
+- software
+and
+- research.
+
+Treat both equally.
+Research documents are first-class artifacts.
+They are not secondary documentation.
+
+`docs/Design_Spec/`, `docs/Decision_Log/`, `docs/Research_Log/`, and
+`docs/Project_Journal/` are not support material for the code. They are
+the record of how the research studio came to be. Treat writing them
+with the same seriousness as writing a component.
+
+---
+
+# Current Phase
+
+Current milestone
+Open the Public Research Studio (Beta) — "公開研究室、開室。"
+
+Current priorities
+1. Home polish (Hero / Research Statement implemented; Research Statement is v0.1, expected to keep evolving)
+2. About (on hold — information architecture to be finalized just before launch)
+3. Mobile check
+4. OGP / favicon / 404 / other launch checklist items (`docs/beta-launch-checklist.md`)
+5. Beta launch
+
+Current rule
+No new features before beta launch.
+
+Parking Lot (do not implement until after beta)
+- Concept Graph
+- Version UI
+- Research Timeline
+- Research Logs page
+- Research Review detail UI / version history display
+
+If a task in this list comes up, record the reasoning in Decision Log
+and stop. Do not implement it.
+
+---
+
+# Architecture
+
+- Astro (latest stable) / TypeScript (strict) / CSS Modules
+- No UI library, no Tailwind, no animation library
+- `src/styles/tokens.css` is the single source of truth for color,
+  typography, and spacing. Components never hardcode these values.
+- "Container separated from content" is the core architectural
+  pattern, not just a convention:
+  - `ResearchStatement` is a container for the *latest* version of
+    the statement, not a finished one. Content is passed via props.
+  - `ResearchCard` carries a `ResearchStatus` (research state, not
+    publish state) — see `src/types/research.ts`.
+  - `ArrowLink`, `SectionTitle`, `ResearchSection` are shared,
+    reusable pieces used across Hero / Research Statement / Research.
+- Deploy target is Cloudflare Pages, but the build must stay a
+  portable static site (no Cloudflare-specific adapters/features).
+
+---
+
+# Workflow
+
+Roles:
+
+| Role | Owner |
 |---|---|
-| 研究思想・コンテンツ・最終判断 | プロジェクトオーナー |
-| 研究設計・情報設計・UX・全体ディレクション | ChatGPT(Creative Director) |
-| 実装・アーキテクチャ・保守性・技術提案 | Claude(Frontend Engineer / Tech Lead) |
+| Research direction, content, final decisions | Project Owner |
+| Information architecture, UX, research direction, review | ChatGPT (Creative Director) |
+| Implementation, architecture, maintainability, technical proposals | Claude (Frontend Engineer / Tech Lead) |
 
-Design Specの思想と既存デザインシステムに整合する範囲であれば、
-モックアップを待たずに実装を提案してよい。デザイン判断・情報設計が
-必要な部分(コピー、IA、ページ構成の変更)は、その旨を明示した上で
-確認を求める。「実装しました。理由はDecision Logに書きました」と
-報告する形を基本とし、許可を待つスタイルにはしない。
+Mockups are not required to start implementation. If the direction can
+be inferred from Design Spec + Decision Log + the existing design
+system, implement it and report:
 
-## 現在のルール(重要)
+> "Implemented X. Reasoning is in Decision Log NNNN."
 
-**β公開まで新機能は増やさない。** 新しいコンポーネント・新しい
-ページ・新しい機能(Version UI、変更履歴表示、Concept Graph等)は
-すべて Parking Lot。今は「作る」フェーズではなく「整える」フェーズ。
-迷ったら実装せず、Decision Logに Parking Lot 行きの理由を書く。
+Do not wait for permission. Ask first only when the decision is about
+content, copy, or information architecture (what a page is for, what
+it should say) — not about how to build it.
 
-β公開の優先順位は `README.md`(「現在の方針: β公開優先」)を参照。
+---
 
-## 技術スタック
+# Coding Rules
 
-- Astro(最新安定版) / TypeScript(strict) / CSS Modules
-- UIライブラリ・Tailwind・アニメーションライブラリは導入しない
-- 色・タイポ・余白はすべて `src/styles/tokens.css` に一元管理し、
-  コンポーネント側に値をハードコードしない
-- デプロイはCloudflare Pages想定だが、特定サービスに依存しない
-  静的サイト構成を保つ
+- Keep components small, single-responsibility, and easy to replace.
+- Never hardcode colors, spacing, or typography in component CSS —
+  always reference `tokens.css`.
+- Don't introduce a library to solve a problem a plain function or a
+  few CSS rules already solve.
+- Don't change Design Spec's worldview, copy, or information
+  architecture for implementation convenience.
+- Don't change `tokens.css` values based on "readability" or "looks
+  more modern" — those are the Project Owner / ChatGPT's decisions.
 
-## ドキュメント運用(コードと同じ重みで扱う)
+---
 
-このプロジェクトでは、コードも研究成果の一部。実装だけでなく、
-設計判断や思想とのつながりも記録する。**以下は実装作業とセットで
-必ず更新する**。
+# Documentation
 
-- `docs/Design_Spec/`: 決定済みの設計。上書きせず新バージョンを追加する
-- `docs/Decision_Log/`: 実装上の判断。過去の判断は削除・上書きせず、
-  新しい番号で追加し「なぜ変更したか / どのDecisionを置き換えたか」を書く。
-  置き換えられた側は状態欄に「一部上書き済み(→ NNNN)」と明記する
-- `docs/Research_Log/`: 思想的な背景のメモ(日付ごとに1ファイル)
-- `docs/Project_Journal/`: プロジェクトの歴史。その日に何が起きたか
-- `docs/beta-launch-checklist.md`: 公開前確認用。実装タスクではない
+Every implementation change ships with matching documentation updates.
+Code and documentation are committed as part of the same unit of work
+(though usually as separate commits — see Commit Rules).
 
-実装が「実装として自然に決められる範囲」か「情報設計としてChatGPT/
-プロジェクトオーナーに確認すべき範囲」かの切り分けは、Claude側で
-判断してよい。判断した場合はその理由をDecision Logに残す。
+- `docs/Design_Spec/`: finalized design. Never overwritten — new
+  versions are added as new files (`v0.4.md`, `v0.5.md`, ...).
+- `docs/Decision_Log/`: implementation decisions. **Decision Log Rule**:
+  never delete or overwrite a past entry. When a decision changes, add
+  a new numbered entry explaining why it changed, what was learned,
+  and which decision it replaces. Mark the replaced entry's status as
+  "superseded (→ NNNN)" without removing it. Each entry includes:
+  Decision, 採用理由 (Rationale), 他の案 (Alternatives), 将来の変更可能性
+  (Future changes), and Research Context (how this connects to the
+  studio's philosophy).
+- `docs/Research_Log/`: the history of thinking — direction discussed
+  with ChatGPT, one file per date.
+- `docs/Project_Journal/`: the history of events — what happened, one
+  file per date.
+- `docs/beta-launch-checklist.md`: operational, not a decision record.
+  Free to edit directly.
 
-## コミットメッセージ
+Deciding whether something is "implementation, proceed" vs.
+"information architecture, ask first" is Claude's judgment call.
+Record that judgment in Decision Log either way.
 
-`type(scope): 日本語で役割を書く` の形式。技術的な要約に留めず、
-「なぜそれをしたか」が数年後に読んでも伝わるようにする。
+---
+
+# Commit Rules
+
+Format: `type(scope): 日本語で役割を書く`
 
 ```
 feat(hero): 研究室の入口を実装
@@ -81,16 +174,27 @@ refactor(tokens): 思考時間としての余白を整理
 docs: Hero設計の背景を記録
 ```
 
-type: `feat` / `refactor` / `style` / `docs` / `chore` / `fix`。
-詳細は `CONTRIBUTING.md` を参照。
+`type`: `feat` / `refactor` / `style` / `docs` / `chore` / `fix`.
+Split implementation and documentation into separate commits when
+practical — history should read as a sequence of meaningful units,
+not one giant diff.
 
-実装作業を1コミットにまとめず、実装とドキュメント更新を分けて
-コミットすることを基本とする(履歴として意味のある単位にするため)。
+---
 
-## やってはいけないこと
+# Default Behavior
 
-- Design Specの世界観・コピー・情報設計を、実装都合で変更すること
-- 「見やすさ」「モダンさ」を理由に、色・フォント・余白を独断で変更すること
-  (`tokens.css` の値はプロジェクトオーナー/ChatGPT側の決定を待つ)
-- Decision Logの過去のエントリを削除・書き換えること(新しいエントリを追加する)
-- β公開まで、Parking Lot行きの機能に手を付けること
+When uncertain:
+
+- Prefer reusable components.
+- Prefer simple implementations.
+- Prefer documentation over assumptions.
+- Record important decisions.
+- Do not stop implementation only because the design is unfinished.
+- If the implementation can be safely revised later, implement first
+  and document the reasoning.
+
+---
+
+When making decisions, always ask:
+
+**Does this help the Public Research Studio grow?**
