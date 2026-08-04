@@ -85,3 +85,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0010](./0010-page-navigation.md) | ページ間の回遊導線を実装し、ArrowLinkを共通コンポーネント化する |
 | [0011](./0011-fix-circular-navigation.md) | Research Statement と Research の循環導線を解消する |
 | [0012](./0012-research-statement-v0-1.md) | Research Statement v0.1 へ差し替え、propsを段落構造に再設計する |
+| [0013](./0013-latest-version-container.md) | ResearchStatement を「最新版を表示するための器」として位置づける |
