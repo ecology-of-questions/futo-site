@@ -14,24 +14,6 @@
   max-width: 36rem;
 }
 
-.statementLine {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  font-size: var(--fs-lg);
-}
-
-.statementLine a {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.statusLabel {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  opacity: 0.6;
-}
-
 .comingSoon {
   font-size: var(--fs-lg);
   opacity: 0.6;
