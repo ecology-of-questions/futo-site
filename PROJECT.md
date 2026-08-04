@@ -9,8 +9,9 @@ software.
 
 Neither is secondary.
 
-The software exists to support the research.
-The research exists to shape the software.
+Research shapes software.
+Software shapes research.
+Neither comes first.
 
 ---
 
