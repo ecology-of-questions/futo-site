@@ -91,7 +91,7 @@ src/
 | ディレクトリ | 内容 |
 |---|---|
 | [`docs/Design_Spec/`](./docs/Design_Spec/README.md) | 決定済みの設計そのもの(唯一のデザインソース) |
-| [`docs/Decision_Log/`](./docs/Decision_Log/README.md) | 実装上の判断・他に検討した案・思想とのつながり |
+| [`docs/Decision_Log/`](./docs/Decision_Log/README.md) | 実装上の判断・他に検討した案・思想とのつながり(履歴は削除せず積み重ねる) |
 | [`docs/Research_Log/`](./docs/Research_Log/README.md) | ChatGPTとの対話で決まっていく思想的な背景のメモ |
 | [`docs/Project_Journal/`](./docs/Project_Journal/README.md) | プロジェクトの歴史。その日に何が起きたか |
 

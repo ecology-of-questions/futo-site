@@ -13,6 +13,21 @@ Design Spec の内容そのものを繰り返し書き写すことはしない�
 このプロジェクトでは、コードも研究成果の一部です。
 実装だけでなく、設計判断や思想とのつながりも記録します。
 
+## Decision Log Rule
+
+Decision Logは「正しい判断の記録」ではなく、
+**設計がどう進化したかの記録**である。
+
+過去の判断が変更された場合も、削除・上書きはしない。
+新しいDecision Logを追加し、以下を記録する。
+
+- なぜ変更したのか
+- 何を学んだのか
+- どのDecisionを置き換えたのか
+
+置き換えられた側のDecisionは、状態欄に
+「一部上書き済み(→ NNNN)」のように、置き換えた側の番号を明記した上で残す。
+
 ## ルール
 
 - 1判断 = 1ファイル。連番 + 短い名前(例: `0001-design-tokens.md`)
@@ -63,3 +78,4 @@ Design Spec の内容そのものを繰り返し書き写すことはしない�
 | [0003](./0003-hero-props.md) | Hero のコピー・CTA・画像を props で受け取る |
 | [0004](./0004-research-card-preparing.md) | ResearchCard を Preparing 状態に対応させる |
 | [0005](./0005-research-status.md) | ResearchStatus を「出版状態」ではなく「研究状態」として再定義する |
+| [0006](./0006-research-state-model.md) | ResearchStatus を状態遷移込みの Research State Model として設計する |
