@@ -11,15 +11,16 @@
 
 「ふ、と」公開研究室のホームページ実装リポジトリ。
 
-現在 Hero セクションまで実装済みです。以降の Home の各セクションは、
-`Home_[Section]_v1_mockup.png` / `Home_[Section]_v1_spec.md` が
-Creative Director(ChatGPT)側から共有され次第、順番に実装していきます。
+現在 Home(Hero / Research Statement)と Research(プレースホルダー)
+まで実装済みです。β公開優先の方針のため、Design Spec・Decision Log・
+既存デザインシステムから実装方針を推測できる場合は、モックアップを
+待たずに実装を進めています。詳細は「現在の方針: β公開優先」を参照。
 
 ## 唯一のデザインソース
 
-`docs/Design_Spec/` (現在 v0.3) が唯一のデザインソースです。
-実装者(Claude)は世界観・コピー・情報設計を変更しません。
-Design Spec とモックアップに矛盾がある場合は、実装前に確認します。
+`docs/Design_Spec/` (最新 v0.4。v0.3は履歴として保持) が
+唯一のデザインソースです。実装者(Claude)は世界観・コピー・
+情報設計を変更しません。
 
 ## 技術スタック
 
@@ -37,9 +38,11 @@ Design Spec とモックアップに矛盾がある場合は、実装前に確�
 
 ```
 docs/
-  Design_Spec/    # 決定済みの設計(唯一のデザインソース)
+  Design_Spec/    # 決定済みの設計(唯一のデザインソース。v0.3, v0.4)
   Decision_Log/    # 実装上の判断とその理由
   Research_Log/    # 思想的な背景のメモ
+  Project_Journal/ # プロジェクトの歴史
+  beta-launch-checklist.md # β公開前チェックリスト
 src/
   layouts/
     DefaultLayout.astro   # 全ページ共通レイアウト(head, Header/Footer配置)
@@ -49,17 +52,28 @@ src/
     Hero.module.css
     VisualFragment.astro    # 実装済み。画像差し替え可能なスロット
     VisualFragment.module.css
-    SectionTitle.astro
-    ResearchSection.astro   # 各セクション共通ラッパー(Design Spec: Research Block)
-    ResearchCard.astro      # 研究断面等で使う汎用カード
-    ResearchNotes.astro     # 研究便り(Design Spec: Research Notes List)
-    Newsletter.astro
-    Footer.astro
+    ArrowLink.astro         # 実装済み。矢印付きリンク(CTA・ページ間導線で共通使用)
+    ArrowLink.module.css
+    SectionTitle.astro      # 実装済み
+    SectionTitle.module.css
+    ResearchSection.astro   # 実装済み。各セクション共通ラッパー
+    ResearchSection.module.css
+    ResearchStatement.astro # 実装済み。「文章を受け取る器」
+    ResearchStatement.module.css
+    ResearchCard.astro      # 実装済み。研究状態(ResearchStatus)を持つカード
+    ResearchCard.module.css
+    ResearchNotes.astro     # 未実装(研究便り)
+    Newsletter.astro        # 未実装
+    Footer.astro            # 未実装
+  types/
+    research.ts    # ResearchStatus(研究状態モデル)。状態遷移を含む
   styles/
     tokens.css   # 色・タイポ・余白などのデザイントークン(唯一の管理場所)
     global.css   # 最小限のリセット + ベーススタイル。tokens.cssを読み込む
   pages/
-    index.astro  # Home。現在Heroのみ実装
+    index.astro       # Home。Hero + Research Statement 実装済み
+    research.astro     # Research(プレースホルダー)。URL/IAはレビュー対象
+    research.module.css
 ```
 
 ## 設計方針
@@ -136,10 +150,11 @@ Claudeはモックアップを待たずに実装を提案する。デザイン�
 
 β公開に必要な最低限:
 
-1. Home ← Hero / Research Statement 実装済み
+1. Home ← Hero / Research Statement 実装済み(Research Statementは仮コンテンツ)
 2. Research(プレースホルダー) ← 実装済み(`/research`。URL/IAはレビュー対象)
-3. About
-4. β公開
+3. Research Statement 正式版への差し替え ← プロジェクトオーナーが執筆中
+4. About ← 保留(公開直前に情報設計を詰める)
+5. β公開
 
 Research Reviewの詳細UIやバージョン管理などは公開後に進める。
 
@@ -148,3 +163,5 @@ Design Spec・Decision Log・既存デザインシステムから実装方針を
 十分推測できる場合は、モックアップを待たずに実装する。
 思想に関わる判断や、ページ構成そのものが変わりうる場合のみ
 ChatGPT側へ相談する。詳細は [`docs/Research_Log/`](./docs/Research_Log/README.md) を参照。
+
+公開前確認は [`docs/beta-launch-checklist.md`](./docs/beta-launch-checklist.md) を参照。
