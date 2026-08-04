@@ -61,3 +61,4 @@ Design Spec の内容そのものを繰り返し書き写すことはしない�
 | [0001](./0001-design-tokens.md) | 色・タイポ・余白を tokens.css に一元化する |
 | [0002](./0002-visual-fragment.md) | VisualFragment を独立コンポーネントとして分離する |
 | [0003](./0003-hero-props.md) | Hero のコピー・CTA・画像を props で受け取る |
+| [0004](./0004-research-card-preparing.md) | ResearchCard を Preparing 状態に対応させる |
