@@ -1,7 +1,7 @@
 # 0008. ResearchStatement を「文章を受け取る器」として位置づけ直す
 
 - 日付: 2026-08-04
-- 状態: 採用中(0007を補足)
+- 状態: 一部上書き済み(→ 0012。propsをattitudeLines/principleLinesからparagraphsへ再設計)
 
 ## Decision
 

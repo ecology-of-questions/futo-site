@@ -150,11 +150,10 @@ Claudeはモックアップを待たずに実装を提案する。デザイン�
 
 β公開に必要な最低限:
 
-1. Home ← Hero / Research Statement 実装済み(Research Statementは仮コンテンツ)
+1. Home ← Hero / Research Statement 実装済み(Research Statementはv0.1、今後も改訂前提)
 2. Research(プレースホルダー) ← 実装済み(`/research`。URL/IAはレビュー対象)
-3. Research Statement 正式版への差し替え ← プロジェクトオーナーが執筆中
-4. About ← 保留(公開直前に情報設計を詰める)
-5. β公開
+3. About ← 保留(公開直前に情報設計を詰める)
+4. β公開
 
 Research Reviewの詳細UIやバージョン管理などは公開後に進める。
 

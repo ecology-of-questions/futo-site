@@ -6,8 +6,8 @@
 ## コンテンツ
 
 - [x] Home(Hero)
-- [x] Home(Research Statement) — 現在は仮コンテンツ(Design Spec 7・8)
-- [ ] Research Statement 正式版への差し替え(「問いの生態系」のステートメント)
+- [x] Home(Research Statement) — v0.1(First Draft)反映済み。今後も改訂前提
+- [x] Research Statement 正式版への差し替え(v0.1 First Draft)
 - [x] Research ページ(プレースホルダー)
 - [ ] About(運営者について。公開直前に情報設計を詰める)
 

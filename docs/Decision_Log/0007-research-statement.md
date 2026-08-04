@@ -1,7 +1,7 @@
 # 0007. Research Statement をモックアップなしで実装する
 
 - 日付: 2026-08-04
-- 状態: 採用中(レビュー対象)
+- 状態: 一部上書き済み(→ 0012。正式なResearch Statement v0.1へ差し替え)
 
 ## Decision
 
