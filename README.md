@@ -134,14 +134,15 @@ Claudeはモックアップを待たずに実装を提案する。デザイン�
 
 β公開に必要な最低限:
 
-1. Home ← Hero実装済み。Research Statement待ち
-2. Research Statement ← 次のマイルストーン(モックアップ/Spec待ち)
-3. About
-4. Research(プレースホルダー。"Status: Preparing" 程度のカードで十分。詳細UIは公開後)
-5. β公開
+1. Home ← Hero / Research Statement 実装済み
+2. About
+3. Research(プレースホルダー。"Status: Preparing" 程度のカードで十分。詳細UIは公開後)
+4. β公開
 
 Research Reviewの詳細UIやバージョン管理などは公開後に進める。
-実装はこれまで通り、モックアップ・仕様書・レビューが揃ってから着手する。
 
-各セクションは `Home_[Section]_v1_mockup.png` と
-`Home_[Section]_v1_spec.md` が揃ってから実装を開始します。
+**モックアップ待ちルールはβ公開前までの暫定ルールだった**。
+Design Spec・Decision Log・既存デザインシステムから実装方針を
+十分推測できる場合は、モックアップを待たずに実装する。
+思想に関わる判断や、ページ構成そのものが変わりうる場合のみ
+ChatGPT側へ相談する。詳細は [`docs/Research_Log/`](./docs/Research_Log/README.md) を参照。

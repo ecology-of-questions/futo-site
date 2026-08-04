@@ -79,3 +79,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0004](./0004-research-card-preparing.md) | ResearchCard を Preparing 状態に対応させる |
 | [0005](./0005-research-status.md) | ResearchStatus を「出版状態」ではなく「研究状態」として再定義する |
 | [0006](./0006-research-state-model.md) | ResearchStatus を状態遷移込みの Research State Model として設計する |
+| [0007](./0007-research-statement.md) | Research Statement をモックアップなしで実装する |
