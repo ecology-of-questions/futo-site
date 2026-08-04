@@ -83,3 +83,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0008](./0008-research-statement-container.md) | ResearchStatement を「文章を受け取る器」として位置づけ直す |
 | [0009](./0009-research-placeholder-page.md) | Research ページ(プレースホルダー)を About より先に実装する |
 | [0010](./0010-page-navigation.md) | ページ間の回遊導線を実装し、ArrowLinkを共通コンポーネント化する |
+| [0011](./0011-fix-circular-navigation.md) | Research Statement と Research の循環導線を解消する |

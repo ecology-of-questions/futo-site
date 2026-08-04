@@ -165,3 +165,8 @@ Design Spec・Decision Log・既存デザインシステムから実装方針を
 ChatGPT側へ相談する。詳細は [`docs/Research_Log/`](./docs/Research_Log/README.md) を参照。
 
 公開前確認は [`docs/beta-launch-checklist.md`](./docs/beta-launch-checklist.md) を参照。
+
+**Rule: β公開まで新機能は増やさない。** 新しいコンポーネントを
+作るフェーズは終え、既存の実装が「公開研究室全体として自然か」を
+整えるフェーズに入っている。今週の残りは、Research Statement正式版・
+About・モバイル確認・OGP・公開のみ。
