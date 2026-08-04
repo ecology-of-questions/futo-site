@@ -62,3 +62,4 @@ Design Spec の内容そのものを繰り返し書き写すことはしない�
 | [0002](./0002-visual-fragment.md) | VisualFragment を独立コンポーネントとして分離する |
 | [0003](./0003-hero-props.md) | Hero のコピー・CTA・画像を props で受け取る |
 | [0004](./0004-research-card-preparing.md) | ResearchCard を Preparing 状態に対応させる |
+| [0005](./0005-research-status.md) | ResearchStatus を「出版状態」ではなく「研究状態」として再定義する |
