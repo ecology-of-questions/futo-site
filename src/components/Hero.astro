@@ -20,6 +20,7 @@
  * ------------------------------------------------------------
  */
 import VisualFragment from "./VisualFragment.astro";
+import ArrowLink from "./ArrowLink.astro";
 import styles from "./Hero.module.css";
 
 interface Props {
@@ -63,10 +64,7 @@ const {
       {bodyLines.map((line) => <p>{line}</p>)}
     </div>
 
-    <a class={styles.cta} href={ctaHref}>
-      {ctaLabel}
-      <span aria-hidden="true" class={styles.ctaArrow}>→</span>
-    </a>
+    <ArrowLink href={ctaHref} label={ctaLabel} />
 
     {
       scrollTargetId && (

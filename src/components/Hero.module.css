@@ -50,31 +50,6 @@
   margin: 0;
 }
 
-.cta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  margin-top: var(--space-2);
-  text-decoration: none;
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 2px;
-  transition: opacity var(--transition-base);
-}
-
-.cta:hover,
-.cta:focus-visible {
-  opacity: 0.6;
-}
-
-.ctaArrow {
-  transition: transform var(--transition-base);
-}
-
-.cta:hover .ctaArrow,
-.cta:focus-visible .ctaArrow {
-  transform: translateX(4px);
-}
-
 .scroll {
   display: inline-flex;
   flex-direction: column;

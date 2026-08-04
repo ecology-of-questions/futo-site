@@ -21,6 +21,7 @@
  */
 import ResearchSection from "./ResearchSection.astro";
 import SectionTitle from "./SectionTitle.astro";
+import ArrowLink from "./ArrowLink.astro";
 import styles from "./ResearchStatement.module.css";
 
 interface Props {
@@ -29,9 +30,13 @@ interface Props {
   attitudeLines: string[];
   /** Design Spec 8: Design Principles */
   principleLines: string[];
+  /** Researchページ等、続きへの導線(回遊のため。Decision Log 0010) */
+  linkLabel?: string;
+  linkHref?: string;
 }
 
-const { title, attitudeLines, principleLines } = Astro.props;
+const { title, attitudeLines, principleLines, linkLabel, linkHref } =
+  Astro.props;
 ---
 
 <ResearchSection ariaLabel={title} id="research-statement">
@@ -45,4 +50,12 @@ const { title, attitudeLines, principleLines } = Astro.props;
       {principleLines.map((line) => <li>{line}</li>)}
     </ul>
   </div>
+
+  {
+    linkLabel && linkHref && (
+      <div class={styles.link}>
+        <ArrowLink href={linkHref} label={linkLabel} />
+      </div>
+    )
+  }
 </ResearchSection>

@@ -1,0 +1,24 @@
+---
+/**
+ * ArrowLink.astro
+ * ------------------------------------------------------------
+ * 役割: 「◯◯について知る →」のような、矢印付きのテキストリンク。
+ * もともとHeroのCTA専用に実装していたスタイルを、ページ間の回遊
+ * (Home → Research 等)でも使うため共通コンポーネントとして切り出した
+ * (Decision Log 0010参照)。
+ * ------------------------------------------------------------
+ */
+import styles from "./ArrowLink.module.css";
+
+interface Props {
+  href: string;
+  label: string;
+}
+
+const { href, label } = Astro.props;
+---
+
+<a class={styles.link} href={href}>
+  {label}
+  <span aria-hidden="true" class={styles.arrow}>→</span>
+</a>

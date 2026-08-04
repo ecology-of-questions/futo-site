@@ -19,3 +19,7 @@
   font-size: var(--fs-lg);
   line-height: var(--lh-body);
 }
+
+.link {
+  margin-top: var(--space-2);
+}

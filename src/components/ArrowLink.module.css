@@ -1,0 +1,23 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
+  transition: opacity var(--transition-base);
+}
+
+.link:hover,
+.link:focus-visible {
+  opacity: 0.6;
+}
+
+.arrow {
+  transition: transform var(--transition-base);
+}
+
+.link:hover .arrow,
+.link:focus-visible .arrow {
+  transform: translateX(4px);
+}
