@@ -3,13 +3,14 @@
  * index.astro (Home)
  * ------------------------------------------------------------
  * Home_Hero_v1_mockup.png / Home_Hero_v1_spec.md に基づき Hero を実装済み。
- * Research Statement は、β公開優先の方針転換に伴い、モックアップを
- * 待たずにDesign Spec(7. Research Attitude / 8. Design Principles)を
- * 元に実装した(Decision Log 0007)。
+ * Research Statement は、Design Spec 7・8による仮コンテンツを経て、
+ * 2026-08-04 に Research Statement v0.1(First Draft)へ差し替えた
+ * (Decision Log 0012)。「まだ途中」であることを前提とした文章であり、
+ * 今後の改訂は paragraphs 配列の書き換えだけで反映できる。
  * 以下の順で残りのセクションを追加していく(Design Spec 4: Home Structure)。
  *
  * 1. Hero                     ← 実装済み
- * 2. Research Statement       ← 実装済み(モックアップなし。レビュー対象)
+ * 2. Research Statement       ← 実装済み(v0.1)
  * 3. 今、取り組んでいること     ← β公開では後回し可(優先度: README参照)
  * 4. 研究断面
  * 5. 研究便り
@@ -46,22 +47,46 @@ import ResearchStatement from "@components/ResearchStatement.astro";
 
   <ResearchStatement
     title="Research Statement"
-    attitudeLines={[
-      "時の流れに身を任せる。",
-      "数字がすべてではない。感じることがすべて。",
-      "目的的にならない。",
-      "問いを急がない。",
-      "暮らしを研究から切り離さない。",
-    ]}
-    principleLines={[
-      "観察から始める。",
-      "過程こそ主役。",
-      "暮らしに根ざす。",
-      "何度も立ち戻れる場所にする。",
+    paragraphs={[
+      [
+        "問いは、いつ生まれるのでしょうか。",
+        "よく、「問いを立てる」と言います。",
+        "問いは、本当に立てるものなのでしょうか。",
+        "それとも、私たちが気づくより前から、すでに立ち上がり始めているものなのでしょうか。",
+      ],
+      ["この研究室は、その仮説を確かめるためにあります。"],
+      [
+        "そのために、",
+        "暮らしを観察し、",
+        "本を読み、",
+        "手を動かし、",
+        "人と対話しながら、",
+        "考えを書き換え続けています。",
+      ],
+      [
+        "ここにある文章やプロトタイプは、",
+        "完成した答えではありません。",
+        "その時点で見えていることを記録し、",
+        "実践を通して更新していくための断面です。",
+      ],
+      [
+        "考えが変わることも、",
+        "仮説が覆ることも、",
+        "この研究の一部だと考えています。",
+      ],
+      ["この研究は、まだ途中です。"],
     ]}
     linkLabel="研究の記録を見る"
     linkHref="/research#research-reviews"
   />
+  <!--
+    TODO: 上記paragraphsはResearch Statement v0.1(First Draft)。
+    「まだ途中」であることが文章自体に明言されている通り、今後の
+    改訂で差し替わる前提(改訂時もこの配列を書き換えるだけでよい)。
+    段落の区切り方(どの行をどの<p>にまとめるか)はClaude側の実装判断。
+    文章そのものは変更していない。
+  -->
+</DefaultLayout>
   <!--
     TODO: 上記のattitudeLines/principleLinesは仮コンテンツ(Design Spec 7・8)。
     正式なResearch Statement(「問いの生態系」のステートメント)が

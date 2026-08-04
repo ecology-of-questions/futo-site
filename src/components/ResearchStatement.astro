@@ -6,17 +6,20 @@
  * 「Research Statement＝思想」と定義されている。
  *
  * 【重要】このコンポーネントは「文章を受け取る器」である。
- * コンテンツ(attitudeLines / principleLines)は差し替えられることを
- * 前提としている。現在 index.astro から渡している文章
- * (Design Spec 7: Research Attitude / 8: Design Principles)は、
- * 正式なResearch Statement(「問いの生態系」のステートメント)が
- * 執筆されるまでの仮コンテンツである(Decision Log 0008参照)。
- * レイアウト・タイポグラフィ・余白は確定事項として扱ってよい。
+ * コンテンツ(paragraphs)は差し替えられることを前提としている。
+ *
+ * 2026-08-04: Research Statement v0.1(First Draft)を受け、
+ * propsの形を attitudeLines / principleLines(短文の2リスト)から
+ * paragraphs(段落の配列、各段落は複数行の配列)へ作り直した
+ * (Decision Log 0012)。散文としての改行・段落のリズムを
+ * そのまま保持できるようにするため。
+ *
+ * v0.1は「まだ途中である」ことを明言した文章であり、今後も
+ * 更新される前提。レイアウト・タイポグラフィ・余白は確定事項として
+ * 扱ってよいが、paragraphsの中身は今後も変わりうる。
  *
  * コンテンツはpropsで受け取り、コンポーネント自体には
  * ハードコードしない(Decision Log 0003の方針を踏襲)。
- * 正式なステートメントが届いたら、index.astro側のpropsを
- * 差し替えるだけで反映できる。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
@@ -26,29 +29,32 @@ import styles from "./ResearchStatement.module.css";
 
 interface Props {
   title: string;
-  /** Design Spec 7: Research Attitude */
-  attitudeLines: string[];
-  /** Design Spec 8: Design Principles */
-  principleLines: string[];
-  /** Researchページ等、続きへの導線(回遊のため。Decision Log 0010) */
+  /** 段落の配列。各段落は複数行(改行位置はコピーの意図そのものなので変更しない) */
+  paragraphs: string[][];
+  /** Researchページ等、続きへの導線(回遊のため。Decision Log 0010・0011) */
   linkLabel?: string;
   linkHref?: string;
 }
 
-const { title, attitudeLines, principleLines, linkLabel, linkHref } =
-  Astro.props;
+const { title, paragraphs, linkLabel, linkHref } = Astro.props;
 ---
 
 <ResearchSection ariaLabel={title} id="research-statement">
   <SectionTitle>{title}</SectionTitle>
 
   <div class={styles.statement}>
-    <ul class={styles.list}>
-      {attitudeLines.map((line) => <li>{line}</li>)}
-    </ul>
-    <ul class={styles.list}>
-      {principleLines.map((line) => <li>{line}</li>)}
-    </ul>
+    {
+      paragraphs.map((lines) => (
+        <p class={styles.paragraph}>
+          {lines.map((line, i) => (
+            <Fragment>
+              {i > 0 && <br />}
+              {line}
+            </Fragment>
+          ))}
+        </p>
+      ))
+    }
   </div>
 
   {
