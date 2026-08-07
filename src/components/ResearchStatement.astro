@@ -28,6 +28,12 @@
  *
  * コンテンツはpropsで受け取り、コンポーネント自体には
  * ハードコードしない(Decision Log 0003の方針を踏襲)。
+ *
+ * 2026-08-07: Research Statement正式版を受け、`heading`(文章自体の
+ * 見出し)を`title`(セクション共通の控えめなラベル。Decision Log 0007
+ * の通りResearch Reviews等と同じ扱い)とは別に追加した(Decision Log
+ * 0016)。titleは今まで通りSectionTitleとして小さく表示し、heading
+ * は文章本文の一部として、段落より大きい見出しサイズで表示する。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
@@ -37,6 +43,8 @@ import styles from "./ResearchStatement.module.css";
 
 interface Props {
   title: string;
+  /** 文章自体の見出し(SectionTitleの控えめなラベルとは別。Decision Log 0016) */
+  heading?: string;
   /** 段落の配列。各段落は複数行(改行位置はコピーの意図そのものなので変更しない) */
   paragraphs: string[][];
   /** Researchページ等、続きへの導線(回遊のため。Decision Log 0010・0011) */
@@ -44,11 +52,13 @@ interface Props {
   linkHref?: string;
 }
 
-const { title, paragraphs, linkLabel, linkHref } = Astro.props;
+const { title, heading, paragraphs, linkLabel, linkHref } = Astro.props;
 ---
 
 <ResearchSection ariaLabel={title} id="research-statement">
   <SectionTitle>{title}</SectionTitle>
+
+  {heading && <p class={styles.heading}>{heading}</p>}
 
   <div class={styles.statement}>
     {

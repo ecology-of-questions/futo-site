@@ -1,3 +1,11 @@
+.heading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  max-width: 36rem; /* 段落と同じ読みやすい行幅(Design Spec 9) */
+  margin: var(--space-3) 0 0;
+}
+
 .statement {
   display: flex;
   flex-direction: column;

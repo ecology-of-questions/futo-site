@@ -1,50 +1,33 @@
 ---
 /**
- * index.astro (Home)
+ * research-statement.astro (Research Statement 全文)
  * ------------------------------------------------------------
- * Home_Hero_v1_mockup.png / Home_Hero_v1_spec.md に基づき Hero を実装済み。
+ * 役割: Research Statement正式版の全文を掲載する独立ページ。
+ * Homeには冒頭からの抜粋のみを掲載し(index.astro)、「Research
+ * Statement 全文を読む」リンクの遷移先としてこのページを新設した
+ * (Decision Log 0016)。
  *
- * Research Statementは、Design Spec 7・8による仮コンテンツ→v0.1
- * (First Draft)を経て、2026-08-07に正式版へ差し替えた(Decision Log
- * 0016)。Homeには冒頭からの抜粋のみを掲載し、全文は独立ページ
- * `/research-statement` に掲載する(Home → Research Statement全文
- * → Research という一本道の導線をDesign Spec v0.4のIAに合わせて
- * 完成させた)。
+ * Design Spec v0.4のIA図ではResearch Statementは「Homeに属する宣言」
+ * と位置づけられているが、独立ページを持つとは明言されていない。
+ * 今回、抜粋+全文リンクという構成を実現するために掲載先を新たに
+ * 決める必要があり、プロジェクトオーナー確認のうえ本ページを新設した
+ * (Decision Log 0016参照)。
  *
- * 以下の順で残りのセクションを追加していく(Design Spec 4: Home Structure)。
+ * 末尾には、Design Spec v0.4が定める「Home → Research Statement →
+ * Research」の一本道の導線を踏襲し、Research Reviewsへのリンクを
+ * 引き続き配置する。
  *
- * 1. Hero                     ← 実装済み
- * 2. Research Statement(抜粋) ← 実装済み(正式版)
- * 3. 今、取り組んでいること     ← β公開では後回し可(優先度: README参照)
- * 4. 研究断面
- * 5. 研究便り
- * 6. Footer (DefaultLayout側で共通配置)
- *
- * β公開の優先順位(README「現在の方針: β公開優先」)では、
- * Home以降 About → Research(プレースホルダー) の順に進める。
+ * ResearchStatementコンポーネント自体は「文章を受け取る器」のまま
+ * 変更していない(Decision Log 0008・0013)。Home(抜粋)とこのページ
+ * (全文)は、同じコンポーネントにpropsとして異なるparagraphsを
+ * 渡しているだけである。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
-import Hero from "@components/Hero.astro";
 import ResearchStatement from "@components/ResearchStatement.astro";
 ---
 
-<DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践">
-  <Hero
-    headingLines={["気づいたら、", "そこに", "問いがある。"]}
-    bodyLines={[
-      "世界を、そっと観察する。",
-      "小さな気づきを、ていねいに拾い集める。",
-      "その積み重ねが、研究になり、実践になる。",
-      "ふ、と は、そんな時間を届ける研究室です。",
-    ]}
-    ctaLabel="研究について知る"
-    ctaHref="#research-statement"
-    scrollTargetId="research-statement"
-    visualSrc="/images/hero/03_top_page_artwork.png"
-    visualAlt=""
-  />
-
+<DefaultLayout title="Research Statement ｜ ふ、と">
   <ResearchStatement
     title="Research Statement"
     heading="気づいたら、そこに問いがある。"
@@ -94,15 +77,18 @@ import ResearchStatement from "@components/ResearchStatement.astro";
         "けれど、世界をよく見ようとし、わからないことと付き合いながら理解を育てていくことは、研究者だけのものではないはずです。",
         "公開研究室「ふ、と」は、そうした探究を、立場や専門分野を越えてひらいていくための場所です。",
       ],
+      ["この研究の目的は、論文を書くことではありません。"],
+      [
+        "「ふと」という、人と世界が出会う小さな瞬間を観察し、その先で問いがどのように育っていくのかを理解すること。",
+      ],
+      [
+        "そのために、観察し、記録し、対話し、つくり、試し、また観察する。その過程を、完成する前からひらいていくこと。",
+      ],
+      [
+        "公開研究室「ふ、と」は、「ふと」から育っていく問いを、ともに観察し、記録し、ひらいていくための場所です。",
+      ],
     ]}
-    linkLabel="Research Statement 全文を読む"
-    linkHref="/research-statement"
+    linkLabel="研究の記録を見る"
+    linkHref="/research#research-reviews"
   />
-  <!--
-    TODO: 上記paragraphsはResearch Statement正式版からの抜粋(冒頭〜
-    「立場や専門分野を越えてひらいていくための場所です。」まで)。
-    全文はsrc/pages/research-statement.astroに掲載している。
-    抜粋の範囲・全文との切れ目はClaude側の実装判断(Decision Log 0016)。
-    文章そのもの(語順・言葉遣い)は変更していない。
-  -->
 </DefaultLayout>
