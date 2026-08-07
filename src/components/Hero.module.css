@@ -10,8 +10,13 @@
 
 @media (min-width: 900px) {
   .hero {
-    /* Hero Spec: Desktop 左42% コピー / 右58% ビジュアル */
-    grid-template-columns: 42% 1fr;
+    /* Hero Spec: Desktop 左42% コピー / 右58% ビジュアルだったが、
+       ビジュアルの枠を画像の縦横比(3:2)に合わせたことで、コピー幅を
+       %ではなく読みやすさの下限(280px)〜上限(22rem)で固定し、
+       残りをビジュアルに割り当てる形に変更した。コピー列が%で
+       広がり続けるより、ビジュアルにより多くの幅(≒高さ)を渡せる
+       (2026-08-07)。 */
+    grid-template-columns: minmax(280px, 22rem) 1fr;
     align-items: center;
     gap: var(--space-4);
     padding-block: var(--space-7) var(--space-6);
@@ -37,6 +42,10 @@
   font-size: var(--fs-3xl);
   line-height: var(--lh-hero-heading);
   font-weight: 500;
+  /* headingLinesの改行位置はコピーの意図そのものであり(Hero.astro props
+     コメント参照)、ブラウザの自動折り返しが意図しない位置(文字の途中)に
+     割り込まないようにする */
+  word-break: keep-all;
 }
 
 .body {
@@ -90,7 +99,12 @@
 @media (min-width: 900px) {
   .visual {
     order: 1;
-    height: 100%;
-    min-height: 480px;
+    /* 03_top_page_artwork.png(1536x1024 = 3:2)に枠の比率を合わせる。
+       以前はheight:100%+min-height:480pxで縦長寄りの枠になっており、
+       画像(横長)をcontainで収めると上下に余白が生まれていた
+       (2026-08-07)。枠を画像と同じ3:2にすることで、余白・トリミング
+       なしで画像いっぱいに表示できる。将来ビジュアルの画像自体を
+       差し替える際、縦横比が変わる場合はこの値もあわせて見直す。 */
+    aspect-ratio: 3 / 2;
   }
 }
