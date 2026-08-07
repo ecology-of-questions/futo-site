@@ -88,3 +88,6 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0013](./0013-latest-version-container.md) | ResearchStatement を「最新版を表示するための器」として位置づける |
 | [0014](./0014-claude-md-charter.md) | CLAUDE.md を「開発ルール集」から「プロジェクト憲章」へ再構成する |
 | [0015](./0015-project-md.md) | PROJECT.md を新設し、CLAUDE.md と役割を分離する |
+| [0016](./0016-research-statement-final.md) | Research Statement正式版へ差し替え、全文ページを新設する |
+| [0017](./0017-hero-heading-wording.md) | Heroの見出し文言を更新し、Design Spec Brand Statementとの表記差分を記録する |
+| [0018](./0018-hero-visual-fit.md) | Heroのビジュアルを画像の縦横比に合わせ、見出しの改行を固定する |
