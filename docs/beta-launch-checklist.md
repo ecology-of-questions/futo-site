@@ -20,7 +20,7 @@
 
 ## 見た目・体験
 
-- [ ] モバイル確認(Hero / Research Statement / Research ページ)
+- [x] モバイル確認(Hero / Research Statement / Research ページ) — Heroのモバイル表示順バグを修正(Decision Log 0020)
 - [ ] リンク確認(内部リンク・アンカーがすべて正しい遷移先か)
 - [ ] Hero Visual Fragment の画像差し替え(現在プレースホルダー表示)
 - [ ] 色(tokens.css)の最終確認 — 現在は仮値
@@ -29,7 +29,7 @@
 
 - [ ] favicon
 - [ ] OGP(タイトル・説明文・画像)
-- [ ] 404ページ
+- [x] 404ページ(Decision Log 0019)
 - [ ] 各ページの `<title>` / meta description 確認
 - [ ] Footer の内容確認(現在未実装)
 - [ ] Header の内容確認(現在未実装)

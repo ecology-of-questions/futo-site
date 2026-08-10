@@ -91,3 +91,5 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0016](./0016-research-statement-final.md) | Research Statement正式版へ差し替え、全文ページを新設する |
 | [0017](./0017-hero-heading-wording.md) | Heroの見出し文言を更新し、Design Spec Brand Statementとの表記差分を記録する |
 | [0018](./0018-hero-visual-fit.md) | Heroのビジュアルを画像の縦横比に合わせ、見出しの改行を固定する |
+| [0019](./0019-404-page.md) | 404ページを、静かなトーンの独立レイアウトとして実装する |
+| [0020](./0020-hero-mobile-order-fix.md) | Heroのモバイル表示順バグを修正する(ビジュアルがコピーより先に出ていた) |
