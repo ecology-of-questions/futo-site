@@ -1,0 +1,37 @@
+---
+/**
+ * 404.astro (Not Found)
+ * ------------------------------------------------------------
+ * 役割: 存在しないURLへのアクセス時に表示するページ。
+ * Astro/Cloudflare Pagesの規約により、`src/pages/404.astro`は
+ * ビルド時に自動的に404レスポンス用のページ(`/404.html`)として
+ * 出力される。
+ *
+ * 「エラー」を強く主張しないトーンで作る。Design Spec 8
+ * (完成度よりも育てられることを優先する。空の棚や"Coming Soon"は
+ * 隠すべき未完成ではなく積極的に使ってよい)と同じ姿勢で、ページが
+ * 見つからないことを詫びる代わりに、静かに伝えてHomeへの導線だけを
+ * 用意する。判断の背景はDecision Log 0019参照。
+ *
+ * ResearchSectionは「Homeを構成する各セクションの共通ラッパー」と
+ * 位置づけられており(ResearchSection.astro参照)、このページは
+ * Homeの一部ではないため使わず、Heroと同様に独自レイアウトを持つ。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ArrowLink from "@components/ArrowLink.astro";
+import styles from "./404.module.css";
+---
+
+<DefaultLayout title="ページが見つかりません ｜ ふ、と">
+  <section class={styles.section} aria-label="ページが見つかりません">
+    <h1 class={styles.heading}>気づいたら、道に迷っていた。</h1>
+    <div class={styles.body}>
+      <p>探していたページは、ここにはないようです。</p>
+      <p>けれど、空の棚を恐れない。それが、この研究室の姿勢です。</p>
+    </div>
+    <div class={styles.link}>
+      <ArrowLink href="/" label="Homeへ戻る" />
+    </div>
+  </section>
+</DefaultLayout>
