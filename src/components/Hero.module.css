@@ -28,14 +28,11 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-3);
-  /* Mobileでは コピー → ビジュアル の順(Design Spec準拠) */
-  order: 1;
-}
-
-@media (min-width: 900px) {
-  .copy {
-    order: 0;
-  }
+  /* Mobileでは コピー → ビジュアル の順(Design Spec準拠)。
+     .copy/.visualともにDOM順(copy→visual)をそのまま使えば、
+     1カラムのMobileでも2カラムのDesktopでも狙った並びになるため、
+     order指定は不要(2026-08-10: 以前はorderの値が意図と逆で、
+     Mobileでビジュアルがコピーより先に表示されるバグになっていた)。 */
 }
 
 .heading {
@@ -92,19 +89,15 @@
 }
 
 .visual {
-  order: 0;
   width: 100%;
-}
-
-@media (min-width: 900px) {
-  .visual {
-    order: 1;
-    /* 03_top_page_artwork.png(1536x1024 = 3:2)に枠の比率を合わせる。
-       以前はheight:100%+min-height:480pxで縦長寄りの枠になっており、
-       画像(横長)をcontainで収めると上下に余白が生まれていた
-       (2026-08-07)。枠を画像と同じ3:2にすることで、余白・トリミング
-       なしで画像いっぱいに表示できる。将来ビジュアルの画像自体を
-       差し替える際、縦横比が変わる場合はこの値もあわせて見直す。 */
-    aspect-ratio: 3 / 2;
-  }
+  /* 03_top_page_artwork.png(1536x1024 = 3:2)に枠の比率を合わせる。
+     以前はheight:100%+min-height:480pxで縦長寄りの枠になっており、
+     画像(横長)をcontainで収めると上下に余白が生まれていた
+     (2026-08-07)。枠を画像と同じ3:2にすることで、余白・トリミング
+     なしで画像いっぱいに表示できる。将来ビジュアルの画像自体を
+     差し替える際、縦横比が変わる場合はこの値もあわせて見直す。
+     Mobile(縦積み)でも同じ比率を明示しておくことで、枠の高さが
+     ブラウザ実装依存のフォールバックに委ねられず、画像が極端に
+     縦長・横長になることを防ぐ(2026-08-10 モバイル確認)。 */
+  aspect-ratio: 3 / 2;
 }
