@@ -108,18 +108,28 @@
   .visual {
     /* コピーの背景に大きく重ねる「透かし」表現(2026-08-15、
        Decision Log 0023)。.hero(position: relative)を基準に
-       全面配置し、低opacityでコピーの可読性を確保しつつ、
+       全面配置し、opacityでコピーの可読性を確保しつつ、
        z-indexで.copy(z-index:1)より確実に背面へ回す。
        クリック・タップ操作に干渉しないようpointer-eventsも切る。
        aspect-ratioをautoに戻すのは、inset:0による.hero基準の
-       全面ストレッチをaspect-ratioで妨げないようにするため
-       (画像自体の3:2比率はVisualFragment側のobject-fit: contain
-       が担うため、この箱の比率を固定する必要はない)。 */
+       全面ストレッチをaspect-ratioで妨げないようにするため。 */
     position: absolute;
     inset: 0;
     z-index: 0;
     aspect-ratio: auto;
-    opacity: 0.2;
+    opacity: 0.4;
     pointer-events: none;
+  }
+
+  /* VisualFragment側のobject-fit: containは、.visualがDesktopの
+     3:2の箱を前提にした値。Mobileでは.visualがコピーの縦に長い
+     背面全体(inset:0)まで広がるため、containのままだと画像が
+     横幅基準の細い帯にレターボックスされ、絵柄のごく一部
+     (キャンバス中央〜右寄りに集中している範囲。Decision Log 0018
+     参照)しか透けて見えない。coverに切り替え、背面エリア全体に
+     絵柄が大きく行き渡るようにする(2026-08-15追記)。 */
+  .visual :global(img) {
+    object-fit: cover;
+    object-position: center;
   }
 }
