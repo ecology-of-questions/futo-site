@@ -12,16 +12,29 @@
 
 @media (min-width: 900px) {
   .hero {
-    /* Hero Spec: Desktop 左42% コピー / 右58% ビジュアルだったが、
-       ビジュアルの枠を画像の縦横比(3:2)に合わせたことで、コピー幅を
-       %ではなく読みやすさの下限(280px)〜上限(22rem)で固定し、
-       残りをビジュアルに割り当てる形に変更した。コピー列が%で
-       広がり続けるより、ビジュアルにより多くの幅(≒高さ)を渡せる
-       (2026-08-07)。 */
-    grid-template-columns: minmax(280px, 22rem) 1fr;
+    /* 以前はgrid-template-columns: minmax(280px, 22rem) 1fr;で
+       左コピー/右ビジュアルの2カラムにしていたが、ビジュアルを
+       ページ全体のposition: fixed背景に移した(2026-08-15、
+       Decision Log 0024)ことで2カラム目が不要になり、1カラム
+       (base指定の1frのまま)に戻した。 */
     align-items: center;
-    gap: var(--space-4);
     padding-block: var(--space-7) var(--space-6);
+  }
+
+  .copy {
+    /* 以前はgridの列幅(minmax(280px, 22rem))がコピーの行幅を
+       制限していたが、1カラム化に伴いその制約がなくなったため、
+       他セクションと同じ読みやすい行幅(Design Spec 9)を明示する
+       (2026-08-15、Decision Log 0024)。 */
+    max-width: 36rem;
+  }
+
+  .visual {
+    /* ビジュアルはページ全体の背景(pages/index.module.css)側に
+       移したため、Hero内蔵の.visual(Mobile限定の透かし。
+       Decision Log 0023)はDesktopでは非表示にする
+       (2026-08-15、Decision Log 0024)。 */
+    display: none;
   }
 }
 
@@ -92,15 +105,11 @@
 
 .visual {
   width: 100%;
-  /* 03_top_page_artwork.png(1536x1024 = 3:2)に枠の比率を合わせる。
-     以前はheight:100%+min-height:480pxで縦長寄りの枠になっており、
-     画像(横長)をcontainで収めると上下に余白が生まれていた
-     (2026-08-07)。枠を画像と同じ3:2にすることで、余白・トリミング
-     なしで画像いっぱいに表示できる。将来ビジュアルの画像自体を
-     差し替える際、縦横比が変わる場合はこの値もあわせて見直す。
-     この既定値はDesktop(gridの2カラム目)向け。Mobileでの
-     「透かし」配置(下記 @media (max-width: 899.98px) 参照)では
-     aspect-ratioをautoに戻し、.hero基準の全面配置に切り替えている。 */
+  /* 03_top_page_artwork.png(1536x1024 = 3:2)に合わせた既定の枠比率
+     (2026-08-07)。Desktopでは@media (min-width: 900px)側で
+     display: noneにするため実際には使われないが、Mobileの
+     @media (max-width: 899.98px)がaspect-ratio: autoで明示的に
+     上書きするまでの基準値として残している。 */
   aspect-ratio: 3 / 2;
 }
 
