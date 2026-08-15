@@ -98,3 +98,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0023](./0023-hero-mobile-visual-watermark.md) | Mobile幅のHeroビジュアルを、縦積みから背景の「透かし」表現に変更する |
 | [0024](./0024-hero-visual-fixed-background.md) | Desktop幅で、渦のアートワークをHero内から切り離しHome全体のposition: fixed背景にする |
 | [0025](./0025-hero-heading-remove-period.md) | Hero・Research Statement見出し末尾の句点「。」を削除し、両者の表記を揃える |
+| [0026](./0026-research-statement-paragraph-linebreaks.md) | Research Statementの改行方針を「段落の文数」で使い分ける(Decision Log 0012の続き) |
