@@ -1,16 +1,6 @@
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding-block: var(--space-5);
-  border-bottom: 1px solid var(--color-ink);
-}
-
-.group:last-child {
-  border-bottom: none;
-}
-
-.comingSoon {
-  font-size: var(--fs-lg);
-  opacity: 0.6;
+.heading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: var(--space-3) 0 0;
 }

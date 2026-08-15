@@ -105,3 +105,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0030](./0030-research-review-01-launch.md) | Research Review詳細UIをParking Lotから一部解禁し、研究断面01を公開する |
 | [0031](./0031-remove-readable-width-constraint.md) | サイト全体の本文列幅の制限(readable width)を廃止する |
 | [0032](./0032-hero-heading-two-lines.md) | Heroの見出しを3行から2行に変更する(「気づいたら、」/「そこに問いがある」) |
+| [0033](./0033-research-page-redesign.md) | /researchページを「管理画面」から「研究断面の一覧」に作り直す |
