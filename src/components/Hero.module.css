@@ -6,20 +6,35 @@
   margin-inline: auto;
   padding-inline: var(--content-padding-inline);
   padding-block: var(--space-6) var(--space-5);
+  /* Mobileでは.visualをこの要素基準でabsolute配置する(透かし表現) */
+  position: relative;
 }
 
 @media (min-width: 900px) {
   .hero {
-    /* Hero Spec: Desktop 左42% コピー / 右58% ビジュアルだったが、
-       ビジュアルの枠を画像の縦横比(3:2)に合わせたことで、コピー幅を
-       %ではなく読みやすさの下限(280px)〜上限(22rem)で固定し、
-       残りをビジュアルに割り当てる形に変更した。コピー列が%で
-       広がり続けるより、ビジュアルにより多くの幅(≒高さ)を渡せる
-       (2026-08-07)。 */
-    grid-template-columns: minmax(280px, 22rem) 1fr;
+    /* 以前はgrid-template-columns: minmax(280px, 22rem) 1fr;で
+       左コピー/右ビジュアルの2カラムにしていたが、ビジュアルを
+       ページ全体のposition: fixed背景に移した(2026-08-15、
+       Decision Log 0024)ことで2カラム目が不要になり、1カラム
+       (base指定の1frのまま)に戻した。 */
     align-items: center;
-    gap: var(--space-4);
     padding-block: var(--space-7) var(--space-6);
+  }
+
+  .copy {
+    /* 以前はgridの列幅(minmax(280px, 22rem))がコピーの行幅を
+       制限していたが、1カラム化に伴いその制約がなくなったため、
+       他セクションと同じ読みやすい行幅(Design Spec 9)を明示する
+       (2026-08-15、Decision Log 0024)。 */
+    max-width: 36rem;
+  }
+
+  .visual {
+    /* ビジュアルはページ全体の背景(pages/index.module.css)側に
+       移したため、Hero内蔵の.visual(Mobile限定の透かし。
+       Decision Log 0023)はDesktopでは非表示にする
+       (2026-08-15、Decision Log 0024)。 */
+    display: none;
   }
 }
 
@@ -28,11 +43,11 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-3);
-  /* Mobileでは コピー → ビジュアル の順(Design Spec準拠)。
-     .copy/.visualともにDOM順(copy→visual)をそのまま使えば、
-     1カラムのMobileでも2カラムのDesktopでも狙った並びになるため、
-     order指定は不要(2026-08-10: 以前はorderの値が意図と逆で、
-     Mobileでビジュアルがコピーより先に表示されるバグになっていた)。 */
+  /* Mobileで.visualを背景として重ねる(透かし)ため、コピーを
+     常に前面に出す(2026-08-15、Decision Log 0023)。Desktopでも
+     position: relativeは無害なのでmedia query分岐は不要。 */
+  position: relative;
+  z-index: 1;
 }
 
 .heading {
@@ -90,14 +105,40 @@
 
 .visual {
   width: 100%;
-  /* 03_top_page_artwork.png(1536x1024 = 3:2)に枠の比率を合わせる。
-     以前はheight:100%+min-height:480pxで縦長寄りの枠になっており、
-     画像(横長)をcontainで収めると上下に余白が生まれていた
-     (2026-08-07)。枠を画像と同じ3:2にすることで、余白・トリミング
-     なしで画像いっぱいに表示できる。将来ビジュアルの画像自体を
-     差し替える際、縦横比が変わる場合はこの値もあわせて見直す。
-     Mobile(縦積み)でも同じ比率を明示しておくことで、枠の高さが
-     ブラウザ実装依存のフォールバックに委ねられず、画像が極端に
-     縦長・横長になることを防ぐ(2026-08-10 モバイル確認)。 */
+  /* 03_top_page_artwork.png(1536x1024 = 3:2)に合わせた既定の枠比率
+     (2026-08-07)。Desktopでは@media (min-width: 900px)側で
+     display: noneにするため実際には使われないが、Mobileの
+     @media (max-width: 899.98px)がaspect-ratio: autoで明示的に
+     上書きするまでの基準値として残している。 */
   aspect-ratio: 3 / 2;
+}
+
+@media (max-width: 899.98px) {
+  .visual {
+    /* コピーの背景に大きく重ねる「透かし」表現(2026-08-15、
+       Decision Log 0023)。.hero(position: relative)を基準に
+       全面配置し、opacityでコピーの可読性を確保しつつ、
+       z-indexで.copy(z-index:1)より確実に背面へ回す。
+       クリック・タップ操作に干渉しないようpointer-eventsも切る。
+       aspect-ratioをautoに戻すのは、inset:0による.hero基準の
+       全面ストレッチをaspect-ratioで妨げないようにするため。 */
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    aspect-ratio: auto;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* VisualFragment側のobject-fit: containは、.visualがDesktopの
+     3:2の箱を前提にした値。Mobileでは.visualがコピーの縦に長い
+     背面全体(inset:0)まで広がるため、containのままだと画像が
+     横幅基準の細い帯にレターボックスされ、絵柄のごく一部
+     (キャンバス中央〜右寄りに集中している範囲。Decision Log 0018
+     参照)しか透けて見えない。coverに切り替え、背面エリア全体に
+     絵柄が大きく行き渡るようにする(2026-08-15追記)。 */
+  .visual :global(img) {
+    object-fit: cover;
+    object-position: center;
+  }
 }

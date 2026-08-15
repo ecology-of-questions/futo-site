@@ -22,14 +22,32 @@
  *
  * β公開の優先順位(README「現在の方針: β公開優先」)では、
  * Home以降 About → Research(プレースホルダー) の順に進める。
+ *
+ * 【Desktop背景(2026-08-15、Decision Log 0024)】
+ * 渦のアートワーク(VisualFragment)は、以前はHero内の右カラムに
+ * 限定されていたが、Desktop幅ではHome全体(Hero〜Research Statement)
+ * を貫くposition: fixed背景に変更した。HeroがDOM上の最初のセクション
+ * であることに変わりはないため、Design Spec 4のHome Structure
+ * (Hero → Research Statement → Footer)の順序・構成そのものは
+ * 変更していない。あくまで「そのHero相当のビジュアルを、ページ全体の
+ * 視覚的トーンとして拡張した」という位置づけ。Mobileでは変更せず、
+ * Hero内蔵の透かし(Decision Log 0023)のまま。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import Hero from "@components/Hero.astro";
 import ResearchStatement from "@components/ResearchStatement.astro";
+import VisualFragment from "@components/VisualFragment.astro";
+import styles from "./index.module.css";
+
+const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
 ---
 
 <DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践">
+  <div class={styles.background} aria-hidden="true">
+    <VisualFragment src={heroVisualSrc} alt="" />
+  </div>
+
   <Hero
     headingLines={["気づいたら、", "そこに", "問いがある。"]}
     bodyLines={[
@@ -41,7 +59,7 @@ import ResearchStatement from "@components/ResearchStatement.astro";
     ctaLabel="研究について知る"
     ctaHref="#research-statement"
     scrollTargetId="research-statement"
-    visualSrc="/images/hero/03_top_page_artwork.png"
+    visualSrc={heroVisualSrc}
     visualAlt=""
   />
 
