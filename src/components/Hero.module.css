@@ -6,6 +6,8 @@
   margin-inline: auto;
   padding-inline: var(--content-padding-inline);
   padding-block: var(--space-6) var(--space-5);
+  /* Mobileでは.visualをこの要素基準でabsolute配置する(透かし表現) */
+  position: relative;
 }
 
 @media (min-width: 900px) {
@@ -28,11 +30,11 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-3);
-  /* Mobileでは コピー → ビジュアル の順(Design Spec準拠)。
-     .copy/.visualともにDOM順(copy→visual)をそのまま使えば、
-     1カラムのMobileでも2カラムのDesktopでも狙った並びになるため、
-     order指定は不要(2026-08-10: 以前はorderの値が意図と逆で、
-     Mobileでビジュアルがコピーより先に表示されるバグになっていた)。 */
+  /* Mobileで.visualを背景として重ねる(透かし)ため、コピーを
+     常に前面に出す(2026-08-15、Decision Log 0023)。Desktopでも
+     position: relativeは無害なのでmedia query分岐は不要。 */
+  position: relative;
+  z-index: 1;
 }
 
 .heading {
@@ -96,8 +98,28 @@
      (2026-08-07)。枠を画像と同じ3:2にすることで、余白・トリミング
      なしで画像いっぱいに表示できる。将来ビジュアルの画像自体を
      差し替える際、縦横比が変わる場合はこの値もあわせて見直す。
-     Mobile(縦積み)でも同じ比率を明示しておくことで、枠の高さが
-     ブラウザ実装依存のフォールバックに委ねられず、画像が極端に
-     縦長・横長になることを防ぐ(2026-08-10 モバイル確認)。 */
+     この既定値はDesktop(gridの2カラム目)向け。Mobileでの
+     「透かし」配置(下記 @media (max-width: 899.98px) 参照)では
+     aspect-ratioをautoに戻し、.hero基準の全面配置に切り替えている。 */
   aspect-ratio: 3 / 2;
+}
+
+@media (max-width: 899.98px) {
+  .visual {
+    /* コピーの背景に大きく重ねる「透かし」表現(2026-08-15、
+       Decision Log 0023)。.hero(position: relative)を基準に
+       全面配置し、低opacityでコピーの可読性を確保しつつ、
+       z-indexで.copy(z-index:1)より確実に背面へ回す。
+       クリック・タップ操作に干渉しないようpointer-eventsも切る。
+       aspect-ratioをautoに戻すのは、inset:0による.hero基準の
+       全面ストレッチをaspect-ratioで妨げないようにするため
+       (画像自体の3:2比率はVisualFragment側のobject-fit: contain
+       が担うため、この箱の比率を固定する必要はない)。 */
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    aspect-ratio: auto;
+    opacity: 0.2;
+    pointer-events: none;
+  }
 }
