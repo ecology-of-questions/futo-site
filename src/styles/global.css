@@ -21,6 +21,9 @@ html {
 
 body {
   margin: 0;
+  /* Header が position: fixed で最前面に固定されているため、
+     その実測高さぶんだけ本文を押し下げてコンテンツが隠れないようにする */
+  padding-top: var(--header-height);
   background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-body);

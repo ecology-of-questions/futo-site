@@ -94,3 +94,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0019](./0019-404-page.md) | 404ページを、静かなトーンの独立レイアウトとして実装する |
 | [0020](./0020-hero-mobile-order-fix.md) | Heroのモバイル表示順バグを修正する(ビジュアルがコピーより先に出ていた) |
 | [0021](./0021-header-logo.md) | ロゴ一式の到着を受けてHeaderを実装する |
+| [0022](./0022-header-fixed-position.md) | Headerをposition: fixedにし、スマホ幅での表示崩れがないか確認する |
