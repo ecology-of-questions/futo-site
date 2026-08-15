@@ -10,10 +10,6 @@
   border-bottom: none;
 }
 
-.groupBody {
-  max-width: 36rem;
-}
-
 .comingSoon {
   font-size: var(--fs-lg);
   opacity: 0.6;

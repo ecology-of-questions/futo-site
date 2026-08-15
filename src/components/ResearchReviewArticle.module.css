@@ -9,7 +9,6 @@
   margin: var(--space-2) 0 0;
   font-size: var(--fs-lg);
   opacity: 0.75;
-  max-width: 36rem; /* 段落と同じ読みやすい行幅(Design Spec 9) */
 }
 
 .article {
@@ -17,7 +16,10 @@
   flex-direction: column;
   gap: var(--space-6); /* セクション間の余白。余白を思考時間として扱う(Design Spec 10) */
   margin-top: var(--space-5);
-  max-width: 36rem;
+  /* 読みやすい行幅で本文を制限する方針(Research Statementと同様に
+     36remを想定していた)を廃止し、コンテナ(ResearchSection、
+     content-max-width)いっぱいに本文を使う形にした(2026-08-15、
+     Decision Log 0031)。 */
 }
 
 .section {

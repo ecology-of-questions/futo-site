@@ -14,14 +14,12 @@
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  max-width: 36rem; /* Research Statement見出しと同じ読みやすい行幅(Design Spec 9) */
 }
 
 .body {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  max-width: 36rem;
   margin-top: var(--space-3);
   font-size: var(--fs-lg);
   color: var(--color-ink);
