@@ -103,3 +103,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0028](./0028-home-excerpt-first-paragraph-break.md) | Home抜粋1段落目に、指定位置の改行を1箇所追加する |
 | [0029](./0029-research-statement-desktop-width.md) | Research Statement本文のDesktop列幅を36remから52remに広げる |
 | [0030](./0030-research-review-01-launch.md) | Research Review詳細UIをParking Lotから一部解禁し、研究断面01を公開する |
+| [0031](./0031-remove-readable-width-constraint.md) | サイト全体の本文列幅の制限(readable width)を廃止する |
