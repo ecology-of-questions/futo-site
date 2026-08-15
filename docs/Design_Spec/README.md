@@ -12,6 +12,7 @@
 |---|---|
 | [v0.3](./v0.3.md) | Internal Working Draft。Home全体の構造・思想・コンポーネント一覧を定義 |
 | [v0.4](./v0.4.md) | β公開優先への方針転換を反映。Claudeが草案を作成、ChatGPTのレビュー待ち |
+| [v0.5](./v0.5.md) | ロゴ一式(logo.svg/png, favicon.svg/ico)の確定仕様を追加。Headerを実装済みに更新 |
 
 Design Specが更新された場合、既存バージョンは上書きせず、
 新しいファイル(例: `v0.4.md`)として追加する。

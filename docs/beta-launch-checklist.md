@@ -16,7 +16,7 @@
 - [x] Home → Research(Research Statement末尾のリンク)
 - [x] Research → Research Statement(アンカーリンク)
 - [x] Research Statement → Research Reviews(アンカーリンク)
-- [ ] Header(グローバルナビ)実装後、上記との重複・整合を再確認
+- [x] Header(グローバルナビ)実装後、上記との重複・整合を再確認 — Research Statementへの導線はHeaderに含めず、既存のページ内リンクのみとした(Decision Log 0021)
 
 ## 見た目・体験
 
@@ -27,12 +27,12 @@
 
 ## 技術・SEO
 
-- [ ] favicon
+- [x] favicon(Decision Log 0021)
 - [ ] OGP(タイトル・説明文・画像)
 - [x] 404ページ(Decision Log 0019)
 - [ ] 各ページの `<title>` / meta description 確認
 - [ ] Footer の内容確認(現在未実装)
-- [ ] Header の内容確認(現在未実装)
+- [x] Header の内容確認 — ロゴ + Home/Researchナビを実装(Decision Log 0021)
 - [ ] ビルド確認(`npm run build` がエラーなく通ること)
 - [ ] 実機での表示確認(デスクトップ・スマートフォン)
 
