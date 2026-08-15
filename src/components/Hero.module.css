@@ -21,14 +21,6 @@
     padding-block: var(--space-7) var(--space-6);
   }
 
-  .copy {
-    /* 以前はgridの列幅(minmax(280px, 22rem))がコピーの行幅を
-       制限していたが、1カラム化に伴いその制約がなくなったため、
-       他セクションと同じ読みやすい行幅(Design Spec 9)を明示する
-       (2026-08-15、Decision Log 0024)。 */
-    max-width: 36rem;
-  }
-
   .visual {
     /* ビジュアルはページ全体の背景(pages/index.module.css)側に
        移したため、Hero内蔵の.visual(Mobile限定の透かし。

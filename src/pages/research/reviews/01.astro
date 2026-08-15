@@ -1,0 +1,193 @@
+---
+/**
+ * 01.astro (研究断面01)
+ * ------------------------------------------------------------
+ * CLAUDE.md Parking Lotで「β公開まで実装しない」としていた
+ * Research Review詳細UIを、この1件(研究断面01)に限って解禁した
+ * (2026-08-15、プロジェクトオーナーの指示)。解禁の経緯・URL構造
+ * (/research/reviews/01、02以降を見越した構造)・命名規則(日本語
+ * タイトル「研究断面」・英語ラベル「Research Review」の併用)は
+ * Decision Log 0030に記録している。
+ *
+ * 本文は、プロジェクトオーナーから共有されたPDF原稿の構造
+ * (見出し→本文→箇条書き→表)をそのまま反映した。文章そのもの
+ * (語順・言葉遣い)は変更していない。段落内の改行は、Research
+ * Statementで採用した「自然な折返しに任せる」方針(Decision Log
+ * 0026)を踏襲し、強制改行は入れていない。
+ *
+ * 元のPDF原稿のタイトルは「研究断面02」だったが、既存のプレースホルダー
+ * (研究断面01)を置き換える形で「研究断面01」として公開する
+ * (プロジェクトオーナーの指示)。
+ *
+ * 02以降を追加する際は、このファイルと同じ構造で
+ * `src/pages/research/reviews/02.astro` 等を追加し、
+ * ResearchReviewArticleコンポーネントを再利用する想定。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchReviewArticle from "@components/ResearchReviewArticle.astro";
+import type { ReviewSection } from "@/types/researchReview";
+
+const sections: ReviewSection[] = [
+  {
+    heading: "はじめに",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "「ふと」という言葉が気になっている。きっかけは、この研究そのものだった。問いについて考えていると、「気づいたら気になっていた」という経験が何度もあった。いつもの道を歩いていたら、何度も見ていたはずの家が、その日だけ急に気になった。本を読んでいて、一つの言葉が、まったく別の出来事を思い出させた。子どもの行動を見ていて、なぜか足を止めた。",
+      },
+      {
+        type: "paragraph",
+        text: "こうした経験を、日本語では「ふと」と表現する。しかし、「ふと」とは何なのだろうか。",
+      },
+      {
+        type: "paragraph",
+        text: "調べてみると、この言葉は想像していた以上に興味深かった。",
+      },
+    ],
+  },
+  {
+    heading: "「ふと」は「突然」ではない",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "辞書を引くと、「ふと」は「思いがけず」「偶然に」「一瞬のうちに」と説明されている。しかし、用例を見ていくと、それだけでは説明できないことに気づく。",
+      },
+      { type: "paragraph", text: "たとえば、" },
+      {
+        type: "list",
+        items: ["ふと時計を見る", "ふと昔のことを思い出す", "ふと立ち止まる"],
+      },
+      { type: "paragraph", text: "これらは本当に同じ意味なのだろうか。" },
+      { type: "paragraph", text: "「突然」と比べてみる。" },
+      { type: "list", items: ["突然、雨が降った", "突然、電話が鳴った"] },
+      { type: "paragraph", text: "ここで変化しているのは、世界である。" },
+      { type: "paragraph", text: "一方、" },
+      { type: "list", items: ["ふと窓の外を見る", "ふと疑問を感じる"] },
+      {
+        type: "paragraph",
+        text: "ここで変化しているのは、自分の注意の向きである。",
+      },
+      {
+        type: "paragraph",
+        text: "「ふと」は、出来事そのものではなく、その出来事がどのように経験されたのかを表しているように見える。",
+      },
+    ],
+  },
+  {
+    heading: "「ふと」は身体から始まった",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "さらに調べてみると、「ふと」はもともと思考の言葉ではなかった。『竹取物語』では、「ふと」は「さっと」「すっと」「素早く」という意味で使われている。",
+      },
+      {
+        type: "paragraph",
+        text: "つまり、最初の「ふと」は身体の言葉だった。その後、「ふと」は意味を広げていく。",
+      },
+      {
+        type: "table",
+        headers: ["時代", "主な意味"],
+        rows: [
+          ["平安", "身体の動き"],
+          ["中世", "不意に起こる出来事"],
+          ["近世", "視線や注意の変化"],
+          ["近代", "記憶や思考"],
+          ["現代", "身体・知覚・記憶・思考を横断"],
+        ],
+      },
+      {
+        type: "paragraph",
+        text: "興味深いのは、「ふと」が身体を捨てていないことだ。",
+      },
+      { type: "paragraph", text: "現代でも、" },
+      { type: "list", items: ["ふと立ち止まる", "ふと振り返る"] },
+      { type: "paragraph", text: "という表現は普通に使われている。" },
+    ],
+  },
+  {
+    heading: "身体から思考までを横断する",
+    blocks: [
+      { type: "paragraph", text: "現代の用例を並べてみる。" },
+      { type: "paragraph", text: "身体。" },
+      { type: "list", items: ["ふと立ち止まる", "ふと振り返る"] },
+      { type: "paragraph", text: "知覚" },
+      { type: "list", items: ["ふと見る", "ふと気づく"] },
+      { type: "paragraph", text: "記憶" },
+      { type: "list", items: ["ふと思い出す"] },
+      { type: "paragraph", text: "思考" },
+      { type: "list", items: ["ふと思う", "ふと考える"] },
+      {
+        type: "paragraph",
+        text: "こうして見ると、「ふと」は思考だけの言葉ではないことがわかる。",
+      },
+      { type: "paragraph", text: "身体、知覚、記憶、思考。" },
+      { type: "paragraph", text: "これらを一つの言葉でつないでいる。" },
+    ],
+  },
+  {
+    heading: "「ふと」は翻訳できるのか",
+    blocks: [
+      { type: "paragraph", text: "英語では、" },
+      { type: "list", items: ["suddenly", "accidentally", "it occurred to me"] },
+      { type: "paragraph", text: "といった表現に分かれる。" },
+      { type: "paragraph", text: "中国語にも近い表現はある。" },
+      {
+        type: "paragraph",
+        text: "しかし、「ふと」と完全に一致する言葉は見つからなかった。",
+      },
+      {
+        type: "paragraph",
+        text: "もしかすると、「ふと」は日本語が保存してきた認識の形式なのかもしれない。",
+      },
+    ],
+  },
+  {
+    heading: "気づきは「発見」なのだろうか",
+    blocks: [
+      { type: "paragraph", text: "調べているうちに、別のことが気になり始めた。" },
+      { type: "paragraph", text: "日本語には、" },
+      {
+        type: "list",
+        items: ["見えてくる", "見えてしまう", "腑に落ちる", "思い当たる"],
+      },
+      { type: "paragraph", text: "といった表現が多い。" },
+      {
+        type: "paragraph",
+        text: "これらは、「発見する」という感覚とは少し違う。むしろ、「世界が見えるようになる」という感覚に近い。",
+      },
+    ],
+  },
+  {
+    heading: "おわりに",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "私は、「ふと」という小さな副詞について調べるつもりだった。",
+      },
+      {
+        type: "paragraph",
+        text: "しかし、その先で見えてきたのは、「人はどのように世界を知覚しているのか」という、もっと大きな問いだった。",
+      },
+      {
+        type: "paragraph",
+        text: "問いは、私たちが作るものなのだろうか。それとも、問いは「ふと」立ち上がるものなのだろうか。",
+      },
+      { type: "paragraph", text: "今のところ、答えはわからない。" },
+      {
+        type: "paragraph",
+        text: "ただ、「ふと」という言葉のなかには、人と世界との関係を考えるための重要な手がかりが残されているように思う。",
+      },
+    ],
+  },
+];
+---
+
+<DefaultLayout title="研究断面01 ｜ ふ、と">
+  <ResearchReviewArticle
+    sectionLabel="Research Review"
+    title="研究断面01"
+    subtitle="「ふと」という日本語について ― 人と世界との関係が変化する瞬間 ―"
+    sections={sections}
+  />
+</DefaultLayout>

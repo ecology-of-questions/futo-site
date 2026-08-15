@@ -25,6 +25,10 @@
  * Research Reviews部分は、既存のResearchCard(Decision Log 0004・0005)
  * をそのまま再利用している。
  *
+ * 【2026-08-15追記】研究断面01の公開に伴い、Research Review 01の
+ * カードをpublished状態に更新し、詳細ページ(/research/reviews/01)
+ * へのリンクを追加した(Decision Log 0030)。
+ *
  * Logsは「β公開まで新機能は増やさない」方針により未実装(Parking Lot)。
  * ------------------------------------------------------------
  */
@@ -39,19 +43,20 @@ import styles from "./research.module.css";
   <ResearchSection ariaLabel="Research">
     <div class={styles.group} id="research-reviews">
       <SectionTitle>Research Reviews</SectionTitle>
-      <div class={styles.groupBody}>
+      <div>
         <ResearchCard
-          title="Research Review 01"
-          status="preparing"
-          currentFocus="What is Inquiry?"
-          lastUpdated="2026.xx.xx"
+          title="研究断面01"
+          status="published"
+          currentFocus="「ふと」という日本語について"
+          lastUpdated="2026.08.15"
+          href="/research/reviews/01"
         />
       </div>
     </div>
 
     <div class={styles.group}>
       <SectionTitle>Research Fragments</SectionTitle>
-      <div class={styles.groupBody}>
+      <div>
         <p class={styles.comingSoon}>Coming Soon</p>
       </div>
     </div>

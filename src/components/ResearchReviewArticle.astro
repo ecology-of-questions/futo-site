@@ -1,0 +1,87 @@
+---
+/**
+ * ResearchReviewArticle.astro
+ * ------------------------------------------------------------
+ * 役割: Research Review詳細ページ(研究断面01〜)の本文を表示する。
+ * Design Spec v0.4のIA(Research > Reviews)に対応する詳細UI。
+ * CLAUDE.md Parking Lotで「β公開まで実装しない」としていたが、
+ * 研究断面01の公開に伴いこの1件に限って解禁した(2026-08-15、
+ * Decision Log 0030)。02以降も同じコンポーネントを再利用する想定。
+ *
+ * 元原稿の構造(見出し→本文→箇条書き→表)をそのまま表示するための、
+ * 最小限のコンテンツブロック方式を採用している(型はsrc/types/
+ * researchReview.ts参照)。
+ *
+ * 段落内の改行は、Research Statementで採用した「自然な折返しに
+ * 任せる」方針(Decision Log 0026)を踏襲し、強制改行は入れていない。
+ *
+ * ResearchStatementと同様、コンテンツはpropsで受け取り、コンポーネント
+ * 自体にはハードコードしない(Decision Log 0003の方針を踏襲)。
+ * ------------------------------------------------------------
+ */
+import ResearchSection from "./ResearchSection.astro";
+import SectionTitle from "./SectionTitle.astro";
+import styles from "./ResearchReviewArticle.module.css";
+import type { ReviewSection } from "@/types/researchReview";
+
+interface Props {
+  /** SectionTitleとして表示する英語ラベル(例: "Research Review") */
+  sectionLabel: string;
+  /** 例: "研究断面01" */
+  title: string;
+  subtitle?: string;
+  sections: ReviewSection[];
+}
+
+const { sectionLabel, title, subtitle, sections } = Astro.props;
+---
+
+<ResearchSection ariaLabel={title}>
+  <SectionTitle>{sectionLabel}</SectionTitle>
+  <h1 class={styles.title}>{title}</h1>
+  {subtitle && <p class={styles.subtitle}>{subtitle}</p>}
+
+  <div class={styles.article}>
+    {
+      sections.map((section) => (
+        <section class={styles.section}>
+          <h2 class={styles.sectionHeading}>{section.heading}</h2>
+          {section.blocks.map((block) => {
+            if (block.type === "paragraph") {
+              return <p class={styles.paragraph}>{block.text}</p>;
+            }
+            if (block.type === "list") {
+              return (
+                <ul class={styles.list}>
+                  {block.items.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              );
+            }
+            return (
+              <table class={styles.table}>
+                <thead>
+                  <tr>
+                    {block.headers.map((heading) => (
+                      <th>{heading}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {block.rows.map((row) => (
+                    <tr>
+                      {row.map((cell) => (
+                        <td>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            );
+          })}
+        </section>
+      ))
+    }
+  </div>
+</ResearchSection>

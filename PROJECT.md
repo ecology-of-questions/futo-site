@@ -77,8 +77,11 @@ Project Journal → 出来事の履歴
 **Beta後**
 
 - Research Statementの改訂(v0.2, v0.3, ... 継続的に育つ前提)
-- Research Review 01 の執筆・公開(β公開翌週を予定)
-- Research Reviews / Research Fragments / Research Logs の詳細実装
+- Research Review 01の執筆・公開 → 2026-08-15公開済み(研究断面01
+  「『ふと』という日本語について」。予定より前倒し。詳細はDecision
+  Log 0030、Research Log参照)
+- Research Review 02以降 / Research Fragments / Research Logs の
+  詳細実装
 
 **将来像(Design Spec 14: Future)**
 
@@ -100,7 +103,12 @@ Project Journal → 出来事の履歴
 - Version UI
 - Research Timeline
 - Research Logsページ
-- Research Reviewの詳細UI・バージョン履歴表示
+- Research Reviewの詳細UI — 一部解禁済み: 01(研究断面01、
+  `/research/reviews/01`)は実装済み。02以降は同じ
+  `ResearchReviewArticle`コンポーネント・構造を再利用する。
+  詳細はDecision Log 0030参照。
+- Research Reviewのバージョン履歴表示(こちらは引き続き保留。
+  まだ改訂履歴を持つReviewがないため)
 
 新機能を思いついたら、ここに置く。実装せず、記録するだけでよい。
 
