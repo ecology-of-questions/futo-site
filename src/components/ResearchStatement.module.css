@@ -2,7 +2,7 @@
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  max-width: 36rem; /* 段落と同じ読みやすい行幅(Design Spec 9) */
+  max-width: 52rem; /* 段落と同じ読みやすい行幅(Design Spec 9)。52remの根拠は.statementのコメント参照 */
   margin: var(--space-3) 0 0;
 }
 
@@ -10,7 +10,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4); /* 段落間の余白。余白を思考時間として扱う(Design Spec 10) */
-  max-width: 36rem; /* 静かな雑誌の読書体験(Design Spec 9)を意識した読みやすい行幅 */
+  /* 静かな雑誌の読書体験(Design Spec 9)を意識した読みやすい行幅。
+     以前は36remだったが、「いつもの道を歩いていたら、何度も通って
+     いたはずの家が、その日だけ急に気になった。」という一文が
+     PC幅で改行されてしまっていた(実測で約50.8rem必要)ため、
+     この一文が一行に収まる52remに広げた(2026-08-15、Decision Log
+     0029)。Mobileでは元々max-widthが効かない(viewport幅の方が
+     常に狭い)ため、この変更はDesktopにのみ影響する。 */
+  max-width: 52rem;
   margin-top: var(--space-3);
 }
 
