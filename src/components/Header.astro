@@ -5,10 +5,30 @@
  * 役割: サイト全体のヘッダー。ロゴ/サイト名とナビゲーションを担う。
  * Design Spec 11 Components: Header
  *
- * 実装はモックアップ/仕様が到着してから行う。
- * 現時点では役割コメントのみのプレースホルダー。
+ * ロゴは design-assets/logo-guideline.md(Design Spec v0.5)に
+ * 基づく正式データ(public/images/logo/logo.svg)を使用する。
+ * ナビゲーションは現時点で実装済みのページ(Home / Research)のみを
+ * 掲載する。About は未実装のため、実装が完了するまで含めない。
  * ------------------------------------------------------------
  */
+import styles from "./Header.module.css";
 ---
 
-<!-- TODO: Home_Hero_v1_spec 到着後に実装 -->
+<header class={styles.header}>
+  <div class={styles.inner}>
+    <a class={styles.logoLink} href="/" aria-label="ふ、と ホームへ">
+      <img
+        class={styles.logo}
+        src="/images/logo/logo.svg"
+        alt="公開研究室 ふ、と"
+        width="445"
+        height="269"
+      />
+    </a>
+
+    <nav class={styles.nav} aria-label="サイト内ナビゲーション">
+      <a class={styles.navLink} href="/">Home</a>
+      <a class={styles.navLink} href="/research">Research</a>
+    </nav>
+  </div>
+</header>
