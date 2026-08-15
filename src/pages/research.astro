@@ -12,22 +12,29 @@
  *   Home
  *     └ Research Statement (Homeに属する宣言)
  *   Research
- *     ├ Reviews
- *     ├ Fragments
+ *     └ 研究断面(Reviews/Fragmentsを統合。Decision Log 0033)
  *     └ Logs (未実装。将来追加時に検討)
  *
  * Home → Research Statement → Research が一本道の導線であり、
- * Researchページ内では Reviews / Fragments / Logs の行き来のみを扱う。
+ * Researchページ内では 研究断面 / Logs の行き来のみを扱う。
  *
  * 【要レビュー】このページのURL(/research)、見出し文言、
- * グループの構成・順序は実装上の提案であり、正式なIAではない。
+ * 一覧の構成・順序は実装上の提案であり、正式なIAではない。
  *
- * Research Reviews部分は、既存のResearchCard(Decision Log 0004・0005)
- * をそのまま再利用している。
- *
- * 【2026-08-15追記】研究断面01の公開に伴い、Research Review 01の
- * カードをpublished状態に更新し、詳細ページ(/research/reviews/01)
- * へのリンクを追加した(Decision Log 0030)。
+ * 【2026-08-15追記(Decision Log 0033)】「研究断面01が、論文管理
+ * システムのステータス画面のように見える」という指摘を受け、
+ * 大きく作り直した。
+ * - Research Reviews(ResearchCard、Status/Current Focus/Last
+ *   Updatedという管理情報中心のカード)とResearch Fragments
+ *   (「Coming Soon」の別セクション)を、「研究断面」という1つの
+ *   シリーズの一覧に統合した。
+ * - ResearchCardは廃止し、ResearchReviewListに置き換えた。
+ *   公開済みのエントリはタイトル・サブタイトル・説明文・更新日を
+ *   表示し、構想中のエントリは番号・タイトル・「(構想中)」のみの
+ *   1行で表示する(将来の02, 03を先出しできるようにするため)。
+ * - 「Published」という表示も、「研究は公開した瞬間に完成しない」
+ *   という考え方に合わないという指摘を受け、Status行自体を廃止した
+ *   (更新日のみを表示する形にした)。
  *
  * Logsは「β公開まで新機能は増やさない」方針により未実装(Parking Lot)。
  * ------------------------------------------------------------
@@ -35,30 +42,35 @@
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import SectionTitle from "@components/SectionTitle.astro";
-import ResearchCard from "@components/ResearchCard.astro";
+import ResearchReviewList from "@components/ResearchReviewList.astro";
 import styles from "./research.module.css";
+import type {
+  PlannedReviewEntry,
+  PublishedReviewEntry,
+} from "@/types/researchReviewListing";
+
+const publishedReviews: PublishedReviewEntry[] = [
+  {
+    number: "01",
+    title: "『ふと』という日本語",
+    subtitle: "人と世界との関係が変化する瞬間",
+    description:
+      "身体の動きを表していた「ふと」は、なぜ記憶や思考を表す言葉になったのか。辞書、古典文学、日本語研究を手がかりに、その意味の変遷をたどる。",
+    updatedLabel: "2026.08.15 更新",
+    href: "/research/reviews/01",
+  },
+];
+
+const plannedReviews: PlannedReviewEntry[] = [
+  { number: "02", title: "認識の変化と言語の生態系", stageLabel: "構想中" },
+  { number: "03", title: "世界はどのように見えてくるのか", stageLabel: "構想中" },
+];
 ---
 
 <DefaultLayout title="Research ｜ ふ、と">
-  <ResearchSection ariaLabel="Research">
-    <div class={styles.group} id="research-reviews">
-      <SectionTitle>Research Reviews</SectionTitle>
-      <div>
-        <ResearchCard
-          title="研究断面01"
-          status="published"
-          currentFocus="「ふと」という日本語について"
-          lastUpdated="2026.08.15"
-          href="/research/reviews/01"
-        />
-      </div>
-    </div>
-
-    <div class={styles.group}>
-      <SectionTitle>Research Fragments</SectionTitle>
-      <div>
-        <p class={styles.comingSoon}>Coming Soon</p>
-      </div>
-    </div>
+  <ResearchSection ariaLabel="Research" id="research-reviews">
+    <SectionTitle>RESEARCH</SectionTitle>
+    <p class={styles.heading}>研究断面</p>
+    <ResearchReviewList published={publishedReviews} planned={plannedReviews} />
   </ResearchSection>
 </DefaultLayout>

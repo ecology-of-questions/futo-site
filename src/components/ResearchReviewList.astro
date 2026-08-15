@@ -1,0 +1,65 @@
+---
+/**
+ * ResearchReviewList.astro
+ * ------------------------------------------------------------
+ * 役割: /researchページの「研究断面」一覧を表示する。
+ *
+ * 以前はResearch Reviews(ResearchCard。Status/Current Focus/
+ * Last Updatedという管理情報中心のカード)とResearch Fragments
+ * (「Coming Soon」の別セクション)に分かれており、「研究断面01」と
+ * いう記事が、論文管理システムのステータス画面のように見えてしまう
+ * という指摘を受けた。「研究断面」という1つのシリーズの一覧として
+ * 統合し、管理情報(Status)を廃止して、タイトル・サブタイトル・
+ * 説明文・更新日という「読者が知りたい情報」を前面に出す構成に
+ * 変更した(2026-08-15、Decision Log 0033、プロジェクトオーナー・
+ * Creative Directorとのやりとりより)。
+ *
+ * 公開済み(published)のエントリはタイトル・サブタイトル・説明文・
+ * 更新日を表示し詳細ページへリンクする。構想中(planned)のエントリは
+ * 番号・タイトル・「(構想中)」のみの1行で表示する。両者のあいだに
+ * 区切り線を1本引く。
+ *
+ * ResearchCard(Decision Log 0004・0005)はこのページでの用途が
+ * なくなったため削除した。ResearchStatus型(src/types/research.ts)
+ * 自体は将来Fragment/Logs等で使う可能性があるため残している。
+ * ------------------------------------------------------------
+ */
+import styles from "./ResearchReviewList.module.css";
+import type {
+  PlannedReviewEntry,
+  PublishedReviewEntry,
+} from "@/types/researchReviewListing";
+
+interface Props {
+  published: PublishedReviewEntry[];
+  planned: PlannedReviewEntry[];
+}
+
+const { published, planned } = Astro.props;
+---
+
+<div class={styles.list}>
+  {
+    published.map((entry) => (
+      <a class={styles.entry} href={entry.href}>
+        <p class={styles.entryTitle}>
+          <span class={styles.number}>{entry.number}</span> {entry.title}
+        </p>
+        <p class={styles.entrySubtitle}>── {entry.subtitle}</p>
+        <p class={styles.entryDescription}>{entry.description}</p>
+        <p class={styles.entryMeta}>{entry.updatedLabel}</p>
+      </a>
+    ))
+  }
+
+  {published.length > 0 && planned.length > 0 && <hr class={styles.divider} />}
+
+  {
+    planned.map((entry) => (
+      <p class={styles.plannedEntry}>
+        <span class={styles.number}>{entry.number}</span> {entry.title}
+        （{entry.stageLabel}）
+      </p>
+    ))
+  }
+</div>
