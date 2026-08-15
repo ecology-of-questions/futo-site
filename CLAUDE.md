@@ -44,7 +44,11 @@ Parking Lot (do not implement until after beta)
 - Version UI
 - Research Timeline
 - Research Logs page
-- Research Review detail UI / version history display
+- Research Review detail UI — partially released: 01 (研究断面01,
+  `/research/reviews/01`) is implemented. 02+ reuse the same
+  `ResearchReviewArticle` component/structure. See Decision Log 0030.
+- Research Review version history display (still parked — no review
+  has a revision history to show yet)
 
 If a task in this list comes up, record the reasoning in Decision Log
 and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
