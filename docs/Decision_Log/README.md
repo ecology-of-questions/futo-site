@@ -100,3 +100,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0025](./0025-hero-heading-remove-period.md) | Hero・Research Statement見出し末尾の句点「。」を削除し、両者の表記を揃える |
 | [0026](./0026-research-statement-paragraph-linebreaks.md) | Research Statementの段落内改行をすべて廃止し、自然な折返しに統一する(Decision Log 0012の続き) |
 | [0027](./0027-home-excerpt-shorten.md) | HomeのResearch Statement抜粋を冒頭2段落に短縮する |
+| [0028](./0028-home-excerpt-first-paragraph-break.md) | Home抜粋1段落目に、指定位置の改行を1箇所追加する |
