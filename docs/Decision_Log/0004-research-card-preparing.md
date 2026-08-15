@@ -1,7 +1,9 @@
 # 0004. ResearchCard を Preparing 状態に対応させる
 
 - 日付: 2026-08-04
-- 状態: 一部上書き済み(→ 0005。statusの意味づけを「出版状態」から「研究状態」へ変更)
+- 状態: 一部上書き済み(→ 0005。statusの意味づけを「出版状態」から「研究状態」へ変更)。
+  ResearchCardコンポーネント自体は→ 0033で/researchページから廃止
+  (ResearchReviewListに置き換え)。
 
 ## Decision
 
