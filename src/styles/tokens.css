@@ -58,6 +58,10 @@
    * ----------------------------- */
   --content-max-width: 1120px;
   --content-padding-inline: var(--space-3);
+  /* Header(position: fixed)の実測高さ。ロゴ40px + padding-block(space-2)
+     ×2 + border-bottom 1px。Header.module.cssの寸法を変えたらここも
+     合わせて更新すること(body側の押し下げ幅として参照する)。 */
+  --header-height: 73px;
 
   /* -----------------------------
    * Motion
