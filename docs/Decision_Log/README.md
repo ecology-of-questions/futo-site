@@ -106,3 +106,5 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0031](./0031-remove-readable-width-constraint.md) | サイト全体の本文列幅の制限(readable width)を廃止する |
 | [0032](./0032-hero-heading-two-lines.md) | Heroの見出しを3行から2行に変更する(「気づいたら、」/「そこに問いがある」) |
 | [0033](./0033-research-page-redesign.md) | /researchページを「管理画面」から「研究断面の一覧」に作り直す |
+| [0034](./0034-review-detail-title-hierarchy.md) | 研究断面詳細ページの文字サイズを入れ替え、記事タイトルを主役にする |
+| [0035](./0035-review-article-typography-tighten.md) | 研究断面詳細ページのタイトル・本文の文字サイズと行間を調整する |
