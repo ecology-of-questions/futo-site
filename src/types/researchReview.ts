@@ -45,13 +45,18 @@ export interface SubheadingBlock {
   text: string;
 }
 
-/** 図版。altは代替テキストとして必須(装飾目的の場合も内容を説明する) */
+/**
+ * 図版。altは代替テキストとして必須(装飾目的の場合も内容を説明する)。
+ * float: "right"を指定すると、Desktop幅でセクション右上に回り込み
+ * 配置される(Mobile幅では通常の中央配置に戻る、2026-08-16)。
+ */
 export interface ImageBlock {
   type: "image";
   src: string;
   alt: string;
   width: number;
   height: number;
+  float?: "right";
 }
 
 export type ContentBlock =

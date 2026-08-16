@@ -10,7 +10,7 @@
  *
  * 元原稿の構造(見出し→本文→箇条書き→表)をそのまま表示するための、
  * 最小限のコンテンツブロック方式を採用している(型はsrc/types/
- * researchReview.ts参照)。2026-08-16、研究断面01の本文改訂に合わせ
+ * researchReview.ts参照)。2026-08-15、研究断面01の本文改訂に合わせ
  * quote(引用・定義)・subheading(小見出し)・image(図版)を追加した
  * (Decision Log 0036)。
  *
@@ -19,6 +19,13 @@
  *
  * ResearchStatementと同様、コンテンツはpropsで受け取り、コンポーネント
  * 自体にはハードコードしない(Decision Log 0003の方針を踏襲)。
+ *
+ * 【2026-08-16追記】図版(ImageBlock)にfloat: "right"を指定すると、
+ * Desktop幅でセクション右上に回り込み配置できる(Decision Log
+ * 0038)。表(TableBlock)も一時的に同様の回り込みに対応させたが
+ * (Decision Log 0039)、複数のfloatが同じセクションに並ぶと視覚的な
+ * ジグザグが生まれることと、表という構造物自体が狭い列に収まり
+ * にくいことから撤回した(Decision Log 0040)。表は常に全幅表示。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
@@ -70,7 +77,7 @@ const { sectionLabel, title, subtitle, sections } = Astro.props;
             if (block.type === "image") {
               return (
                 <img
-                  class={styles.image}
+                  class={block.float === "right" ? styles.imageFloatRight : styles.image}
                   src={block.src}
                   alt={block.alt}
                   width={block.width}

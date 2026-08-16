@@ -31,9 +31,22 @@
 }
 
 .section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  /* 図版の右回り込み配置(.imageFloatRight)にfloatを効かせるため、
+     flexではなく通常のブロックフローにしている(2026-08-16)。
+     子要素間の余白はflexのgapの代わりにmargin-topで揃える。
+     floatを含んだ内容の高さをセクション自身が正しく包含するよう、
+     ::afterでclearfixする。 */
+  display: block;
+}
+
+.section > * + * {
+  margin-top: var(--space-3);
+}
+
+.section::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .sectionHeading {
@@ -62,6 +75,9 @@
 }
 
 .table {
+  /* 右floatの図版(.imageFloatRight)の回り込みの影響を受けず、
+     常に次の行から全幅で開始する(2026-08-16、Decision Log 0040)。 */
+  clear: both;
   width: 100%;
   border-collapse: collapse;
   font-size: var(--fs-base);
@@ -96,6 +112,36 @@
 }
 
 .image {
+  /* 図版はDecision Log 0031(本文の幅制限を撤廃)の対象外とし、
+     読み込みやすいサイズに収める(2026-08-16)。 */
+  display: block;
   width: 100%;
+  max-width: 28rem;
   height: auto;
+  margin-inline: auto;
+}
+
+.imageFloatRight {
+  /* セクション右上に本文を回り込ませて配置する図版
+     (2026-08-16、Decision Log 0038)。Desktop幅ではfloatさせ、
+     幅を本文の可読性を保てる18remに抑える。Mobile幅では回り込みを
+     解除し、.imageと同じ中央配置に戻す。 */
+  display: block;
+  width: 100%;
+  max-width: 18rem;
+  height: auto;
+  margin: 0 0 var(--space-3) var(--space-4);
+}
+
+@media (min-width: 900px) {
+  .imageFloatRight {
+    float: right;
+  }
+}
+
+@media (max-width: 899.98px) {
+  .imageFloatRight {
+    max-width: 28rem;
+    margin: 0 auto var(--space-3);
+  }
 }
