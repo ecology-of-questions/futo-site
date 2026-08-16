@@ -37,11 +37,11 @@
 }
 
 .row {
-  /* 図版・表を横並びに配置する行(2026-08-16、Decision Log 0041)。
-     1列目(可変幅)に表、2列目(図版の実サイズに応じた固定幅)に
-     図版を置く想定。Mobile幅では縦積みに切り替える。 */
+  /* 図版・表を横並びに配置する行。1列目(表)を狭い固定幅、
+     2列目(図版)を大きく見せる可変幅にした(2026-08-16、Decision
+     Log 0042)。Mobile幅では縦積みに切り替える。 */
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 20rem) 1fr;
   align-items: start;
   gap: var(--space-4);
 }
@@ -123,10 +123,10 @@
 }
 
 .row .image {
-  /* .row内では図版の実サイズに応じた固定幅に収め、表(可変幅列)と
-     並べたときに図版が主張しすぎないようにする(2026-08-16、
-     Decision Log 0041)。 */
-  max-width: 18rem;
+  /* .row内では表より図版を大きく見せる(2026-08-16、Decision Log
+     0042)。列(1fr)の中で目立つサイズまで拡大しつつ、コンテナ
+     いっぱいには広げすぎないよう上限を設ける。 */
+  max-width: 32rem;
   margin-inline: 0;
 }
 
