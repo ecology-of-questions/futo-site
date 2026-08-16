@@ -1,0 +1,67 @@
+---
+/**
+ * ReviewContentBlock.astro
+ * ------------------------------------------------------------
+ * ContentBlockを1つ受け取り、対応する要素を描画する。
+ * ResearchReviewArticle.astroのセクション直下と、RowBlock内の
+ * 各itemの両方から呼び出される(2026-08-16、Decision Log 0041)。
+ * ------------------------------------------------------------
+ */
+import styles from "./ResearchReviewArticle.module.css";
+import type { ContentBlock } from "@/types/researchReview";
+
+interface Props {
+  block: Exclude<ContentBlock, { type: "row" }>;
+}
+
+const { block } = Astro.props;
+---
+
+{
+  block.type === "paragraph" && <p class={styles.paragraph}>{block.text}</p>
+}
+{
+  block.type === "list" && (
+    <ul class={styles.list}>
+      {block.items.map((item) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+  )
+}
+{block.type === "quote" && <blockquote class={styles.quote}>{block.text}</blockquote>}
+{block.type === "subheading" && <h3 class={styles.subheading}>{block.text}</h3>}
+{
+  block.type === "image" && (
+    <img
+      class={styles.image}
+      src={block.src}
+      alt={block.alt}
+      width={block.width}
+      height={block.height}
+      loading="lazy"
+    />
+  )
+}
+{
+  block.type === "table" && (
+    <table class={styles.table}>
+      <thead>
+        <tr>
+          {block.headers.map((heading) => (
+            <th>{heading}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {block.rows.map((row) => (
+          <tr>
+            {row.map((cell) => (
+              <td>{cell}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}

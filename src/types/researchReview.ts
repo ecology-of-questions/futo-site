@@ -14,6 +14,10 @@
  * 小見出し・古典文学の引用・定義の引用・図版を含む学術的な構成)に
  * 合わせ、QuoteBlock・SubheadingBlock・ImageBlockを追加した
  * (Decision Log 0036)。
+ *
+ * 【2026-08-16追記2】図版・表をfloatで回り込ませる方式(Decision Log
+ * 0038〜0040)を経て、最終的にRowBlockで図版・表を横並びに配置する
+ * 方式に落ち着いた(Decision Log 0041)。floatは使っていない。
  * ------------------------------------------------------------
  */
 
@@ -45,18 +49,23 @@ export interface SubheadingBlock {
   text: string;
 }
 
-/**
- * 図版。altは代替テキストとして必須(装飾目的の場合も内容を説明する)。
- * float: "right"を指定すると、Desktop幅でセクション右上に回り込み
- * 配置される(Mobile幅では通常の中央配置に戻る、2026-08-16)。
- */
+/** 図版。altは代替テキストとして必須(装飾目的の場合も内容を説明する) */
 export interface ImageBlock {
   type: "image";
   src: string;
   alt: string;
   width: number;
   height: number;
-  float?: "right";
+}
+
+/**
+ * 図版・表などを横に並べて配置する行(2026-08-16、Decision Log 0041)。
+ * 1列目(items[0])が可変幅、2列目(items[1])が図版の実サイズに応じた
+ * 固定幅になる。Mobile幅では縦に積み重ねる。
+ */
+export interface RowBlock {
+  type: "row";
+  items: [TableBlock | ImageBlock, TableBlock | ImageBlock];
 }
 
 export type ContentBlock =
@@ -65,7 +74,8 @@ export type ContentBlock =
   | TableBlock
   | QuoteBlock
   | SubheadingBlock
-  | ImageBlock;
+  | ImageBlock
+  | RowBlock;
 
 export interface ReviewSection {
   heading: string;

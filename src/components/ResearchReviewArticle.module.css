@@ -31,22 +31,26 @@
 }
 
 .section {
-  /* 図版の右回り込み配置(.imageFloatRight)にfloatを効かせるため、
-     flexではなく通常のブロックフローにしている(2026-08-16)。
-     子要素間の余白はflexのgapの代わりにmargin-topで揃える。
-     floatを含んだ内容の高さをセクション自身が正しく包含するよう、
-     ::afterでclearfixする。 */
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.section > * + * {
-  margin-top: var(--space-3);
+.row {
+  /* 図版・表を横並びに配置する行(2026-08-16、Decision Log 0041)。
+     1列目(可変幅)に表、2列目(図版の実サイズに応じた固定幅)に
+     図版を置く想定。Mobile幅では縦積みに切り替える。 */
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: var(--space-4);
 }
 
-.section::after {
-  content: "";
-  display: table;
-  clear: both;
+@media (max-width: 899.98px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
 }
 
 .sectionHeading {
@@ -75,9 +79,6 @@
 }
 
 .table {
-  /* 右floatの図版(.imageFloatRight)の回り込みの影響を受けず、
-     常に次の行から全幅で開始する(2026-08-16、Decision Log 0040)。 */
-  clear: both;
   width: 100%;
   border-collapse: collapse;
   font-size: var(--fs-base);
@@ -121,27 +122,17 @@
   margin-inline: auto;
 }
 
-.imageFloatRight {
-  /* セクション右上に本文を回り込ませて配置する図版
-     (2026-08-16、Decision Log 0038)。Desktop幅ではfloatさせ、
-     幅を本文の可読性を保てる18remに抑える。Mobile幅では回り込みを
-     解除し、.imageと同じ中央配置に戻す。 */
-  display: block;
-  width: 100%;
+.row .image {
+  /* .row内では図版の実サイズに応じた固定幅に収め、表(可変幅列)と
+     並べたときに図版が主張しすぎないようにする(2026-08-16、
+     Decision Log 0041)。 */
   max-width: 18rem;
-  height: auto;
-  margin: 0 0 var(--space-3) var(--space-4);
-}
-
-@media (min-width: 900px) {
-  .imageFloatRight {
-    float: right;
-  }
+  margin-inline: 0;
 }
 
 @media (max-width: 899.98px) {
-  .imageFloatRight {
+  .row .image {
     max-width: 28rem;
-    margin: 0 auto var(--space-3);
+    margin-inline: auto;
   }
 }
