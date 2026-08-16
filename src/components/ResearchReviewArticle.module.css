@@ -11,9 +11,10 @@
 
 .subtitle {
   /* 記事の実質的なタイトル。.titleより大きく、主役として見せる
-     (2026-08-15、Decision Log 0034)。 */
+     (2026-08-15、Decision Log 0034)。fs-2xlは大きすぎたため
+     fs-xlに調整(Decision Log 0035)。 */
   margin: var(--space-2) 0 0;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
 }
@@ -43,8 +44,11 @@
 
 .paragraph {
   margin: 0;
-  font-size: var(--fs-lg);
-  line-height: var(--lh-body);
+  /* 本文をfs-lg/lh-bodyから縮小・行間を詰めた(2026-08-15、
+     Decision Log 0035)。lh-bodyはサイト全体で使う「ゆったりした
+     行間」のトークンのため、ここではより詰まったlh-headingを流用する。 */
+  font-size: var(--fs-base);
+  line-height: var(--lh-heading);
 }
 
 .list {
@@ -53,8 +57,8 @@
   gap: var(--space-1);
   margin: 0;
   padding-left: var(--space-3);
-  font-size: var(--fs-lg);
-  line-height: var(--lh-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-heading);
 }
 
 .table {
