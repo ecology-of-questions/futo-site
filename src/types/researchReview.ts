@@ -27,10 +27,15 @@ export interface ListBlock {
   items: string[];
 }
 
+/**
+ * float: "right"を指定すると、ImageBlockと同様にDesktop幅で
+ * セクション右側に回り込み配置される(2026-08-16)。
+ */
 export interface TableBlock {
   type: "table";
   headers: string[];
   rows: string[][];
+  float?: "right";
 }
 
 /** 引用・定義文。字下げ+左罫線で本文と区別して表示する */

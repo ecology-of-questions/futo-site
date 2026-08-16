@@ -10,7 +10,7 @@
  *
  * 元原稿の構造(見出し→本文→箇条書き→表)をそのまま表示するための、
  * 最小限のコンテンツブロック方式を採用している(型はsrc/types/
- * researchReview.ts参照)。2026-08-16、研究断面01の本文改訂に合わせ
+ * researchReview.ts参照)。2026-08-15、研究断面01の本文改訂に合わせ
  * quote(引用・定義)・subheading(小見出し)・image(図版)を追加した
  * (Decision Log 0036)。
  *
@@ -19,12 +19,18 @@
  *
  * ResearchStatementと同様、コンテンツはpropsで受け取り、コンポーネント
  * 自体にはハードコードしない(Decision Log 0003の方針を踏襲)。
+ *
+ * 【2026-08-16追記】float: "right"を持つ図版・表とその直後の段落を
+ * 「回り込みグループ」としてまとめ、それぞれ独立したブロック整形
+ * コンテキスト(display: flow-root)で描画するようにした(Decision
+ * Log 0039)。これにより、直前の図版の回り込みで消費された段落の
+ * 残り高さに影響されず、表自体にも本文が正しく回り込む。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
 import SectionTitle from "./SectionTitle.astro";
 import styles from "./ResearchReviewArticle.module.css";
-import type { ReviewSection } from "@/types/researchReview";
+import type { ContentBlock, ReviewSection } from "@/types/researchReview";
 
 interface Props {
   /** SectionTitleとして表示する英語ラベル(例: "Research Review") */
@@ -36,6 +42,38 @@ interface Props {
 }
 
 const { sectionLabel, title, subtitle, sections } = Astro.props;
+
+interface BlockGroup {
+  /** "float": 図版・表(float: "right")と後続の段落をまとめた回り込みグループ */
+  kind: "float" | "plain";
+  blocks: ContentBlock[];
+}
+
+/**
+ * float: "right"の図版・表を起点に、直後に連続する段落をひとつの
+ * グループにまとめる。それ以外のブロックは単独の"plain"グループとして扱う。
+ */
+function groupBlocks(blocks: ContentBlock[]): BlockGroup[] {
+  const groups: BlockGroup[] = [];
+  let i = 0;
+  while (i < blocks.length) {
+    const block = blocks[i];
+    const isFloatMedia = (block.type === "image" || block.type === "table") && block.float === "right";
+    if (isFloatMedia) {
+      const group: ContentBlock[] = [block];
+      i += 1;
+      while (i < blocks.length && blocks[i].type === "paragraph") {
+        group.push(blocks[i]);
+        i += 1;
+      }
+      groups.push({ kind: "float", blocks: group });
+    } else {
+      groups.push({ kind: "plain", blocks: [block] });
+      i += 1;
+    }
+  }
+  return groups;
+}
 ---
 
 <ResearchSection ariaLabel={title}>
@@ -48,56 +86,69 @@ const { sectionLabel, title, subtitle, sections } = Astro.props;
       sections.map((section) => (
         <section class={styles.section}>
           <h2 class={styles.sectionHeading}>{section.heading}</h2>
-          {section.blocks.map((block) => {
-            if (block.type === "paragraph") {
-              return <p class={styles.paragraph}>{block.text}</p>;
-            }
-            if (block.type === "list") {
-              return (
-                <ul class={styles.list}>
-                  {block.items.map((item) => (
-                    <li>{item}</li>
-                  ))}
-                </ul>
-              );
-            }
-            if (block.type === "quote") {
-              return <blockquote class={styles.quote}>{block.text}</blockquote>;
-            }
-            if (block.type === "subheading") {
-              return <h3 class={styles.subheading}>{block.text}</h3>;
-            }
-            if (block.type === "image") {
-              return (
-                <img
-                  class={block.float === "right" ? styles.imageFloatRight : styles.image}
-                  src={block.src}
-                  alt={block.alt}
-                  width={block.width}
-                  height={block.height}
-                  loading="lazy"
-                />
-              );
-            }
-            return (
-              <table class={styles.table}>
-                <thead>
-                  <tr>
-                    {block.headers.map((heading) => (
-                      <th>{heading}</th>
+          {groupBlocks(section.blocks).map((group) => {
+            const rendered = group.blocks.map((block) => {
+              if (block.type === "paragraph") {
+                return <p class={styles.paragraph}>{block.text}</p>;
+              }
+              if (block.type === "list") {
+                return (
+                  <ul class={styles.list}>
+                    {block.items.map((item) => (
+                      <li>{item}</li>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {block.rows.map((row) => (
+                  </ul>
+                );
+              }
+              if (block.type === "quote") {
+                return <blockquote class={styles.quote}>{block.text}</blockquote>;
+              }
+              if (block.type === "subheading") {
+                return <h3 class={styles.subheading}>{block.text}</h3>;
+              }
+              if (block.type === "image") {
+                return (
+                  <img
+                    class={block.float === "right" ? styles.imageFloatRight : styles.image}
+                    src={block.src}
+                    alt={block.alt}
+                    width={block.width}
+                    height={block.height}
+                    loading="lazy"
+                  />
+                );
+              }
+              return (
+                <table
+                  class={
+                    block.float === "right"
+                      ? `${styles.table} ${styles.tableFloatRight}`
+                      : styles.table
+                  }
+                >
+                  <thead>
                     <tr>
-                      {row.map((cell) => (
-                        <td>{cell}</td>
+                      {block.headers.map((heading) => (
+                        <th>{heading}</th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {block.rows.map((row) => (
+                      <tr>
+                        {row.map((cell) => (
+                          <td>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              );
+            });
+            return group.kind === "float" ? (
+              <div class={styles.floatGroup}>{rendered}</div>
+            ) : (
+              rendered
             );
           })}
         </section>
