@@ -70,7 +70,7 @@ const { sectionLabel, title, subtitle, sections } = Astro.props;
             if (block.type === "image") {
               return (
                 <img
-                  class={styles.image}
+                  class={block.float === "right" ? styles.imageFloatRight : styles.image}
                   src={block.src}
                   alt={block.alt}
                   width={block.width}
