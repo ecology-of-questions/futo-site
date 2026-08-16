@@ -20,16 +20,16 @@
  * ResearchStatementと同様、コンテンツはpropsで受け取り、コンポーネント
  * 自体にはハードコードしない(Decision Log 0003の方針を踏襲)。
  *
- * 【2026-08-16追記】図版(ImageBlock)にfloat: "right"を指定すると、
- * Desktop幅でセクション右上に回り込み配置できる(Decision Log
- * 0038)。表(TableBlock)も一時的に同様の回り込みに対応させたが
- * (Decision Log 0039)、複数のfloatが同じセクションに並ぶと視覚的な
- * ジグザグが生まれることと、表という構造物自体が狭い列に収まり
- * にくいことから撤回した(Decision Log 0040)。表は常に全幅表示。
+ * 【2026-08-16追記】図版・表の回り込み配置(float)を試したが
+ * (Decision Log 0038〜0040)、最終的にRowBlockで図版・表を横並びに
+ * 配置する方式に落ち着いた(Decision Log 0041)。個々のブロックの
+ * 描画はReviewContentBlock.astroに切り出し、セクション直下と
+ * RowBlock内の両方から再利用している。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
 import SectionTitle from "./SectionTitle.astro";
+import ReviewContentBlock from "./ReviewContentBlock.astro";
 import styles from "./ResearchReviewArticle.module.css";
 import type { ReviewSection } from "@/types/researchReview";
 
@@ -55,58 +55,17 @@ const { sectionLabel, title, subtitle, sections } = Astro.props;
       sections.map((section) => (
         <section class={styles.section}>
           <h2 class={styles.sectionHeading}>{section.heading}</h2>
-          {section.blocks.map((block) => {
-            if (block.type === "paragraph") {
-              return <p class={styles.paragraph}>{block.text}</p>;
-            }
-            if (block.type === "list") {
-              return (
-                <ul class={styles.list}>
-                  {block.items.map((item) => (
-                    <li>{item}</li>
-                  ))}
-                </ul>
-              );
-            }
-            if (block.type === "quote") {
-              return <blockquote class={styles.quote}>{block.text}</blockquote>;
-            }
-            if (block.type === "subheading") {
-              return <h3 class={styles.subheading}>{block.text}</h3>;
-            }
-            if (block.type === "image") {
-              return (
-                <img
-                  class={block.float === "right" ? styles.imageFloatRight : styles.image}
-                  src={block.src}
-                  alt={block.alt}
-                  width={block.width}
-                  height={block.height}
-                  loading="lazy"
-                />
-              );
-            }
-            return (
-              <table class={styles.table}>
-                <thead>
-                  <tr>
-                    {block.headers.map((heading) => (
-                      <th>{heading}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {block.rows.map((row) => (
-                    <tr>
-                      {row.map((cell) => (
-                        <td>{cell}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            );
-          })}
+          {section.blocks.map((block) =>
+            block.type === "row" ? (
+              <div class={styles.row}>
+                {block.items.map((item) => (
+                  <ReviewContentBlock block={item} />
+                ))}
+              </div>
+            ) : (
+              <ReviewContentBlock block={block} />
+            ),
+          )}
         </section>
       ))
     }
