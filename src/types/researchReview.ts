@@ -9,6 +9,11 @@
  * status(ResearchStatus)と同様、コンポーネントから独立させて
  * ここに置く。02以降のReviewページも同じ型・同じコンポーネントを
  * 再利用する想定。
+ *
+ * 【2026-08-16追記】研究断面01の本文改訂(要旨・番号付き節・仮説の
+ * 小見出し・古典文学の引用・定義の引用・図版を含む学術的な構成)に
+ * 合わせ、QuoteBlock・SubheadingBlock・ImageBlockを追加した
+ * (Decision Log 0036)。
  * ------------------------------------------------------------
  */
 
@@ -28,7 +33,34 @@ export interface TableBlock {
   rows: string[][];
 }
 
-export type ContentBlock = ParagraphBlock | ListBlock | TableBlock;
+/** 引用・定義文。字下げ+左罫線で本文と区別して表示する */
+export interface QuoteBlock {
+  type: "quote";
+  text: string;
+}
+
+/** セクション見出し(h2)より一段小さい小見出し(h3)。例: 「仮説1 ...」 */
+export interface SubheadingBlock {
+  type: "subheading";
+  text: string;
+}
+
+/** 図版。altは代替テキストとして必須(装飾目的の場合も内容を説明する) */
+export interface ImageBlock {
+  type: "image";
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+}
+
+export type ContentBlock =
+  | ParagraphBlock
+  | ListBlock
+  | TableBlock
+  | QuoteBlock
+  | SubheadingBlock
+  | ImageBlock;
 
 export interface ReviewSection {
   heading: string;

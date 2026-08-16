@@ -79,3 +79,23 @@
   font-weight: 500;
   opacity: 0.7;
 }
+
+.quote {
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--color-accent-beige);
+  font-size: var(--fs-base);
+  line-height: var(--lh-heading);
+  opacity: 0.85;
+}
+
+.subheading {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.image {
+  width: 100%;
+  height: auto;
+}
