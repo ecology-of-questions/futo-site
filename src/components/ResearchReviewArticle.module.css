@@ -1,14 +1,21 @@
 .title {
-  font-size: var(--fs-2xl);
+  /* 「研究断面01」という通し番号としての見出し。実際の記事タイトル
+     (.subtitle)より控えめなサイズにする(2026-08-15、Decision Log
+     0034)。 */
+  font-size: var(--fs-lg);
   line-height: var(--lh-heading);
   font-weight: 500;
+  opacity: 0.7;
   margin: var(--space-3) 0 0;
 }
 
 .subtitle {
+  /* 記事の実質的なタイトル。.titleより大きく、主役として見せる
+     (2026-08-15、Decision Log 0034)。 */
   margin: var(--space-2) 0 0;
-  font-size: var(--fs-lg);
-  opacity: 0.75;
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
 }
 
 .article {
