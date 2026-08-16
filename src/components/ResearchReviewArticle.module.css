@@ -96,6 +96,11 @@
 }
 
 .image {
+  /* 図版はDecision Log 0031(本文の幅制限を撤廃)の対象外とし、
+     読み込みやすいサイズに収める(2026-08-16)。 */
+  display: block;
   width: 100%;
+  max-width: 28rem;
   height: auto;
+  margin-inline: auto;
 }
