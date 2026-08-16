@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 950" width="1100" height="950" role="img" aria-labelledby="figure1-title">
+  <title id="figure1-title">図1 「ふと」の用例の分布</title>
+  <g fill="none" stroke="#2b2a26" stroke-opacity="0.35">
+    <circle cx="560" cy="400" r="345" />
+  </g>
+
+  <g fill="none" stroke="#2b2a26" stroke-opacity="0.45" stroke-width="1.5" stroke-dasharray="2 6" stroke-linecap="round">
+    <path d="M560,330 Q520,257 560,185 Q600,257 560,330 Z" />
+    <path d="M560,470 Q520,542 560,615 Q600,542 560,470 Z" />
+    <path d="M630,400 Q702,362 775,400 Q702,438 630,400 Z" />
+    <path d="M490,400 Q417,362 345,400 Q417,438 490,400 Z" />
+  </g>
+
+  <g fill="none" stroke="#2b2a26" stroke-opacity="0.7" stroke-width="1.5" stroke-dasharray="1 5" stroke-linecap="round">
+    <circle cx="560" cy="400" r="70" />
+  </g>
+  <text x="560" y="400" text-anchor="middle" dominant-baseline="central"
+        font-family="'Hiragino Mincho ProN','Yu Mincho',serif" font-size="34" fill="#2b2a26">ふと</text>
+
+  <g fill="none" stroke="#2b2a26" stroke-opacity="0.8" stroke-width="1.5">
+    <circle cx="560" cy="120" r="65" />
+    <circle cx="840" cy="400" r="65" />
+    <circle cx="560" cy="680" r="65" />
+    <circle cx="280" cy="400" r="65" />
+  </g>
+  <g font-family="'Hiragino Mincho ProN','Yu Mincho',serif" font-size="26" fill="#2b2a26" text-anchor="middle" dominant-baseline="central">
+    <text x="560" y="120">思考</text>
+    <text x="840" y="400">知覚</text>
+    <text x="560" y="680">身体</text>
+    <text x="280" y="400">記憶</text>
+  </g>
+
+  <g font-family="'Hiragino Mincho ProN','Yu Mincho',serif" font-size="19" fill="#2b2a26" fill-opacity="0.85">
+    <text x="560" y="228" text-anchor="middle">ふと思う</text>
+    <text x="560" y="256" text-anchor="middle">ふと考える</text>
+
+    <text x="926" y="388" text-anchor="start">ふと見る</text>
+    <text x="926" y="416" text-anchor="start">ふと気づく</text>
+
+    <text x="560" y="788" text-anchor="middle">ふと立ち止まる</text>
+    <text x="560" y="816" text-anchor="middle">ふと振り返る</text>
+
+    <text x="194" y="388" text-anchor="end">ふと思い出す</text>
+    <text x="194" y="416" text-anchor="end">ふと昔のことを思う</text>
+  </g>
+
+  <g font-family="'Hiragino Mincho ProN','Yu Mincho',serif" fill="#2b2a26" text-anchor="middle">
+    <text x="560" y="880" font-size="26" font-weight="500">図1　「ふと」の用例の分布</text>
+    <text x="560" y="912" font-size="18" fill-opacity="0.75">用例を整理すると、「ふと」は身体、知覚、記憶、思考という異なる経験領域に分布していることがわかる。</text>
+  </g>
+</svg>

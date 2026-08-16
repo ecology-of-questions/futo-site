@@ -10,7 +10,9 @@
  *
  * 元原稿の構造(見出し→本文→箇条書き→表)をそのまま表示するための、
  * 最小限のコンテンツブロック方式を採用している(型はsrc/types/
- * researchReview.ts参照)。
+ * researchReview.ts参照)。2026-08-16、研究断面01の本文改訂に合わせ
+ * quote(引用・定義)・subheading(小見出し)・image(図版)を追加した
+ * (Decision Log 0036)。
  *
  * 段落内の改行は、Research Statementで採用した「自然な折返しに
  * 任せる」方針(Decision Log 0026)を踏襲し、強制改行は入れていない。
@@ -57,6 +59,24 @@ const { sectionLabel, title, subtitle, sections } = Astro.props;
                     <li>{item}</li>
                   ))}
                 </ul>
+              );
+            }
+            if (block.type === "quote") {
+              return <blockquote class={styles.quote}>{block.text}</blockquote>;
+            }
+            if (block.type === "subheading") {
+              return <h3 class={styles.subheading}>{block.text}</h3>;
+            }
+            if (block.type === "image") {
+              return (
+                <img
+                  class={styles.image}
+                  src={block.src}
+                  alt={block.alt}
+                  width={block.width}
+                  height={block.height}
+                  loading="lazy"
+                />
               );
             }
             return (
