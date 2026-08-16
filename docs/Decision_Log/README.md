@@ -110,3 +110,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0035](./0035-review-article-typography-tighten.md) | 研究断面詳細ページのタイトル・本文の文字サイズと行間を調整する |
 | [0036](./0036-research-review-01-revision.md) | 研究断面01の本文を改訂版に差し替え、図版(quote/subheading/image)を追加する |
 | [0037](./0037-review-figure-max-width.md) | 研究断面詳細ページの図版に最大幅を設定する |
+| [0038](./0038-review-figure-float-right.md) | 研究断面詳細ページの図版を、セクション右上に回り込み配置できるようにする |
