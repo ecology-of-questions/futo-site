@@ -118,4 +118,5 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0043](./0043-review-row-image-nudge.md) | 研究断面詳細ページの行内で、図版を少し右に寄せる |
 | [0044](./0044-review-row-table-cell-nowrap.md) | 研究断面詳細ページの行内の表で、長い用例セルを1行に収める |
 | [0045](./0045-review-row-table-header-nowrap.md) | 研究断面詳細ページの行内の表で、見出し「便宜的な分類」も1行に収める |
-| [0046](./0046-research-heading-note.md) | /researchページの「研究断面」見出しに、短い説明文を添える |
+| [0046](./0046-research-heading-note.md) | /researchページの「研究断面」見出しに、短い説明文を添える(→ 一部上書き済み、0047) |
+| [0047](./0047-research-heading-note-trim.md) | /researchページの説明文から1行目を削除する |
