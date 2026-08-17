@@ -103,14 +103,21 @@
      ことがあった。表・図版の幅(Decision Log 0042・0043)は変えずに、
      文字サイズを縮め、列幅をtable-layout: fixedで明示的に配分する
      ことで、1列目の用例セルが1行に収まるようにした
-     (2026-08-16、Decision Log 0044)。 */
+     (2026-08-16、Decision Log 0044)。見出し「便宜的な分類」も
+     1行に収めるため、セルの横paddingを詰めて2列目の余白を確保した
+     (Decision Log 0045)。 */
   table-layout: fixed;
   font-size: var(--fs-sm);
 }
 
+.row .table th,
+.row .table td {
+  padding-inline: var(--space-1);
+}
+
 .row .table th:first-child,
 .row .table td:first-child {
-  width: 14.5rem;
+  width: 13.5rem;
 }
 
 .quote {
