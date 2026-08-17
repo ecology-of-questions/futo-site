@@ -115,3 +115,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0040](./0040-review-table-float-revert.md) | 研究断面詳細ページの表の回り込み配置を撤回し、全幅表示に戻す(→ 一部上書き済み、0041) |
 | [0041](./0041-review-table-image-row.md) | 研究断面詳細ページの表・図版を横並びの行(RowBlock)として配置する |
 | [0042](./0042-review-row-proportions.md) | 研究断面詳細ページの行内で、表を狭く・図版を大きく調整する |
+| [0043](./0043-review-row-image-nudge.md) | 研究断面詳細ページの行内で、図版を少し右に寄せる |
