@@ -97,6 +97,22 @@
   opacity: 0.7;
 }
 
+.row .table {
+  /* .row内の表は列幅が狭いため(Decision Log 0042)、「ふと立ち止まる、
+     ふと振り返る」のような長い用例セルが単語の途中で折り返される
+     ことがあった。表・図版の幅(Decision Log 0042・0043)は変えずに、
+     文字サイズを縮め、列幅をtable-layout: fixedで明示的に配分する
+     ことで、1列目の用例セルが1行に収まるようにした
+     (2026-08-16、Decision Log 0044)。 */
+  table-layout: fixed;
+  font-size: var(--fs-sm);
+}
+
+.row .table th:first-child,
+.row .table td:first-child {
+  width: 14.5rem;
+}
+
 .quote {
   margin: 0;
   padding-left: var(--space-3);
