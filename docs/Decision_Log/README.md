@@ -121,3 +121,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0046](./0046-research-heading-note.md) | /researchページの「研究断面」見出しに、短い説明文を添える(→ 一部上書き済み、0047) |
 | [0047](./0047-research-heading-note-trim.md) | /researchページの説明文から1行目を削除する |
 | [0048](./0048-research-review-01-revision2.md) | 研究断面01の本文を2度目の改訂版に差し替える |
+| [0049](./0049-research-review-01-revision3.md) | 研究断面01の本文を3度目の改訂版に差し替える |
