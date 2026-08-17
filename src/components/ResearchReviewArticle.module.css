@@ -125,9 +125,10 @@
 .row .image {
   /* .row内では表より図版を大きく見せる(2026-08-16、Decision Log
      0042)。列(1fr)の中で目立つサイズまで拡大しつつ、コンテナ
-     いっぱいには広げすぎないよう上限を設ける。 */
+     いっぱいには広げすぎないよう上限を設ける。表との間を少し空け、
+     図版を列の中で右に寄せる(Decision Log 0043)。 */
   max-width: 32rem;
-  margin-inline: 0;
+  margin-inline: var(--space-3) 0;
 }
 
 @media (max-width: 899.98px) {
