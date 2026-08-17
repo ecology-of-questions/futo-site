@@ -116,3 +116,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0041](./0041-review-table-image-row.md) | 研究断面詳細ページの表・図版を横並びの行(RowBlock)として配置する |
 | [0042](./0042-review-row-proportions.md) | 研究断面詳細ページの行内で、表を狭く・図版を大きく調整する |
 | [0043](./0043-review-row-image-nudge.md) | 研究断面詳細ページの行内で、図版を少し右に寄せる |
+| [0044](./0044-review-row-table-cell-nowrap.md) | 研究断面詳細ページの行内の表で、長い用例セルを1行に収める |
