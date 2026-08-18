@@ -123,3 +123,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0048](./0048-research-review-01-revision2.md) | 研究断面01の本文を2度目の改訂版に差し替える |
 | [0049](./0049-research-review-01-revision3.md) | 研究断面01の本文を3度目の改訂版に差し替える |
 | [0050](./0050-lh-body-tighten.md) | サイト全体の本文行間(--lh-body)を1.9から1.6に詰める |
+| [0051](./0051-review-body-lh-align.md) | 研究断面詳細ページの本文行間を、サイト全体の--lh-bodyに揃える |
