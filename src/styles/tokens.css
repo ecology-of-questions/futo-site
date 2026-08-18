@@ -36,7 +36,7 @@
   --fs-2xl: 2.5rem;
   --fs-3xl: clamp(2.25rem, 1.6rem + 2.6vw, 3.25rem); /* Hero見出し用(Home_Hero_v1_mockupの見出しサイズを参照) */
 
-  --lh-body: 1.9;   /* 余白=思考時間の思想に合わせ、行間はゆったり */
+  --lh-body: 1.6;   /* 本文の行間(2026-08-17、Decision Log 0050でプロジェクトオーナーの指示により1.9→1.6に詰めた) */
   --lh-heading: 1.5;
   --lh-hero-heading: 1.35; /* Heroの2行見出しはやや詰め気味(モックアップ準拠) */
 
