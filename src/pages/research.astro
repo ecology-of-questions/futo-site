@@ -37,6 +37,9 @@
  *   (更新日のみを表示する形にした)。
  *
  * Logsは「β公開まで新機能は増やさない」方針により未実装(Parking Lot)。
+ *
+ * 【2026-08-17追記】01のsubtitleを、詳細ページ(reviews/01.astro)の
+ * サブタイトル改訂に合わせて更新した(Decision Log 0049)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -53,7 +56,7 @@ const publishedReviews: PublishedReviewEntry[] = [
   {
     number: "01",
     title: "『ふと』という日本語",
-    subtitle: "人と世界との関係が変化する瞬間",
+    subtitle: "身体、知覚、記憶、思考を横断する言葉",
     description:
       "身体の動きを表していた「ふと」は、なぜ記憶や思考を表す言葉になったのか。辞書、古典文学、日本語研究を手がかりに、その意味の変遷をたどる。",
     updatedLabel: "2026.08.15 更新",
@@ -70,7 +73,13 @@ const plannedReviews: PlannedReviewEntry[] = [
 <DefaultLayout title="Research ｜ ふ、と">
   <ResearchSection ariaLabel="Research" id="research-reviews">
     <SectionTitle>RESEARCH</SectionTitle>
-    <p class={styles.heading}>研究断面</p>
+    <div class={styles.headingRow}>
+      <p class={styles.heading}>研究断面</p>
+      <div class={styles.note}>
+        <p>観察し、記録し、対話し、つくり、また観察する。</p>
+        <p>その過程を残していくための研究ノート。</p>
+      </div>
+    </div>
     <ResearchReviewList published={publishedReviews} planned={plannedReviews} />
   </ResearchSection>
 </DefaultLayout>

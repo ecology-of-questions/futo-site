@@ -1,6 +1,36 @@
+.headingRow {
+  /* 「研究断面」という言葉が説明なしに出てくる、という指摘を受け、
+     見出しの右横(Desktop幅)に短い説明文を添えた(2026-08-17、
+     Decision Log 0046)。Mobile幅では縦に積む。 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+}
+
+@media (min-width: 900px) {
+  .headingRow {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+}
+
 .heading {
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  margin: var(--space-3) 0 0;
+  margin: 0;
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-base);
+  line-height: var(--lh-heading);
+  opacity: 0.75;
+}
+
+.note p {
+  margin: 0;
 }

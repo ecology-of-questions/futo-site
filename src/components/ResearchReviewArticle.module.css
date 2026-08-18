@@ -97,6 +97,29 @@
   opacity: 0.7;
 }
 
+.row .table {
+  /* .row内の表は列幅が狭いため(Decision Log 0042)、「ふと立ち止まる、
+     ふと振り返る」のような長い用例セルが単語の途中で折り返される
+     ことがあった。表・図版の幅(Decision Log 0042・0043)は変えずに、
+     文字サイズを縮め、列幅をtable-layout: fixedで明示的に配分する
+     ことで、1列目の用例セルが1行に収まるようにした
+     (2026-08-16、Decision Log 0044)。見出し「便宜的な分類」も
+     1行に収めるため、セルの横paddingを詰めて2列目の余白を確保した
+     (Decision Log 0045)。 */
+  table-layout: fixed;
+  font-size: var(--fs-sm);
+}
+
+.row .table th,
+.row .table td {
+  padding-inline: var(--space-1);
+}
+
+.row .table th:first-child,
+.row .table td:first-child {
+  width: 13.5rem;
+}
+
 .quote {
   margin: 0;
   padding-left: var(--space-3);
@@ -125,9 +148,10 @@
 .row .image {
   /* .row内では表より図版を大きく見せる(2026-08-16、Decision Log
      0042)。列(1fr)の中で目立つサイズまで拡大しつつ、コンテナ
-     いっぱいには広げすぎないよう上限を設ける。 */
+     いっぱいには広げすぎないよう上限を設ける。表との間を少し空け、
+     図版を列の中で右に寄せる(Decision Log 0043)。 */
   max-width: 32rem;
-  margin-inline: 0;
+  margin-inline: var(--space-3) 0;
 }
 
 @media (max-width: 899.98px) {
