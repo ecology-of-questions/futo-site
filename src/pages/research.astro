@@ -46,6 +46,10 @@
  * ResearchReviewListを「1行(番号+タイトル+更新日)+サブタイトル」の
  * コンパクトな行に作り替えた。説明文(description)は一覧から外し、
  * 型からも削除した。
+ *
+ * 【2026-08-17三度目の追記(Decision Log 0056)】行の右側に余白が
+ * 生まれていたため、説明文(description)を2行までの要約として
+ * 右側に復活させた。型にも再度追加した。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -63,6 +67,8 @@ const publishedReviews: PublishedReviewEntry[] = [
     number: "01",
     title: "『ふと』という日本語",
     subtitle: "身体、知覚、記憶、思考を横断する言葉",
+    description:
+      "身体の動きを表していた「ふと」は、なぜ記憶や思考を表す言葉になったのか。辞書、古典文学、日本語研究を手がかりに、その意味の変遷をたどる。",
     updatedLabel: "2026.08.15 更新",
     href: "/research/reviews/01",
   },

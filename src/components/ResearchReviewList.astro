@@ -28,6 +28,13 @@
  * 2本の線が近接して表示されてしまっていた。<hr>を削除し、最後の
  * 公開済みエントリのborder-bottomをそのまま区切り線として使う形に
  * 一本化した。
+ *
+ * 【2026-08-17三度目の改訂(Decision Log 0056)】タイトル・
+ * サブタイトルだけの2行構成にした結果、Desktop幅で行の右側に
+ * 余白が生まれていた。「右側に説明文を書けるのでは」という指摘を
+ * 受け、行を2カラム(左: 番号+タイトル/サブタイトル、右: 説明文
+ * (2行まで)+更新日+矢印)のグリッドに変更した。Mobile幅では
+ * 1カラムに積む。
  * ------------------------------------------------------------
  */
 import styles from "./ResearchReviewList.module.css";
@@ -48,10 +55,14 @@ const { published, planned } = Astro.props;
   {
     published.map((entry) => (
       <a class={styles.entry} href={entry.href}>
-        <span class={styles.entryHead}>
+        <span class={styles.entryMain}>
           <span class={styles.entryTitle}>
             <span class={styles.number}>{entry.number}</span> {entry.title}
           </span>
+          <span class={styles.entrySubtitle}>── {entry.subtitle}</span>
+        </span>
+        <span class={styles.entrySide}>
+          <span class={styles.entryDescription}>{entry.description}</span>
           <span class={styles.entryMeta}>
             {entry.updatedLabel}
             <span aria-hidden="true" class={styles.arrow}>
@@ -59,7 +70,6 @@ const { published, planned } = Astro.props;
             </span>
           </span>
         </span>
-        <span class={styles.entrySubtitle}>── {entry.subtitle}</span>
       </a>
     ))
   }

@@ -13,6 +13,10 @@
  * タイトル+更新日)・サブタイトルのみのコンパクトな行に作り替えた
  * (Decision Log 0054)。それに伴い、一覧専用の説明文だった
  * descriptionフィールドは使われなくなったため削除した。
+ *
+ * 【2026-08-17再追記】行の右側に余白が生まれていたため、
+ * descriptionを2行までの要約として右側に復活させた
+ * (Decision Log 0056)。
  * ------------------------------------------------------------
  */
 
@@ -23,6 +27,8 @@ export interface PublishedReviewEntry {
   title: string;
   /** 例: "人と世界との関係が変化する瞬間" */
   subtitle: string;
+  /** 一覧右側に2行までの要約として表示する */
+  description: string;
   /** 例: "2026.08.15 更新" */
   updatedLabel: string;
   href: string;
