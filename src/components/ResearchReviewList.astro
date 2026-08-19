@@ -14,14 +14,14 @@
  * 変更した(2026-08-15、Decision Log 0033、プロジェクトオーナー・
  * Creative Directorとのやりとりより)。
  *
- * 公開済み(published)のエントリはタイトル・サブタイトル・説明文・
- * 更新日を表示し詳細ページへリンクする。構想中(planned)のエントリは
- * 番号・タイトル・「(構想中)」のみの1行で表示する。両者のあいだに
- * 区切り線を1本引く。
- *
- * ResearchCard(Decision Log 0004・0005)はこのページでの用途が
- * なくなったため削除した。ResearchStatus型(src/types/research.ts)
- * 自体は将来Fragment/Logs等で使う可能性があるため残している。
+ * 【2026-08-17改訂(Decision Log 0054)】エントリが増えるにつれ
+ * スクロール量が増え、どこがリンクなのか分かりにくいという指摘を
+ * 受け、公開済みエントリを「1行目: 番号+タイトル+更新日、2行目:
+ * サブタイトル」というコンパクトな2行構成に作り替えた。説明文は
+ * 一覧から外した(詳細ページ側で読める)。クリック可能性は、Hero
+ * などの回遊導線で使っているArrowLink(Decision Log 0010)と同じ
+ * 矢印ホバーの動きを行全体に適用して示す。構想中のエントリは
+ * これまで通り番号・タイトル・「(構想中)」のみの1行。
  * ------------------------------------------------------------
  */
 import styles from "./ResearchReviewList.module.css";
@@ -42,12 +42,18 @@ const { published, planned } = Astro.props;
   {
     published.map((entry) => (
       <a class={styles.entry} href={entry.href}>
-        <p class={styles.entryTitle}>
-          <span class={styles.number}>{entry.number}</span> {entry.title}
-        </p>
-        <p class={styles.entrySubtitle}>── {entry.subtitle}</p>
-        <p class={styles.entryDescription}>{entry.description}</p>
-        <p class={styles.entryMeta}>{entry.updatedLabel}</p>
+        <span class={styles.entryHead}>
+          <span class={styles.entryTitle}>
+            <span class={styles.number}>{entry.number}</span> {entry.title}
+          </span>
+          <span class={styles.entryMeta}>
+            {entry.updatedLabel}
+            <span aria-hidden="true" class={styles.arrow}>
+              →
+            </span>
+          </span>
+        </span>
+        <span class={styles.entrySubtitle}>── {entry.subtitle}</span>
       </a>
     ))
   }
