@@ -128,3 +128,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0053](./0053-review-hypothesis2-merge.md) | 研究断面01の仮説2も、他の仮説と同じく1段落に統合する |
 | [0054](./0054-research-list-compact.md) | /researchページの一覧を、コンパクトな行+矢印の形に作り替える |
 | [0055](./0055-research-list-spacing.md) | /researchページの見出し位置を上げ、区切り線を一本化する |
+| [0056](./0056-research-list-description-side.md) | /research一覧の右側に説明文を2行までの要約として復活させる |
