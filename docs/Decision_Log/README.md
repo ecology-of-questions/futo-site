@@ -126,3 +126,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0051](./0051-review-body-lh-align.md) | 研究断面詳細ページの本文行間を、サイト全体の--lh-bodyに揃える |
 | [0052](./0052-review-paragraph-flow.md) | 研究断面01の段落区切りを見直し、より自然な流れにする(→ 一部上書き済み、0053) |
 | [0053](./0053-review-hypothesis2-merge.md) | 研究断面01の仮説2も、他の仮説と同じく1段落に統合する |
+| [0054](./0054-research-list-compact.md) | /researchページの一覧を、コンパクトな行+矢印の形に作り替える |
