@@ -1,3 +1,13 @@
+:global(#research-reviews) {
+  /* 「RESEARCH」「研究断面」の位置がやや下すぎるという指摘を受け、
+     共通コンポーネントResearchSectionの上余白(padding-block:
+     space-6)はそのままに、このページのセクションだけ上余白を
+     詰めた(2026-08-17、Decision Log 0055)。CSS ModulesはIDや
+     素の要素セレクタだけのルールを「未使用」とみなして削除して
+     しまうため、:global()で明示的にスコープ外として扱う。 */
+  padding-top: var(--space-5);
+}
+
 .headingRow {
   /* 「研究断面」という言葉が説明なしに出てくる、という指摘を受け、
      見出しの右横(Desktop幅)に短い説明文を添えた(2026-08-17、
