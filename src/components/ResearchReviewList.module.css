@@ -1,22 +1,44 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
   margin-top: var(--space-3);
 }
 
 .entry {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  /* 左: 番号+タイトル/サブタイトル、右: 説明文+更新日+矢印の
+     2カラム。Desktop幅で右側に余白が空いていたため、説明文を
+     ここに戻した(2026-08-17、Decision Log 0056)。 */
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-accent-beige);
   text-decoration: none;
   color: inherit;
   transition: opacity var(--transition-base);
 }
 
+@media (max-width: 899.98px) {
+  .entry {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}
+
+.entry:first-child {
+  padding-top: 0;
+}
+
 .entry:hover,
 .entry:focus-visible {
   opacity: 0.75;
+}
+
+.entryMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
 .number {
@@ -26,38 +48,63 @@
 }
 
 .entryTitle {
-  margin: 0;
   font-size: var(--fs-lg);
   font-weight: 500;
 }
 
 .entrySubtitle {
-  margin: 0;
   font-size: var(--fs-base);
   opacity: 0.7;
 }
 
+.entrySide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  text-align: right;
+}
+
+@media (max-width: 899.98px) {
+  .entrySide {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
 .entryDescription {
-  margin: var(--space-1) 0 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-heading);
+  opacity: 0.7;
+  /* 行の高さを2行までに抑え、一覧が縦に間延びしないようにする */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .entryMeta {
-  margin: var(--space-1) 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   opacity: 0.6;
 }
 
-.divider {
-  margin: var(--space-2) 0;
-  border: none;
-  border-top: 1px solid var(--color-accent-beige);
+.arrow {
+  transition: transform var(--transition-base);
+}
+
+.entry:hover .arrow,
+.entry:focus-visible .arrow {
+  transform: translateX(4px);
 }
 
 .plannedEntry {
   margin: 0;
+  padding-block: var(--space-2);
   font-size: var(--fs-lg);
   opacity: 0.55;
 }

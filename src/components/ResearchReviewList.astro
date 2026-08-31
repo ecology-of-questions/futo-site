@@ -14,14 +14,27 @@
  * 変更した(2026-08-15、Decision Log 0033、プロジェクトオーナー・
  * Creative Directorとのやりとりより)。
  *
- * 公開済み(published)のエントリはタイトル・サブタイトル・説明文・
- * 更新日を表示し詳細ページへリンクする。構想中(planned)のエントリは
- * 番号・タイトル・「(構想中)」のみの1行で表示する。両者のあいだに
- * 区切り線を1本引く。
+ * 【2026-08-17改訂(Decision Log 0054)】エントリが増えるにつれ
+ * スクロール量が増え、どこがリンクなのか分かりにくいという指摘を
+ * 受け、公開済みエントリを「1行目: 番号+タイトル+更新日、2行目:
+ * サブタイトル」というコンパクトな2行構成に作り替えた。説明文は
+ * 一覧から外した(詳細ページ側で読める)。クリック可能性は、Hero
+ * などの回遊導線で使っているArrowLink(Decision Log 0010)と同じ
+ * 矢印ホバーの動きを行全体に適用して示す。構想中のエントリは
+ * これまで通り番号・タイトル・「(構想中)」のみの1行。
  *
- * ResearchCard(Decision Log 0004・0005)はこのページでの用途が
- * なくなったため削除した。ResearchStatus型(src/types/research.ts)
- * 自体は将来Fragment/Logs等で使う可能性があるため残している。
+ * 【2026-08-17再改訂(Decision Log 0055)】公開済み/構想中の間の
+ * 区切りに、各エントリ自体のborder-bottomと専用の<hr>divider の
+ * 2本の線が近接して表示されてしまっていた。<hr>を削除し、最後の
+ * 公開済みエントリのborder-bottomをそのまま区切り線として使う形に
+ * 一本化した。
+ *
+ * 【2026-08-17三度目の改訂(Decision Log 0056)】タイトル・
+ * サブタイトルだけの2行構成にした結果、Desktop幅で行の右側に
+ * 余白が生まれていた。「右側に説明文を書けるのでは」という指摘を
+ * 受け、行を2カラム(左: 番号+タイトル/サブタイトル、右: 説明文
+ * (2行まで)+更新日+矢印)のグリッドに変更した。Mobile幅では
+ * 1カラムに積む。
  * ------------------------------------------------------------
  */
 import styles from "./ResearchReviewList.module.css";
@@ -42,17 +55,24 @@ const { published, planned } = Astro.props;
   {
     published.map((entry) => (
       <a class={styles.entry} href={entry.href}>
-        <p class={styles.entryTitle}>
-          <span class={styles.number}>{entry.number}</span> {entry.title}
-        </p>
-        <p class={styles.entrySubtitle}>── {entry.subtitle}</p>
-        <p class={styles.entryDescription}>{entry.description}</p>
-        <p class={styles.entryMeta}>{entry.updatedLabel}</p>
+        <span class={styles.entryMain}>
+          <span class={styles.entryTitle}>
+            <span class={styles.number}>{entry.number}</span> {entry.title}
+          </span>
+          <span class={styles.entrySubtitle}>── {entry.subtitle}</span>
+        </span>
+        <span class={styles.entrySide}>
+          <span class={styles.entryDescription}>{entry.description}</span>
+          <span class={styles.entryMeta}>
+            {entry.updatedLabel}
+            <span aria-hidden="true" class={styles.arrow}>
+              →
+            </span>
+          </span>
+        </span>
       </a>
     ))
   }
-
-  {published.length > 0 && planned.length > 0 && <hr class={styles.divider} />}
 
   {
     planned.map((entry) => (
