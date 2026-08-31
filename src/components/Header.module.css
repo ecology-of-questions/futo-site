@@ -47,3 +47,54 @@
 .navLink:focus-visible {
   opacity: 1;
 }
+
+.navLinkPending {
+  /* noteのURLが未設定の間、リンクにせず「準備中」として表示する
+     (2026-08-17、Decision Log 0057)。存在しないリンクを作らない方針。 */
+  color: var(--color-ink);
+  opacity: 0.4;
+}
+
+.menuToggle {
+  /* Desktop幅(min-width: 900px)では非表示。Mobile幅でのみ現れる
+     開閉ボタン(2026-08-17、Decision Log 0057)。 */
+  display: none;
+  background: none;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: opacity var(--transition-base);
+}
+
+.menuToggle:hover,
+.menuToggle:focus-visible {
+  opacity: 0.7;
+}
+
+@media (max-width: 899.98px) {
+  .menuToggle {
+    display: inline-flex;
+  }
+
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    background-color: var(--color-paper);
+    border-bottom: 1px solid var(--color-accent-beige);
+    padding: var(--space-2) var(--content-padding-inline) var(--space-3);
+  }
+
+  .nav[data-open="true"] {
+    display: flex;
+  }
+}
