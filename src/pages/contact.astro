@@ -1,0 +1,48 @@
+---
+/**
+ * contact.astro (お問い合わせ)
+ * ------------------------------------------------------------
+ * 役割: お問い合わせページ。正式公開に向けたプロジェクトオーナーの
+ * 指示により新規実装した(2026-08-17、Decision Log 0057)。
+ *
+ * 送信先(メールアドレス/フォームURL)はsrc/config/site.tsを経由して
+ * 環境変数から読み込む。どちらも未設定の場合は、送信できないリンクや
+ * フォームを表示せず「連絡先準備中」とだけ表示する(プロジェクト
+ * オーナーの明示的な指示)。メールアドレスが設定されていれば
+ * メールアドレスを優先する。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchSection from "@components/ResearchSection.astro";
+import SectionTitle from "@components/SectionTitle.astro";
+import ArrowLink from "@components/ArrowLink.astro";
+import styles from "./contact.module.css";
+import { contactEmail, contactFormUrl } from "@/config/site";
+---
+
+<DefaultLayout title="お問い合わせ ｜ ふ、と" description="公開研究室「ふ、と」へのお問い合わせ。">
+  <ResearchSection ariaLabel="Contact">
+    <SectionTitle>CONTACT</SectionTitle>
+
+    <h1 class={styles.heading}>お問い合わせ</h1>
+    <div class={styles.body}>
+      <p>
+        研究についてのご感想、対話や共同研究、執筆・制作に関するご相談などは、こちらからお寄せください。
+      </p>
+    </div>
+
+    {
+      contactEmail ? (
+        <p class={styles.contactValue}>
+          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+        </p>
+      ) : contactFormUrl ? (
+        <div class={styles.contactLink}>
+          <ArrowLink href={contactFormUrl} label="お問い合わせフォームを開く" external />
+        </div>
+      ) : (
+        <p class={styles.pending}>連絡先準備中</p>
+      )
+    }
+  </ResearchSection>
+</DefaultLayout>
