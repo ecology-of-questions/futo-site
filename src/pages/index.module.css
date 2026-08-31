@@ -39,3 +39,19 @@
     display: block;
   }
 }
+
+.currentWorkHeading {
+  /* 「いま、取り組んでいること」セクションの見出し(2026-08-17、
+     Decision Log 0057)。ResearchStatementの.heading等と揃え、
+     fs-xlの控えめな見出しサイズにする。 */
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: var(--space-3) 0 0;
+}
+
+.currentWorkIntro {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
