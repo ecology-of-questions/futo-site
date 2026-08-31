@@ -70,7 +70,10 @@ Project Journal → 出来事の履歴
 **Beta(今週)**
 
 - Home(Hero / Research Statement)の仕上げ
-- About(運営者について。公開直前に情報設計)
+- About(運営者について。公開直前に情報設計) → 2026-08-17実装済み
+  (ヘッダー/フッターナビゲーション刷新、Contactページ新設、Home
+  「いま、取り組んでいること」セクション追加とあわせて正式公開に
+  向けて実装。詳細はDecision Log 0057、Project Journal参照)
 - モバイル確認・OGP・favicon・404ページ等の公開前確認
 - 公開研究室、開室
 
@@ -92,7 +95,7 @@ Project Journal → 出来事の履歴
 ## 今週やること
 
 1. Home polish
-2. About(保留中。公開直前に情報設計を詰める)
+2. About(保留中。公開直前に情報設計を詰める) → 実装済み(Decision Log 0057)
 3. モバイル確認
 4. OGP / favicon / 404ページ
 5. β公開
