@@ -1,0 +1,33 @@
+.heading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: var(--space-3) 0 0;
+}
+
+.body {
+  margin-top: var(--space-3);
+  font-size: var(--fs-lg);
+  line-height: var(--lh-body);
+}
+
+.body p {
+  margin: 0;
+}
+
+.contactValue {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-lg);
+}
+
+.contactLink {
+  margin-top: var(--space-4);
+}
+
+.pending {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  opacity: 0.5;
+}

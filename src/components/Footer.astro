@@ -2,10 +2,50 @@
 /**
  * Footer.astro
  * ------------------------------------------------------------
- * 役割: サイト全体のフッター。Homeの最終セクションでもある。
- * Design Spec 4: Home Structure の最後に位置する。
+ * 役割: サイト全体のフッター。DefaultLayoutから全ページ共通で
+ * 配置される。Design Spec 4: Home Structure の最後に位置する。
+ *
+ * 2026-08-17、正式公開に向けたプロジェクトオーナーの指示により、
+ * これまでプレースホルダー(TODOコメントのみ)だった内容を実装した
+ * (Decision Log 0057)。サイト名、主要ページへのリンク、note
+ * (外部・任意設定)、コピーライトを掲載する。
+ *
+ * noteはHeaderと同様、src/config/site.tsのnoteUrlが未設定の場合は
+ * リンクにせず「note(準備中)」と表示する。
  * ------------------------------------------------------------
  */
+import styles from "./Footer.module.css";
+import { noteUrl } from "@/config/site";
 ---
 
-<!-- TODO: 実装レベルの仕様到着後に実装 -->
+<footer class={styles.footer}>
+  <div class={styles.inner}>
+    <p class={styles.siteName}>公開研究室「ふ、と」</p>
+
+    <nav class={styles.nav} aria-label="フッターナビゲーション">
+      <a class={styles.link} href="/research-statement">Research Statement</a>
+      <a class={styles.link} href="/research">研究断面</a>
+      <a class={styles.link} href="/about">ふ、とについて</a>
+      {
+        noteUrl ? (
+          <a
+            class={styles.link}
+            href={noteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="note(外部サイトが新しいタブで開きます)"
+          >
+            note
+          </a>
+        ) : (
+          <span class={styles.linkPending} aria-hidden="true">
+            note(準備中)
+          </span>
+        )
+      }
+      <a class={styles.link} href="/contact">お問い合わせ</a>
+    </nav>
+
+    <p class={styles.copyright}>© 2026 ふ、と</p>
+  </div>
+</footer>

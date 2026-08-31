@@ -1,0 +1,42 @@
+---
+/**
+ * CurrentWorkList.astro
+ * ------------------------------------------------------------
+ * 役割: Homeの「いま、取り組んでいること」セクションの項目一覧。
+ * カードで囲わず、細い罫線と余白だけで項目を区切る
+ * (プロジェクトオーナーの指示: 「3項目はカードで囲まず、細い罫線と
+ * 十分な余白で縦方向に配置する」、2026-08-17、Decision Log 0057)。
+ *
+ * ResearchReviewList(Decision Log 0054)と同様、各項目の見出しは
+ * h3として扱い、Homeの見出し階層(h1: Hero見出し / h2: 各
+ * セクション見出し / h3: このセクションの各項目)を保つ。
+ * ------------------------------------------------------------
+ */
+import ArrowLink from "./ArrowLink.astro";
+import styles from "./CurrentWorkList.module.css";
+import type { CurrentWorkItem } from "@/types/currentWork";
+
+interface Props {
+  items: CurrentWorkItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class={styles.list}>
+  {
+    items.map((item) => (
+      <div class={styles.item}>
+        <p class={styles.label}>{item.label}</p>
+        <h3 class={styles.itemTitle}>{item.title}</h3>
+        <p class={styles.itemBody}>{item.body}</p>
+        {item.linkLabel && item.linkHref && (
+          <div class={styles.itemLink}>
+            <ArrowLink href={item.linkHref} label={item.linkLabel} />
+          </div>
+        )}
+        {item.statusLabel && <p class={styles.itemStatus}>{item.statusLabel}</p>}
+      </div>
+    ))
+  }
+</div>

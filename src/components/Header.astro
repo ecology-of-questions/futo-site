@@ -7,11 +7,25 @@
  *
  * ロゴは design-assets/logo-guideline.md(Design Spec v0.5)に
  * 基づく正式データ(public/images/logo/logo.svg)を使用する。
- * ナビゲーションは現時点で実装済みのページ(Home / Research)のみを
- * 掲載する。About は未実装のため、実装が完了するまで含めない。
+ *
+ * 【2026-08-17改訂(Decision Log 0057)】正式公開に向け、ナビゲーションを
+ * 実装済みページに合わせて作り直した。
+ * - 「Home」の文字リンクは削除した(ロゴ自体が常にHomeへのリンクの
+ *   ため、同じ行き先へのリンクを重複させない)。
+ * - 「Research」→「研究断面」、新規「ふ、とについて」(/about)・
+ *   「note」(外部・任意設定)・「お問い合わせ」(/contact)を追加した。
+ * - noteはsrc/config/site.tsのnoteUrlが未設定の場合、リンクにせず
+ *   「note(準備中)」という非リンクのテキストとして表示する
+ *   (存在しないリンクを作らない、実在しないURLを補完しない、
+ *   という方針のため)。
+ * - Mobile幅(899.98px以下)では、項目数が増えたことで折り返しが
+ *   窮屈になるため、開閉式のシンプルなメニューに切り替えた。
+ *   フレームワーク/アニメーションライブラリを使わず、素の
+ *   <button>+aria-expanded+ごく短いvanilla JSで実装している。
  * ------------------------------------------------------------
  */
 import styles from "./Header.module.css";
+import { noteUrl } from "@/config/site";
 ---
 
 <header class={styles.header}>
@@ -26,9 +40,69 @@ import styles from "./Header.module.css";
       />
     </a>
 
-    <nav class={styles.nav} aria-label="サイト内ナビゲーション">
-      <a class={styles.navLink} href="/">Home</a>
-      <a class={styles.navLink} href="/research">Research</a>
+    <button
+      type="button"
+      class={styles.menuToggle}
+      aria-expanded="false"
+      aria-controls="site-nav"
+      data-menu-toggle
+    >
+      メニュー
+    </button>
+
+    <nav id="site-nav" class={styles.nav} aria-label="サイト内ナビゲーション" data-nav>
+      <a class={styles.navLink} href="/research">研究断面</a>
+      <a class={styles.navLink} href="/about">ふ、とについて</a>
+      {
+        noteUrl ? (
+          <a
+            class={styles.navLink}
+            href={noteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="note(外部サイトが新しいタブで開きます)"
+          >
+            note
+          </a>
+        ) : (
+          <span class={styles.navLinkPending} aria-hidden="true">
+            note(準備中)
+          </span>
+        )
+      }
+      <a class={styles.navLink} href="/contact">お問い合わせ</a>
     </nav>
   </div>
 </header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+  const nav = document.querySelector<HTMLElement>("[data-nav]");
+
+  if (toggle && nav) {
+    const closeMenu = () => {
+      nav.removeAttribute("data-open");
+      toggle.setAttribute("aria-expanded", "false");
+    };
+
+    toggle.addEventListener("click", () => {
+      const isOpen = nav.getAttribute("data-open") === "true";
+      if (isOpen) {
+        closeMenu();
+      } else {
+        nav.setAttribute("data-open", "true");
+        toggle.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenu();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!(event.target instanceof Node)) return;
+      if (nav.contains(event.target) || toggle.contains(event.target)) return;
+      closeMenu();
+    });
+  }
+</script>

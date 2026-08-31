@@ -37,8 +37,34 @@
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import Hero from "@components/Hero.astro";
 import ResearchStatement from "@components/ResearchStatement.astro";
+import ResearchSection from "@components/ResearchSection.astro";
+import CurrentWorkList from "@components/CurrentWorkList.astro";
 import VisualFragment from "@components/VisualFragment.astro";
 import styles from "./index.module.css";
+import type { CurrentWorkItem } from "@/types/currentWork";
+
+const currentWorkItems: CurrentWorkItem[] = [
+  {
+    label: "Research",
+    title: "問いの生態系",
+    body: "「ふと」と呼ばれる、人と世界との関係が変化する瞬間を観察し、その先で問いがどのように育っていくのかを探っています。",
+    linkLabel: "Research Statementを読む",
+    linkHref: "/research-statement",
+  },
+  {
+    label: "Practice",
+    title: "Fieldnote",
+    body: "会話、読書、風景、身体感覚など、日常のなかで生まれた小さな接触を失わず、問いへ育てていくための研究環境を制作しています。",
+    statusLabel: "制作・検証中",
+  },
+  {
+    label: "Research Review",
+    title: "研究断面",
+    body: "調査や実践から、その時点で見えていることを記録しています。結論ではなく、これから更新されていく研究の断面です。",
+    linkLabel: "研究断面を見る",
+    linkHref: "/research",
+  },
+];
 
 const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
 ---
@@ -85,4 +111,12 @@ const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
     Decision Log 0027参照(2026-08-15)。文章そのもの(語順・言葉遣い)
     は変更していない。
   -->
+
+  <ResearchSection ariaLabel="いま、取り組んでいること" id="current-work">
+    <h2 class={styles.currentWorkHeading}>いま、取り組んでいること</h2>
+    <p class={styles.currentWorkIntro}>
+      公開研究室「ふ、と」では、「ふと」という瞬間を手がかりに、問いがどのように立ち上がり、育っていくのかを観察しています。調べること、記録すること、つくることを往復しながら、研究の過程をひらいていきます。
+    </p>
+    <CurrentWorkList items={currentWorkItems} />
+  </ResearchSection>
 </DefaultLayout>

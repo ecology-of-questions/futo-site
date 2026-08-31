@@ -6,6 +6,12 @@
  * もともとHeroのCTA専用に実装していたスタイルを、ページ間の回遊
  * (Home → Research 等)でも使うため共通コンポーネントとして切り出した
  * (Decision Log 0010参照)。
+ *
+ * 【2026-08-17追記】Contactページの外部お問い合わせフォームへの
+ * リンクにも使うため、任意のexternal propを追加した(Decision Log
+ * 0057)。trueの場合、新しいタブで開く(target="_blank" +
+ * rel="noopener noreferrer")ことと、それをスクリーンリーダー
+ * 利用者にも伝わるようaria-labelを補う。
  * ------------------------------------------------------------
  */
 import styles from "./ArrowLink.module.css";
@@ -13,12 +19,20 @@ import styles from "./ArrowLink.module.css";
 interface Props {
   href: string;
   label: string;
+  /** trueの場合、新しいタブで開く外部リンクとして扱う */
+  external?: boolean;
 }
 
-const { href, label } = Astro.props;
+const { href, label, external = false } = Astro.props;
 ---
 
-<a class={styles.link} href={href}>
+<a
+  class={styles.link}
+  href={href}
+  target={external ? "_blank" : undefined}
+  rel={external ? "noopener noreferrer" : undefined}
+  aria-label={external ? `${label}(外部サイトが新しいタブで開きます)` : undefined}
+>
   {label}
   <span aria-hidden="true" class={styles.arrow}>→</span>
 </a>
