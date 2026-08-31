@@ -1,32 +1,16 @@
 /**
  * site.ts
  * ------------------------------------------------------------
- * 実在の値がまだ確定していない外部リンク・連絡先を、環境変数
- * (import.meta.env)経由で読み込むための設定モジュール。
+ * サイト内で複数箇所から参照する、外部リンク先の設定。
  *
- * このサイトは静的サイト(astro.config.mjs: output: "static")の
- * ため、ここで参照する値はビルド時にHTMLへ埋め込まれる。
- * ローカル開発では `.env`(.gitignore対象、`.env.example`参照)、
- * 本番ビルドではCloudflare Pages等のビルド環境変数で設定する。
- *
- * 値が未設定の場合はnullを返す。呼び出し側(Header/Footer/
- * ContactPage等)は、nullのときにリンクを描画せず「準備中」の
- * ような表示に切り替える。実在しないURL・メールアドレス・氏名を
- * ここで補完・生成しないこと(2026-08-17、プロジェクトオーナーの
- * 指示より、Decision Log 0057)。
+ * 【2026-08-17改訂(Decision Log 0058)】noteのプロフィールURLが
+ * 確定したため、環境変数経由の未設定/プレースホルダー運用
+ * (Decision Log 0057)をやめ、確定した値をこのファイルに直接記載する
+ * 形にした。お問い合わせ先(メール/フォーム)は、Contactページを
+ * note経由の問い合わせに一本化したことに伴い削除した
+ * (Decision Log 0058)。
  * ------------------------------------------------------------
  */
 
-function readEnv(value: string | undefined): string | null {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : null;
-}
-
-/** note(外部ブログ)のURL。未設定ならnull。 */
-export const noteUrl: string | null = readEnv(import.meta.env.PUBLIC_NOTE_URL);
-
-/** お問い合わせ先メールアドレス。未設定ならnull。 */
-export const contactEmail: string | null = readEnv(import.meta.env.PUBLIC_CONTACT_EMAIL);
-
-/** お問い合わせ先フォームURL。未設定ならnull。emailが設定されていればemailを優先する。 */
-export const contactFormUrl: string | null = readEnv(import.meta.env.PUBLIC_CONTACT_FORM_URL);
+/** noteのプロフィールURL。Header/Footerの外部リンク、Contactページの問い合わせ導線から参照する。 */
+export const noteUrl = "https://note.com/dreamers";
