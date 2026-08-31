@@ -40,11 +40,6 @@
   opacity: 1;
 }
 
-.linkPending {
-  color: var(--color-ink);
-  opacity: 0.4;
-}
-
 .copyright {
   margin: 0;
   font-family: var(--font-sans);
