@@ -95,6 +95,15 @@
   opacity: 0.85;
 }
 
+.setupError {
+  margin: 0;
+  max-width: 28rem;
+  color: var(--color-ink);
+  background-color: var(--color-accent-beige);
+  padding: var(--space-2);
+  font-size: var(--fs-sm);
+}
+
 /* ---------- Camera view(撮影画面) ---------- */
 
 .cameraView {

@@ -6,8 +6,18 @@
  * 撮影後に確認画面を挟まない仕様のため、capture()は静止画を返すだけで
  * プレビューには一切手を触れない(呼び出し側は続けてプレビューを
  * 見せ続けられる)。
+ *
+ * start()がstream取得後のどの段階で失敗しても(video.play()の拒否等)、
+ * 取得済みのtrackを必ずstopしてから例外を投げる
+ * (2026-09-02, PRセルフレビューで修正。Decision Log 0058参照)。
  * ------------------------------------------------------------
  */
+
+/** 撮影画像の長辺の上限(px)。OCRでの可読性を保ちつつ、IndexedDBの
+ *  容量・メモリ消費を抑えるための上限(2026-09-02、PRセルフレビュー
+ *  で追加)。 */
+const MAX_CAPTURE_DIMENSION = 1600;
+const CAPTURE_JPEG_QUALITY = 0.85;
 
 export class FieldnoteCameraError extends Error {}
 
@@ -23,7 +33,11 @@ export class FieldnoteCamera {
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: MAX_CAPTURE_DIMENSION },
+          height: { ideal: MAX_CAPTURE_DIMENSION },
+        },
         audio: false,
       });
     } catch {
@@ -33,7 +47,15 @@ export class FieldnoteCamera {
     this.stream = stream;
     this.videoEl = videoEl;
     videoEl.srcObject = stream;
-    await videoEl.play();
+
+    try {
+      await videoEl.play();
+    } catch {
+      // video.play()が失敗した場合(自動再生ブロック等)、取得済みの
+      // trackを起動したままにしない。
+      this.stop();
+      throw new FieldnoteCameraError("カメラの映像を開始できませんでした。");
+    }
   }
 
   stop(): void {
@@ -51,20 +73,27 @@ export class FieldnoteCamera {
       throw new FieldnoteCameraError("カメラが起動していません");
     }
 
+    // videoの実解像度がMAX_CAPTURE_DIMENSIONを超える場合は縮小する
+    // (getUserMediaのwidth/height制約はブラウザ側で無視されることが
+    // あるため、ここでも上限をかけて保険とする)。
+    const scale = Math.min(1, MAX_CAPTURE_DIMENSION / Math.max(video.videoWidth, video.videoHeight));
+    const width = Math.round(video.videoWidth * scale);
+    const height = Math.round(video.videoHeight * scale);
+
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = width;
+    canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       throw new FieldnoteCameraError("撮影に失敗しました");
     }
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, width, height);
 
     return new Promise((resolve, reject) => {
       canvas.toBlob(
         (blob) => (blob ? resolve(blob) : reject(new FieldnoteCameraError("撮影に失敗しました"))),
         "image/jpeg",
-        0.9,
+        CAPTURE_JPEG_QUALITY,
       );
     });
   }
