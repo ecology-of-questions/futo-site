@@ -1,0 +1,18 @@
+{
+  "name": "Fieldnote Reading",
+  "short_name": "Fieldnote",
+  "description": "読書を中断せず、気になったページを残すための最小プロトタイプ。",
+  "start_url": "/fieldnote/",
+  "scope": "/fieldnote/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2b2a26",
+  "theme_color": "#2b2a26",
+  "icons": [
+    {
+      "src": "/images/logo/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

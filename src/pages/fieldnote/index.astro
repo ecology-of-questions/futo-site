@@ -1,0 +1,102 @@
+---
+/**
+ * src/pages/fieldnote/index.astro
+ * ------------------------------------------------------------
+ * Fieldnote Reading 最小プロトタイプ。
+ *
+ * 検証したいこと: 「読書を中断せず、気になったページを残せるか」。
+ * OCR/AI/ログイン/課金/ISBN検索/タグ/引用範囲選択/Apple Watch連携/
+ * 集中モードのネイティブ連携は、この検証には不要なため実装しない
+ * (2026-09-02, Decision Log 0058)。
+ *
+ * サイト全体のDefaultLayout(Header/Footer)は使わない。カメラ
+ * プレビューを画面いっぱいに使う独立したツール画面であり、
+ * Home「いま、取り組んでいること」からもまだリンクしていない
+ * (制作・検証中、Decision Log 0057)。
+ *
+ * 保存処理(IndexedDbFieldnoteStore)・カメラ制御(FieldnoteCamera)・
+ * 画面遷移/DOM配線(app.ts)は、すべて../../lib/fieldnote/に置く
+ * (src/pages配下の.tsはAstroのファイルベースルーティングにより
+ * サーバーエンドポイントとして扱われてしまうため、pages配下には
+ * 置けない)。
+ * ------------------------------------------------------------
+ */
+import "@styles/tokens.css";
+import styles from "./index.module.css";
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
+    />
+    <meta
+      name="description"
+      content="Fieldnote Reading: 読書を中断せず、気になったページを残す最小プロトタイプ。"
+    />
+    <title>Fieldnote Reading ｜ ふ、と</title>
+    <link rel="icon" type="image/svg+xml" href="/images/logo/favicon.svg" />
+    <link rel="manifest" href="/fieldnote/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Fieldnote" />
+    <meta name="theme-color" content="#2b2a26" />
+  </head>
+  <body>
+    <div id="fieldnote-app" class={styles.app}>
+      <section id="view-setup" class={styles.setupView}>
+        <p class={styles.eyebrow}>FIELDNOTE READING</p>
+        <h1 class={styles.setupHeading}>読んでいる本</h1>
+        <form id="setup-form" class={styles.setupForm}>
+          <label class={styles.label} for="book-title-input">本のタイトル</label>
+          <input
+            id="book-title-input"
+            class={styles.titleInput}
+            type="text"
+            placeholder="例: 存在と時間"
+            autocomplete="off"
+          />
+          <button type="submit" class={styles.primaryButton}>読書セッションを開始</button>
+        </form>
+      </section>
+
+      <section id="view-camera" class={styles.cameraView} hidden>
+        <video id="camera-video" class={styles.video} playsinline autoplay muted></video>
+        <div id="shutter-flash" class={styles.shutterFlash}></div>
+
+        <div class={styles.cameraTopBar}>
+          <p id="session-title-label" class={styles.sessionTitleLabel}></p>
+          <button type="button" id="end-session-btn" class={styles.endButton}>終了</button>
+        </div>
+
+        <p id="camera-error" class={styles.cameraError} hidden></p>
+
+        <div class={styles.cameraBottomBar}>
+          <p id="shot-count" class={styles.shotCount}>0枚</p>
+          <button
+            type="button"
+            id="capture-btn"
+            class={styles.captureButton}
+            aria-label="このページを保存"
+          ></button>
+          <span class={styles.spacer} aria-hidden="true"></span>
+        </div>
+      </section>
+
+      <section id="view-list" class={styles.listView} hidden>
+        <p class={styles.eyebrow}>FIELDNOTE READING</p>
+        <h1 id="list-title" class={styles.listHeading}></h1>
+        <p id="list-meta" class={styles.listMeta}></p>
+        <div id="capture-grid" class={styles.captureGrid}></div>
+        <button type="button" id="start-new-session-btn" class={styles.primaryButton}
+          >新しい読書セッションを始める</button
+        >
+      </section>
+    </div>
+
+    <script src="../../lib/fieldnote/app.ts"></script>
+  </body>
+</html>
