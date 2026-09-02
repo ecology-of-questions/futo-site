@@ -130,3 +130,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0055](./0055-research-list-spacing.md) | /researchページの見出し位置を上げ、区切り線を一本化する |
 | [0056](./0056-research-list-description-side.md) | /research一覧の右側に説明文を2行までの要約として復活させる |
 | [0057](./0057-official-launch-update.md) | 正式公開に向けたHeader/Footer/About/Contact/Home更新 |
+| [0058](./0058-fieldnote-reading-mvp.md) | Fieldnote Reading 最小プロトタイプを実装する |
