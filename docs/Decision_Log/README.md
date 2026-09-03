@@ -149,3 +149,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0075](./0075-support-page-deferred.md) | ご支援（寄付）ページは、β公開後に着手する |
 | [0076](./0076-contact-form-formspree.md) | Contactページをnote経由からフォーム(Formspree経由でメール転送)に変更する |
 | [0077](./0077-remove-fieldnote-mentions.md) | 「Fieldnote（仮称）」への言及を全ページから削除する |
+| [0078](./0078-cursor-glow-home-experiment.md) | カーソル追従の光を、Homeページのみに試験的に実装する |
