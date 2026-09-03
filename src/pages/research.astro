@@ -55,6 +55,11 @@
  * 背景(紺+光の粒、Decision Log 0059〜0062)を、他ページにも揃える
  * 指示を受けてこのページにも適用した。DefaultLayoutにtheme="night"
  * を渡し、<NightBackground />を配置している。
+ *
+ * 【研究断面1.5の追加(2026-09-03、Decision Log 0068)】プロジェクト
+ * オーナーから共有された原稿(PDF)をもとに、研究断面01と02のあいだに
+ * 「1.5」を追加した。詳細ページはsrc/pages/research/reviews/1-5.astro
+ * (URLは/research/reviews/1-5)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -77,6 +82,15 @@ const publishedReviews: PublishedReviewEntry[] = [
       "身体の動きを表していた「ふと」は、なぜ記憶や思考を表す言葉になったのか。辞書、古典文学、日本語研究を手がかりに、その意味の変遷をたどる。",
     updatedLabel: "2026.08.15 更新",
     href: "/research/reviews/01",
+  },
+  {
+    number: "1.5",
+    title: "なぜ私たちは、ある瞬間に「ふと」気づくのか",
+    subtitle: "その手前にある経験と時間",
+    description:
+      "「ふと」気づく一瞬の手前には、どのような時間が折り重なっているのか。環世界論、文化的アフォーダンス、言語心理学、実践研究を手がかりに検討する。",
+    updatedLabel: "2026.09.03 更新",
+    href: "/research/reviews/1-5",
   },
 ];
 
