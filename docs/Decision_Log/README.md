@@ -141,3 +141,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0066](./0066-fieldnote-reading-mvp.md) | Fieldnote Reading 最小プロトタイプを実装する |
 | [0067](./0067-footer-nav-align-header.md) | FooterナビゲーションをHeaderと同じ3項目に揃える |
 | [0068](./0068-research-review-1-5.md) | 研究断面01と02のあいだに「研究断面1.5」を追加する |
+| [0069](./0069-research-review-1-5-paragraph-density.md) | 研究断面1.5の段落構成を、原稿の改行から意味のまとまりへ組み替える |
