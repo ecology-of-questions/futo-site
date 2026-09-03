@@ -3,7 +3,7 @@
   margin-inline: auto;
   padding-inline: var(--content-padding-inline);
   padding-block: var(--space-6);
-  /* ページ内リンク(Hero「研究について知る」等)でのジャンプ先が
-     固定Headerの下に隠れないようにする */
+  /* ページ内リンク(Hero「Research Statementを読む」等)での
+     ジャンプ先が固定Headerの下に隠れないようにする */
   scroll-margin-top: var(--header-height);
 }
