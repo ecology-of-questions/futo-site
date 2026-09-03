@@ -14,10 +14,17 @@
  * 確定したため、「note(準備中)」の非リンク表示をやめ、通常の
  * 外部リンクにした。noteはサイト内の主要ページではなく外部の
  * 発信先という位置づけのため、Headerからは外し、Footerにのみ残す。
+ *
+ * 【2026-09-03再改訂(Decision Log 0067)】Header(3項目: 研究断面/
+ * ふ、とについて/お問い合わせ)とFooter(5項目)の項目数が異なり
+ * 紛らわしいという指摘を受け、FooterもHeaderと同じ3項目に揃えた。
+ * Research Statementへの導線は既存のページ内リンク(Research
+ * Statement抜粋・研究断面詳細ページ等)に委ね、noteへの導線は
+ * Contactページの「noteから問い合わせる」に一本化したため、
+ * Footer上の個別リンクとしては削除した。
  * ------------------------------------------------------------
  */
 import styles from "./Footer.module.css";
-import { noteUrl } from "@/config/site";
 ---
 
 <footer class={styles.footer}>
@@ -25,18 +32,8 @@ import { noteUrl } from "@/config/site";
     <p class={styles.siteName}>公開研究室「ふ、と」</p>
 
     <nav class={styles.nav} aria-label="フッターナビゲーション">
-      <a class={styles.link} href="/research-statement">Research Statement</a>
       <a class={styles.link} href="/research">研究断面</a>
       <a class={styles.link} href="/about">ふ、とについて</a>
-      <a
-        class={styles.link}
-        href={noteUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="note(外部サイトが新しいタブで開きます)"
-      >
-        note
-      </a>
       <a class={styles.link} href="/contact">お問い合わせ</a>
     </nav>
 
