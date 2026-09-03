@@ -16,11 +16,18 @@ import Footer from "@components/Footer.astro";
 interface Props {
   title: string;
   description?: string;
+  /**
+   * "night" にすると、Desktop幅でmain/footerの文字色(--color-ink)を
+   * --color-paperに反転させる(2026-09-03、Decision Log 0059)。
+   * Home(夜空背景)専用。他ページでは指定しない = 既定の配色のまま。
+   */
+  theme?: "default" | "night";
 }
 
 const {
   title,
   description = "世界を観察するための、研究と実践。",
+  theme = "default",
 } = Astro.props;
 ---
 
@@ -34,7 +41,7 @@ const {
     <link rel="icon" type="image/svg+xml" href="/images/logo/favicon.svg" />
     <link rel="alternate icon" href="/images/logo/favicon.ico" />
   </head>
-  <body>
+  <body data-theme={theme === "night" ? "night" : undefined}>
     <Header />
     <main>
       <slot />

@@ -15,19 +15,13 @@
   margin: 0;
 }
 
-.contactValue {
-  margin: var(--space-4) 0 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-lg);
-}
-
 .contactLink {
   margin-top: var(--space-4);
 }
 
-.pending {
-  margin: var(--space-4) 0 0;
+.note {
+  margin: var(--space-2) 0 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-base);
-  opacity: 0.5;
+  font-size: var(--fs-sm);
+  opacity: 0.6;
 }

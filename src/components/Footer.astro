@@ -7,11 +7,13 @@
  *
  * 2026-08-17、正式公開に向けたプロジェクトオーナーの指示により、
  * これまでプレースホルダー(TODOコメントのみ)だった内容を実装した
- * (Decision Log 0057)。サイト名、主要ページへのリンク、note
- * (外部・任意設定)、コピーライトを掲載する。
+ * (Decision Log 0057)。サイト名、主要ページへのリンク、note、
+ * コピーライトを掲載する。
  *
- * noteはHeaderと同様、src/config/site.tsのnoteUrlが未設定の場合は
- * リンクにせず「note(準備中)」と表示する。
+ * 【2026-08-17再改訂(Decision Log 0058)】noteのプロフィールURLが
+ * 確定したため、「note(準備中)」の非リンク表示をやめ、通常の
+ * 外部リンクにした。noteはサイト内の主要ページではなく外部の
+ * 発信先という位置づけのため、Headerからは外し、Footerにのみ残す。
  * ------------------------------------------------------------
  */
 import styles from "./Footer.module.css";
@@ -26,23 +28,15 @@ import { noteUrl } from "@/config/site";
       <a class={styles.link} href="/research-statement">Research Statement</a>
       <a class={styles.link} href="/research">研究断面</a>
       <a class={styles.link} href="/about">ふ、とについて</a>
-      {
-        noteUrl ? (
-          <a
-            class={styles.link}
-            href={noteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="note(外部サイトが新しいタブで開きます)"
-          >
-            note
-          </a>
-        ) : (
-          <span class={styles.linkPending} aria-hidden="true">
-            note(準備中)
-          </span>
-        )
-      }
+      <a
+        class={styles.link}
+        href={noteUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="note(外部サイトが新しいタブで開きます)"
+      >
+        note
+      </a>
       <a class={styles.link} href="/contact">お問い合わせ</a>
     </nav>
 

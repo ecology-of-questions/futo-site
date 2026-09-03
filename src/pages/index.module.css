@@ -1,12 +1,20 @@
 /**
  * index.module.css
  * ------------------------------------------------------------
- * Home専用のページレベルスタイル。渦のアートワークをDesktop幅で
- * ページ全体のposition: fixed背景として表示するための.background
- * を定義する(2026-08-15、Decision Log 0024)。
+ * Home専用のページレベルスタイル。Desktop幅でページ全体を貫く
+ * position: fixed背景(.background)を定義する(2026-08-15、
+ * Decision Log 0024)。
  *
  * Mobileでは非表示(display: none)。Mobileの透かし表示は
  * Hero内蔵のまま(Decision Log 0023)で、このファイルの対象外。
+ *
+ * 【2026-09-03改訂(Decision Log 0059)】背景を生成りの透かし表現から
+ * 「夜空」に変更し、ふと現れて消える光の粒(.lights/.light)を
+ * 追加した。
+ *
+ * 【2026-09-03改訂(Decision Log 0060)】プロジェクトオーナーの指示に
+ * より、上記「夜空」背景から渦のアートワーク画像を撤去した。
+ * .backgroundは紺の背景色(--color-night)と光の粒のみで構成する。
  * ------------------------------------------------------------
  */
 
@@ -21,22 +29,89 @@
      描画されるため、この背景を「本文より背面」にするには0ではなく
      負の値が必要 */
   z-index: -1;
-  opacity: 0.4;
+  background-color: var(--color-night);
   pointer-events: none;
-}
-
-.background :global(img) {
-  width: 100%;
-  height: 100%;
-  /* ページ全体を覆う背景として、画像の絵柄を大きく行き渡らせる
-     (Hero.module.cssのMobile透かしと同じ理由。Decision Log 0023参照) */
-  object-fit: cover;
-  object-position: center;
 }
 
 @media (min-width: 900px) {
   .background {
     display: block;
+  }
+}
+
+.lights {
+  position: absolute;
+  inset: 0;
+}
+
+.light {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(247, 243, 234, 0.9) 0%, rgba(247, 243, 234, 0) 70%);
+  opacity: 0;
+  animation-name: lightPulse;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  /* prefers-reduced-motion: reduceの場合、global.cssの指定により
+     animation-durationが0.01ms・iteration-countが1に強制されるため、
+     光は一瞬でこのkeyframeの終端(opacity: 0)に落ち着き、点滅しない */
+}
+
+/* 「ふと複数の光がじんわりと現れる。そしていつの間にか消える」という
+   イメージのため、durationを長め(9〜13秒)にし、animation-delayを
+   負の値にして各光の開始位相をずらしている(同時に光らない) */
+.light:nth-child(1) {
+  top: 18%;
+  left: 22%;
+  width: 5rem;
+  height: 5rem;
+  animation-duration: 11s;
+  animation-delay: -2s;
+}
+
+.light:nth-child(2) {
+  top: 62%;
+  left: 68%;
+  width: 3.5rem;
+  height: 3.5rem;
+  animation-duration: 9s;
+  animation-delay: -6s;
+}
+
+.light:nth-child(3) {
+  top: 40%;
+  left: 80%;
+  width: 6rem;
+  height: 6rem;
+  animation-duration: 13s;
+  animation-delay: -9s;
+}
+
+.light:nth-child(4) {
+  top: 78%;
+  left: 30%;
+  width: 4rem;
+  height: 4rem;
+  animation-duration: 10s;
+  animation-delay: -4s;
+}
+
+.light:nth-child(5) {
+  top: 10%;
+  left: 58%;
+  width: 3rem;
+  height: 3rem;
+  animation-duration: 12s;
+  animation-delay: -1s;
+}
+
+@keyframes lightPulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.85;
   }
 }
 

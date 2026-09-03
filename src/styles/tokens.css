@@ -20,6 +20,11 @@
   --color-ink: #2b2a26;         /* 仮値: 柔らかい黒(純黒 #000 は使わない) */
   --color-accent-green: #a9b79c; /* 仮値: 淡い緑 */
   --color-accent-beige: #d8cbb0; /* 仮値: ベージュ */
+  --color-night: #354c7d; /* Home背景「夜空」用の群青(2026-09-03、
+    Decision Log 0062)。プロジェクトオーナー指定のHEX値#4c6cb3
+    (Decision Log 0061)と同じ色相・彩度を保ったまま、明度のみを
+    下げて黒寄りにした。--color-paper(#f7f3ea)とのコントラスト比は
+    約7.6:1で、WCAG AAA(7:1)を満たす。詳細はDecision Log 0062参照。 */
 
   /* -----------------------------
    * Typography
