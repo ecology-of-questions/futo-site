@@ -17,7 +17,7 @@
   flex-direction: column;
   gap: var(--space-4);
   margin-top: var(--space-3);
-  font-size: var(--fs-lg);
+  font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
 
