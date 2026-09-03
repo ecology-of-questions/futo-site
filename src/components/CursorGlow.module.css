@@ -13,11 +13,11 @@
   top: 0;
   left: 0;
   z-index: -1;
-  width: 36rem;
-  height: 36rem;
-  margin: -18rem 0 0 -18rem; /* transformで動かす中心点を、円の中心に合わせる */
+  width: 18rem;
+  height: 18rem;
+  margin: -9rem 0 0 -9rem; /* transformで動かす中心点を、円の中心に合わせる */
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(247, 243, 234, 0.14) 0%, rgba(247, 243, 234, 0) 70%);
+  background: radial-gradient(circle, rgba(247, 243, 234, 0.4) 0%, rgba(247, 243, 234, 0) 70%);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-base);
