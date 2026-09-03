@@ -134,3 +134,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0059](./0059-home-night-sky-background.md) | Home Desktop背景を「夜空」にし、ふと現れて消える光を追加する |
 | [0060](./0060-home-night-background-remove-artwork.md) | Home夜空背景から渦のアートワーク画像を撤去し、光のみにする |
 | [0061](./0061-home-night-color-ultramarine.md) | Home夜空背景の色を、プロジェクトオーナー指定の群青に変更する |
+| [0062](./0062-home-night-color-darker.md) | Home夜空背景の群青を、黒よりに調整する |
