@@ -5,8 +5,17 @@
  * ContentBlockを1つ受け取り、対応する要素を描画する。
  * ResearchReviewArticle.astroのセクション直下と、RowBlock内の
  * 各itemの両方から呼び出される(2026-08-16、Decision Log 0041)。
+ *
+ * 【2026-09-03追記(Decision Log 0073)】ImageBlockの`inlineSvg`が
+ * trueの場合、<img src>で外部参照する代わりにSVGファイルの中身を
+ * ビルド時に読み込みDOMへインライン展開する。SVG側の色を
+ * currentColorにしておくことで、ページの文字色(--color-ink。
+ * 夜空テーマでは--color-paperに反転)へ自動的に追従できるように
+ * するため。詳細はDecision Log 0073参照。
  * ------------------------------------------------------------
  */
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import styles from "./ResearchReviewArticle.module.css";
 import type { ContentBlock } from "@/types/researchReview";
 
@@ -15,6 +24,18 @@ interface Props {
 }
 
 const { block } = Astro.props;
+
+let inlineSvgMarkup: string | null = null;
+if (block.type === "image" && block.inlineSvg) {
+  const filePath = path.join(process.cwd(), "public", block.src);
+  const raw = await readFile(filePath, "utf-8");
+  // 読み上げの二重化を避けるため、SVG自身が持つrole="img"/
+  // aria-labelledbyは外す(代わりに外側のdiv[role="img"] aria-labelが
+  // block.altを読み上げる)。<title>要素自体は、SVG単体で使われる
+  // 場面のために残す。
+  const withoutOwnLabel = raw.replace(/\s*role="img"\s*aria-labelledby="[^"]*"/, "");
+  inlineSvgMarkup = withoutOwnLabel.replace("<svg ", '<svg aria-hidden="true" ');
+}
 ---
 
 {
@@ -32,7 +53,12 @@ const { block } = Astro.props;
 {block.type === "quote" && <blockquote class={styles.quote}>{block.text}</blockquote>}
 {block.type === "subheading" && <h3 class={styles.subheading}>{block.text}</h3>}
 {
-  block.type === "image" && (
+  block.type === "image" && inlineSvgMarkup !== null && (
+    <div class={styles.image} role="img" aria-label={block.alt} set:html={inlineSvgMarkup} />
+  )
+}
+{
+  block.type === "image" && inlineSvgMarkup === null && (
     <img
       class={styles.image}
       src={block.src}
