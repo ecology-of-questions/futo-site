@@ -1,0 +1,56 @@
+---
+/**
+ * CursorGlow.astro
+ * ------------------------------------------------------------
+ * カーソルを置いた位置の背景がじんわり光る演出。プロジェクトオーナー
+ * からの提案(2026-09-03)を受けた実験的な実装で、まずHomeページのみに
+ * 試験的に適用している(Decision Log 0078)。
+ *
+ * Desktop幅(900px以上、NightBackgroundと同じ基準)かつマウス操作可能
+ * な環境(hover: hover and pointer: fine)でのみ有効にする。タッチ
+ * デバイスには「カーソル」の概念自体がなく、指を置いたまま追従させる
+ * 操作感も成立しないため対象外にした。
+ *
+ * NightBackground(紺の背景+光の粒)の上に重ねて使う想定。z-indexは
+ * NightBackgroundと同じ-1のまま、DOM順で後に描画することで
+ * 「光の粒より手前・本文コンテンツより背面」のレイヤーにしている。
+ *
+ * 位置更新は transform(translate3d)のみで行い、requestAnimationFrame
+ * で1フレームにつき1回に間引く(mousemoveは1フレームに何度も発火
+ * しうるため)。opacityの遷移だけCSS transitionに任せ、追従そのものは
+ * transitionを使わない(遅延なく追従させるため)。
+ * ------------------------------------------------------------
+ */
+import styles from "./CursorGlow.module.css";
+---
+
+<div class={styles.glow} data-cursor-glow aria-hidden="true"></div>
+
+<script>
+  const glow = document.querySelector<HTMLElement>("[data-cursor-glow]");
+  const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+  if (glow && canHover.matches) {
+    let frame: number | null = null;
+    let x = 0;
+    let y = 0;
+
+    const render = () => {
+      glow.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      frame = null;
+    };
+
+    document.addEventListener("mousemove", (event) => {
+      x = event.clientX;
+      y = event.clientY;
+      glow.dataset.visible = "true";
+      if (frame === null) {
+        frame = requestAnimationFrame(render);
+      }
+    });
+
+    document.addEventListener("mouseleave", () => {
+      glow.dataset.visible = "false";
+    });
+  }
+</script>

@@ -25,6 +25,12 @@
     (Decision Log 0061)と同じ色相・彩度を保ったまま、明度のみを
     下げて黒寄りにした。--color-paper(#f7f3ea)とのコントラスト比は
     約7.6:1で、WCAG AAA(7:1)を満たす。詳細はDecision Log 0062参照。 */
+  --color-ink-on-surface: #2b2a26; /* --color-inkと同じ値の固定版
+    (2026-09-03、Decision Log 0076)。--color-inkは夜空テーマの
+    main/footer配下(Desktop幅)でglobal.cssにより--color-paperへ
+    反転する(global.css参照)。フォーム入力欄のように、ページテーマに
+    関わらず常に--color-paperの地の上にテキストを乗せるUI要素は、
+    この反転の影響を受けない固定色としてこちらを参照する。 */
 
   /* -----------------------------
    * Typography

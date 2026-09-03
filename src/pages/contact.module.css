@@ -15,13 +15,91 @@
   margin: 0;
 }
 
-.contactLink {
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
   margin-top: var(--space-4);
+  max-width: 32rem;
 }
 
-.note {
-  margin: var(--space-2) 0 0;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+}
+
+.required {
   opacity: 0.6;
+}
+
+.input,
+.textarea {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-ink-on-surface);
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  transition: border-color var(--transition-base);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-accent-green);
+}
+
+.textarea {
+  resize: vertical;
+  line-height: var(--lh-body);
+}
+
+.honeypot {
+  /* Formspreeのハニーポット規約(name="_gotcha")。人間には見えないが
+     フォームには存在させ、ボットが埋めた場合のみ送信を静かに破棄する
+     (2026-09-03、Decision Log 0076)。display: noneはスクリーン
+     リーダー・一部ボットに無視されるため使わず、視覚的にのみ隠す。 */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.submit {
+  align-self: flex-start;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-ink-on-surface);
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-ink-on-surface);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition: opacity var(--transition-base);
+}
+
+.submit:hover,
+.submit:focus-visible {
+  opacity: 0.7;
+}
+
+.submit:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
 }

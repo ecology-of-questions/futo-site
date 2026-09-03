@@ -14,15 +14,26 @@
  * 背景(紺+光の粒、Decision Log 0059〜0062)を、他ページにも揃える
  * 指示を受けてこのページにも適用した。DefaultLayoutにtheme="night"
  * を渡し、<NightBackground />を配置している。
+ *
+ * 【問い合わせフォームへの変更(2026-09-03、Decision Log 0076)】
+ * note経由の問い合わせから、サイト内の入力フォームに変更した。
+ * 送信先はFormspree(外部フォームバックエンドサービス)経由で、
+ * サイト専用に用意するGmailアドレスにメールで転送される。
+ * Cloudflare Pages Functions等のデプロイ先固有の機能は使わず、
+ * <form>を直接Formspreeへ POSTするだけの構成のため、ビルドは
+ * 引き続きポータブルな静的サイトのまま(CLAUDE.md方針)。
+ * JS未対応環境でもフォーム自体は機能する(通常のform submit)よう、
+ * fetchによるAjax送信は「デフォルトのページ遷移を止めて同じページ内で
+ * 結果を表示する」という進行拡張(progressive enhancement)として
+ * 追加している。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import SectionTitle from "@components/SectionTitle.astro";
-import ArrowLink from "@components/ArrowLink.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./contact.module.css";
-import { noteUrl } from "@/config/site";
+import { contactFormEndpoint } from "@/config/site";
 ---
 
 <DefaultLayout title="お問い合わせ ｜ ふ、と" description="公開研究室「ふ、と」へのお問い合わせ。" theme="night">
@@ -33,16 +44,70 @@ import { noteUrl } from "@/config/site";
     <h1 class={styles.heading}>お問い合わせ</h1>
     <div class={styles.body}>
       <p>
-        研究についてのご感想、対話や共同研究、執筆・制作に関するご相談などは、noteの「クリエイターへのお問い合わせ」からお寄せください。
+        以下のフォームからお気軽にお問い合わせください。
       </p>
     </div>
 
-    <div class={styles.contactLink}>
-      <ArrowLink href={noteUrl} label="noteから問い合わせる" external />
-    </div>
+    <form class={styles.form} method="POST" action={contactFormEndpoint} data-contact-form>
+      <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <input type="hidden" name="_subject" value="ふ、と お問い合わせ" />
 
-    <p class={styles.note}>
-      noteのクリエイターページ下部にある「クリエイターへのお問い合わせ」をご利用ください。
-    </p>
+      <div class={styles.field}>
+        <label class={styles.label} for="contact-name">お名前</label>
+        <input class={styles.input} type="text" id="contact-name" name="name" autocomplete="name" />
+      </div>
+
+      <div class={styles.field}>
+        <label class={styles.label} for="contact-email">ご返信先メールアドレス <span class={styles.required}>必須</span></label>
+        <input class={styles.input} type="email" id="contact-email" name="email" autocomplete="email" required />
+      </div>
+
+      <div class={styles.field}>
+        <label class={styles.label} for="contact-message">お問い合わせ内容 <span class={styles.required}>必須</span></label>
+        <textarea class={styles.textarea} id="contact-message" name="message" rows="8" required></textarea>
+      </div>
+
+      <button class={styles.submit} type="submit">送信する</button>
+
+      <p class={styles.status} data-contact-status role="status" aria-live="polite"></p>
+    </form>
   </ResearchSection>
 </DefaultLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
+  const status = document.querySelector<HTMLElement>("[data-contact-status]");
+
+  if (form && status) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      submitButton?.setAttribute("disabled", "true");
+      status.textContent = "送信中...";
+      status.dataset.state = "pending";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        });
+
+        if (response.ok) {
+          status.textContent = "送信しました。ご連絡ありがとうございます。";
+          status.dataset.state = "success";
+          form.reset();
+        } else {
+          status.textContent = "送信に失敗しました。時間をおいて再度お試しください。";
+          status.dataset.state = "error";
+        }
+      } catch {
+        status.textContent = "送信に失敗しました。通信環境をご確認のうえ再度お試しください。";
+        status.dataset.state = "error";
+      } finally {
+        submitButton?.removeAttribute("disabled");
+      }
+    });
+  }
+</script>

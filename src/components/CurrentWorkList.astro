@@ -10,6 +10,11 @@
  * ResearchReviewList(Decision Log 0054)と同様、各項目の見出しは
  * h3として扱い、Homeの見出し階層(h1: Hero見出し / h2: 各
  * セクション見出し / h3: このセクションの各項目)を保つ。
+ *
+ * 【2026-09-03改訂(Decision Log 0074)】item.bodyがstring[]に
+ * なったため、段落ごとに<p>を並べる形にした。追加の<p>は
+ * .itemの直接の子として並ぶため、既存のgap(--space-1)がそのまま
+ * 段落間の余白としても働く。
  * ------------------------------------------------------------
  */
 import ArrowLink from "./ArrowLink.astro";
@@ -29,7 +34,9 @@ const { items } = Astro.props;
       <div class={styles.item}>
         <p class={styles.label}>{item.label}</p>
         <h3 class={styles.itemTitle}>{item.title}</h3>
-        <p class={styles.itemBody}>{item.body}</p>
+        {item.body.map((paragraph) => (
+          <p class={styles.itemBody}>{paragraph}</p>
+        ))}
         {item.linkLabel && item.linkHref && (
           <div class={styles.itemLink}>
             <ArrowLink href={item.linkHref} label={item.linkLabel} />
