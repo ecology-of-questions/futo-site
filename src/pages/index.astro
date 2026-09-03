@@ -38,6 +38,14 @@
  * 透かしから「夜空」に変更し、ふと現れて消える光の粒を追加した。
  * DefaultLayoutにtheme="night"を渡し、Desktop幅でmain/footer配下の
  * 文字色を反転させている(global.css参照)。Mobileでは変更なし。
+ *
+ * 【Desktop背景から画像を撤去(2026-09-03、Decision Log 0060)】
+ * プロジェクトオーナーの指示により、上記「夜空」背景から渦の
+ * アートワーク(VisualFragment)を外し、紺の背景と光の粒のみに
+ * した。.background側での直接利用がなくなったためVisualFragmentの
+ * importは削除したが、Hero側(Mobileの透かし表現、Decision Log
+ * 0023)がvisualSrc propとして引き続き参照するため、heroVisualSrc
+ * 自体は残している。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -45,7 +53,6 @@ import Hero from "@components/Hero.astro";
 import ResearchStatement from "@components/ResearchStatement.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import CurrentWorkList from "@components/CurrentWorkList.astro";
-import VisualFragment from "@components/VisualFragment.astro";
 import styles from "./index.module.css";
 import type { CurrentWorkItem } from "@/types/currentWork";
 
@@ -77,7 +84,6 @@ const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
 
 <DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践" theme="night">
   <div class={styles.background} aria-hidden="true">
-    <VisualFragment src={heroVisualSrc} alt="" />
     <div class={styles.lights}>
       <span class={styles.light}></span>
       <span class={styles.light}></span>
