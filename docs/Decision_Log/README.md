@@ -136,4 +136,5 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0061](./0061-home-night-color-ultramarine.md) | Home夜空背景の色を、プロジェクトオーナー指定の群青に変更する |
 | [0062](./0062-home-night-color-darker.md) | Home夜空背景の群青を、黒よりに調整する |
 | [0063](./0063-night-background-expand-to-subpages.md) | 夜空背景を/research・/about・/contactにも揃え、コンポーネント化する |
+| [0064](./0064-research-list-description-left-align.md) | /research一覧の説明文を右揃えから左揃えに変更する |
 | [0065](./0065-hero-cta-wording.md) | Hero CTAの文言を「研究について知る」から「Research Statementを読む」に変更する |
