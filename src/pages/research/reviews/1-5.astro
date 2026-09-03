@@ -1,0 +1,565 @@
+---
+/**
+ * 1-5.astro (研究断面1.5)
+ * ------------------------------------------------------------
+ * 研究断面01と02のあいだに位置づけられる「1.5」として、プロジェクト
+ * オーナーから共有された原稿(PDF)をもとに実装した(2026-09-03)。
+ * 01と同じくResearchReviewArticleコンポーネントを再利用し、CLAUDE.md
+ * Parking Lotの「02以降も同じ構造で追加する」という想定(Decision Log
+ * 0030)に沿っている。
+ *
+ * URLは/research/reviews/1-5とした(小数点をファイル名にそのまま使うと
+ * ビルドツールが拡張子と誤認する可能性があるため、ハイフンに置き換えた
+ * URLスラッグにしている)。/researchページの一覧上の表示は「1.5」の
+ * まま(numberフィールド)。
+ *
+ * 本文は原稿の構成(1〜8の番号付き節、節6内の2つの小見出し、末尾の
+ * 参考文献リスト)をそのまま反映しており、文章そのもの(語順・言葉遣い)
+ * は変更していない。段落の区切りも原稿の改行位置をそのまま踏襲した
+ * (Decision Log 0026の「自然な折返しに任せる」方針は、段落内の強制
+ * 改行を入れないという意味であり、原稿が別々の段落として区切っている
+ * 箇所まで1つの段落に結合するものではない)。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchReviewArticle from "@components/ResearchReviewArticle.astro";
+import type { ReviewSection } from "@/types/researchReview";
+
+const sections: ReviewSection[] = [
+  {
+    heading: "1. なぜ昨日は通り過ぎたものに、今日は気づくのか",
+    blocks: [
+      { type: "paragraph", text: "研究断面01では、日本語の「ふと」について、その意味、歴史、用法を検討した。" },
+      { type: "paragraph", text: "「ふと立ち止まる」「ふと見る」「ふと思い出す」「ふと思う」。" },
+      {
+        type: "paragraph",
+        text: "これらの用例から、「ふと」が身体、知覚、記憶、思考という異なる領域を横断して使われることが見えてきた。",
+      },
+      {
+        type: "paragraph",
+        text: "この特徴をさらに検討するために、当初は他言語との比較を考えた。日本語で「ふと思う」「ふと思い出す」「ふと見る」「ふと立ち止まる」と表現される経験は、英語や韓国語ではどのように表現されるのか。一つの言葉が同じように複数の領域を横断するのか。それとも、異なる言葉によって表現されるのか。",
+      },
+      {
+        type: "paragraph",
+        text: "ただ、言葉を比較する前に、その言葉によって記述される経験について、もう少し考える必要がある。",
+      },
+      {
+        type: "paragraph",
+        text: "他言語に「ふと」と対応する一語が存在しなくても、同じような経験が存在しないとは限らない。似た表現が存在した場合にも、それによって記述される経験まで同じであるとは限らない。",
+      },
+      { type: "paragraph", text: "そこで、まず日常的な「ふと」の経験から考えてみたい。" },
+      { type: "paragraph", text: "たとえば、いつもの道を歩いている。" },
+      {
+        type: "paragraph",
+        text: "昨日も一昨日も通った道なのに、今日は道端に咲いている一輪の花に「ふと」目が向いた。",
+      },
+      { type: "paragraph", text: "花は、昨日もそこに咲いていたかもしれない。" },
+      { type: "paragraph", text: "では、なぜ昨日は通り過ぎた花に、今日は「ふと」気づいたのだろう。" },
+      { type: "paragraph", text: "この問いには、少なくとも二つの問題が含まれている。" },
+      {
+        type: "paragraph",
+        text: "一つは、なぜその花が、その人にとって「気づきうるもの」になっていたのかという問題である。",
+      },
+      {
+        type: "paragraph",
+        text: "同じ場所にいる人が、同じものに気づくとは限らない。植物に詳しい人には異なるものとして見える植物が、別の人にはまとめて「草」として背景にとどまることもある。",
+      },
+      {
+        type: "paragraph",
+        text: "何が他のものから区別されるのか。何が注意を引くのか。何が意味のあるものとして経験されるのか。",
+      },
+      { type: "paragraph", text: "こうした「気づきうるもの」は、すべての人に共通する固定的なものなのだろうか。" },
+      { type: "paragraph", text: "もう一つは、なぜ昨日ではなく、今日、この瞬間だったのかという問題である。" },
+      { type: "paragraph", text: "同じ人が同じ道を歩いていても、毎回同じものに注意が向くわけではない。" },
+      {
+        type: "paragraph",
+        text: "その日の身体状態、少し前に読んだ文章、誰かとの会話、そのとき考えていたこと。直前の状況によっても、何に注意が向くかは変わるかもしれない。",
+      },
+      { type: "paragraph", text: "この二つは似ているが、同じ問いではない。" },
+      {
+        type: "paragraph",
+        text: "本稿ではまず前者、つまりあるものが、その人にとって「気づきうるもの」になるまでを考える。",
+      },
+      {
+        type: "paragraph",
+        text: "そのために、身体と環境、文化と他者、言葉による名付け、反復される実践に関する研究を辿っていく。",
+      },
+      { type: "paragraph", text: "そのうえで後半では、それらの蓄積と、「ふと」が生じる一瞬との関係を考える。" },
+      { type: "paragraph", text: "ここで検討したいのは、「ふと」が起きる原因を特定することではない。" },
+      {
+        type: "paragraph",
+        text: "むしろ、突然訪れたように感じられる「ふと」という一瞬を、その瞬間だけで説明することができるのかという問題である。",
+      },
+      {
+        type: "paragraph",
+        text: "なお、本稿でいう「気づく」は、すでに存在する情報を意識的に発見することだけを指していない。環境のなかの何かが注意を引き、他のものから区別され、意味のあるものとして経験されることまで含めて用いる。",
+      },
+    ],
+  },
+  {
+    heading: "2. 同じ場所にいても、同じものが見えるとは限らない",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "この問題を考える手がかりの一つが、生物学者ヤーコプ・フォン・ユクスキュルの環世界（Umwelt）である。",
+      },
+      {
+        type: "paragraph",
+        text: "ユクスキュルは、それぞれの生物が、自らの知覚と行為にとって意味をもつ世界を生きていると考えた。この議論は、日本語では『生物から見た世界』（日高敏隆・羽田節子訳、岩波文庫）で読むことができる。",
+      },
+      { type: "paragraph", text: "よく知られているのが、ダニの例である。" },
+      {
+        type: "paragraph",
+        text: "森には光、色、音、匂い、温度、植物、動物など、無数の要素が存在する。しかし、それらすべてがダニにとって等しく意味をもつわけではない。哺乳類に由来する特定の匂いや温度など、ダニの知覚や行為と結びつくものが、その環世界を構成する。",
+      },
+      {
+        type: "paragraph",
+        text: "この考え方からは、物理的には同じ環境に存在していても、それぞれの生物にとって意味をもって現れる世界は異なりうるという視点が得られる。",
+      },
+      {
+        type: "paragraph",
+        text: "ジェームズ・J・ギブソンのアフォーダンス（affordance）も、環境と生物との関係から知覚を捉える考え方である。ギブソンは『生態学的視覚論――ヒトの知覚世界を探る』（古崎敬ほか訳、サイエンス社）で、生態学的な知覚論を展開した。",
+      },
+      { type: "paragraph", text: "そこでは、環境がどのような行為を可能にするかは、生物の身体や能力との関係によって異なる。" },
+      {
+        type: "paragraph",
+        text: "たとえば、同じ高さの段差でも、身体の大きさや運動能力によって、そこに生じる行為の可能性は変わる。",
+      },
+      {
+        type: "paragraph",
+        text: "重要なのは、環境と主体のどちらか一方から知覚を説明するのではなく、両者の関係のなかで何が意味をもって現れるのかという視点である。",
+      },
+      {
+        type: "paragraph",
+        text: "ただし、ユクスキュルが主として扱ったのは、異なる生物とそれぞれの環境との関係である。一人の人間について、経験や学習によって意味をもって現れる世界が変化することまで、環世界論から直接導くことはできない。",
+      },
+      {
+        type: "paragraph",
+        text: "そこで本稿では、環世界を、人間の「気づきうるもの」がどのように形成されるのかを考えるための出発点とする。",
+      },
+      {
+        type: "paragraph",
+        text: "人間の場合、身体と環境との関係に加えて、文化、言語、学習、日々の実践も、何が背景にとどまり、何が意味をもって現れるのかに関係しているのだろうか。",
+      },
+    ],
+  },
+  {
+    heading: "3. 他者とともに生きることは、何に気づくかに関係するのか",
+    blocks: [
+      { type: "paragraph", text: "ここまでは、生物の身体と環境との関係から、意味をもって現れる世界について考えてきた。" },
+      { type: "paragraph", text: "人間の場合、そこには他者との関係も加わる。" },
+      {
+        type: "paragraph",
+        text: "私たちは、誰かと一緒に見たり、名前を教えられたり、あるものを大切なものとして扱ったり、同じものについて繰り返し語ったりしながら生きている。",
+      },
+      { type: "paragraph", text: "こうした社会的・文化的な環境は、何に注意を向けるかとどのように関係するのだろうか。" },
+      { type: "paragraph", text: "この問いを考える手がかりとして、文化的アフォーダンス（cultural affordances）という議論がある。" },
+      {
+        type: "paragraph",
+        text: "Ramstead、Veissière、Kirmayer（2016）は、「Cultural Affordances: Scaffolding Local Worlds Through Shared Intentionality and Regimes of Attention」で、文化や文脈が、人間の身体・認知・経験とどのように相互作用するのかを論じている。",
+      },
+      {
+        type: "paragraph",
+        text: "そのなかで扱われているのが、regimes of shared attention、すなわち「共有された注意のレジーム」である。",
+      },
+      { type: "paragraph", text: "人は、他者との関係のなかで世界を見る。" },
+      { type: "paragraph", text: "誰かと一緒に見る。名前を教えられる。あるものを重要なものとして扱う。特定の対象について繰り返し語る。" },
+      {
+        type: "paragraph",
+        text: "こうした社会的実践への参加を通じて共有される期待や注意のあり方は、環境のなかで何が意味をもち、何が行為可能なものとして現れるのかに関係する可能性がある。",
+      },
+      { type: "paragraph", text: "文化的背景と注意・知覚との関係は、文化心理学でも研究されてきた。" },
+      {
+        type: "paragraph",
+        text: "Nisbettらは、「Culture and Systems of Thought: Holistic versus Analytic Cognition」（2001）などの研究で、北米の参加者には中心となる対象へ注意を向ける分析的な認知傾向が、東アジアの参加者には対象と背景との関係を含めて捉える包括的な認知傾向が、相対的に多く見られることを論じている。",
+      },
+      {
+        type: "paragraph",
+        text: "この議論は、NisbettとMiyamotoによるレビュー「The Influence of Culture: Holistic versus Analytic Perception」（2005）でも整理されている。",
+      },
+      {
+        type: "paragraph",
+        text: "具体的な実験の一つが、MasudaとNisbett（2001）による「Attending Holistically versus Analytically: Comparing the Context Sensitivity of Japanese and Americans」である。",
+      },
+      {
+        type: "paragraph",
+        text: "この研究では、日本人とアメリカ人に水中の場面を提示し、その内容を説明してもらった。その結果、日本人の参加者は背景や対象間の関係について、アメリカ人の参加者より多く言及する傾向を示した。",
+      },
+      {
+        type: "paragraph",
+        text: "こうした研究を含むニスベットの議論は、日本語では『木を見る西洋人 森を見る東洋人――思考の違いはいかにして生まれるか』（村本由紀子訳、ダイヤモンド社）でも読むことができる。",
+      },
+      {
+        type: "paragraph",
+        text: "ただし、こうした研究を、文化圏ごとの固定的な知覚特性として読むことには慎重である必要がある。同じ文化圏の内部にも大きな差異があり、これまでの文化心理学研究には対象地域の偏りもある。",
+      },
+      { type: "paragraph", text: "本稿で注目したいのは、「東洋人はこう見る」「西洋人はこう見る」という分類そのものではない。" },
+      {
+        type: "paragraph",
+        text: "ここで重要なのは、何に注意を向け、何を意味のあるものとして経験するかが、すべての人に共通する固定的なものとは限らないという点である。",
+      },
+      {
+        type: "paragraph",
+        text: "さらに、同じ文化的環境で暮らす人々のあいだにも違いがある。何を知り、何と呼び、何を繰り返し見てきたかは、一人ひとり異なる。",
+      },
+      { type: "paragraph", text: "そこで次に、より具体的な形成過程として、言葉に注目する。" },
+    ],
+  },
+  {
+    heading: "4. 名付けることで、気づけるものは変わるのか",
+    blocks: [
+      { type: "paragraph", text: "私たちは、経験するものに名前を与える。" },
+      { type: "paragraph", text: "一見すると、言語は、すでに知覚されたものに後から名前を付ける働きをしているように見える。" },
+      {
+        type: "paragraph",
+        text: "しかし、言語と知覚の関係を扱う研究では、言語的なラベルがカテゴリー学習や視覚的な識別にも関係しうることが報告されている。",
+      },
+      {
+        type: "paragraph",
+        text: "Lupyan、Rakison、McClelland（2007）は、「Language Is Not Just for Talking: Redundant Labels Facilitate Learning of Novel Categories」で、参加者に未知の対象を複数のカテゴリーへ分類することを学習させた。",
+      },
+      {
+        type: "paragraph",
+        text: "その際、一部の参加者にはカテゴリーごとに意味をもたない新しい名前を与え、別の参加者には名前を与えなかった。",
+      },
+      { type: "paragraph", text: "その結果、言語的なラベルが与えられた条件では、カテゴリー学習が促進された。" },
+      {
+        type: "paragraph",
+        text: "与えられた名前自体には、カテゴリーを分類するための追加情報は含まれていなかった。この結果から、名前が、複数の対象を「同じ種類のもの」としてまとめるカテゴリー形成にも関係しうることが示唆されている。",
+      },
+      {
+        type: "paragraph",
+        text: "LupyanとSwingley（2012）は、「Self-Directed Speech Affects Visual Search Performance」で、探している対象の名前を発話することが視覚探索に与える影響を調べている。",
+      },
+      {
+        type: "paragraph",
+        text: "実験では、対象の名前を発話することで視覚探索が促進される場合が確認された。一方、名前から典型的に想起される姿と実際に提示された対象との違いが大きい場合には、探索が妨げられることもあった。",
+      },
+      {
+        type: "paragraph",
+        text: "これらの結果からは、言語的なラベルが、環境のなかから何を一つのカテゴリーとして捉え、何を探索・識別するのかに関係しうることがわかる。",
+      },
+      { type: "paragraph", text: "カテゴリー学習そのものが知覚に与える影響についても研究されている。" },
+      {
+        type: "paragraph",
+        text: "Pérez-Gay Juárezら（2019）は、「Category Learning Can Alter Perception and Its Neural Correlates」で、未知の視覚パターンのカテゴリー学習に成功した参加者について、学習後には異なるカテゴリーに属する刺激がより異なって知覚される変化を報告している。同じカテゴリーに属する刺激の差異については、圧縮される傾向も確認された。",
+      },
+      {
+        type: "paragraph",
+        text: "ここから、「名付けることで気づく感度が上がる」という考えを、もう少し細かく捉え直すことができる。",
+      },
+      {
+        type: "paragraph",
+        text: "名付けによって世界のあらゆる差異が一様に細かく見えるようになるというより、ある差異が前景化する一方で、別の差異が背景化する可能性がある。",
+      },
+      {
+        type: "paragraph",
+        text: "たとえば、それまで道端の植物を大まかに「草」と捉えていた人が、「ホトケノザ」という名前を知ったとする。",
+      },
+      { type: "paragraph", text: "その後、それまで背景の一部だった植物を「ホトケノザ」として区別しやすくなるかもしれない。" },
+      {
+        type: "paragraph",
+        text: "さらに植物について学べば、ホトケノザとヒメオドリコソウの違いなど、以前には意味をもたなかった差異が意味をもつようになることも考えられる。",
+      },
+      {
+        type: "paragraph",
+        text: "一方、「ホトケノザ」というカテゴリーで対象を見ることによって、そのカテゴリー内部にある個体差や、その日の微細な変化が捉えにくくなる可能性もある。",
+      },
+      { type: "paragraph", text: "つまり、名付けることは、単純に「世界がよく見えるようになる」ことではない。" },
+      {
+        type: "paragraph",
+        text: "むしろ、世界に存在する差異のうち、どの差異が意味をもって現れるのかを組み替える働きとして捉えられるのかもしれない。",
+      },
+      { type: "paragraph", text: "そして、この問題は「ふと」という言葉そのものにも返ってくる。" },
+      { type: "paragraph", text: "「ふと」という言葉は、どのような経験を一つの出来事としてまとめているのだろうか。" },
+      {
+        type: "paragraph",
+        text: "さらに、「ふと」という言葉をもつことは、経験の連続のなかにある特定の変化を、一つの経験として切り出すことにも関係しているのだろうか。",
+      },
+      { type: "paragraph", text: "本稿で参照したラベルやカテゴリー化の研究から、この可能性を直接示すことはできない。" },
+      { type: "paragraph", text: "ここでは、今後の言語比較で検討すべき仮説として残しておく。" },
+    ],
+  },
+  {
+    heading: "5. 繰り返すことで、気づけるものは変わるのか",
+    blocks: [
+      { type: "paragraph", text: "言葉を知ることに加えて、日々の実践もまた、「何に気づくか」と関係している可能性がある。" },
+      { type: "paragraph", text: "植物を長く観察してきた人は、そうでない人とは異なる変化に気づくのだろうか。" },
+      { type: "paragraph", text: "舞台を見続けてきた人は、経験の少ない人とは異なる身体の動きを捉えるのだろうか。" },
+      { type: "paragraph", text: "特定の人を継続的にケアしてきた人は、他者なら見過ごすような変化に気づくのだろうか。" },
+      { type: "paragraph", text: "この問いに近い研究の一つに、人類学者Tanya M. Luhrmannらによる宗教経験研究がある。" },
+      {
+        type: "paragraph",
+        text: "Luhrmannは、『リアル・メイキング――いかにして「神」は現実となるのか』（柳澤田実訳、慶應義塾大学出版会、2024）などで、祈りやイメージを用いた実践を通じて、神や霊といった存在がどのようにリアルなものとして経験されるようになるのかを研究してきた。",
+      },
+      {
+        type: "paragraph",
+        text: "CassanitiとLuhrmann（2014）は、「The Cultural Kindling of Spiritual Experiences」で、文化的な意味づけや実践と感覚経験との関係を説明するために、cultural kindlingという概念を提示している。",
+      },
+      {
+        type: "paragraph",
+        text: "そこでは、特定の感覚に文化的な意味を与え、それに注意を向ける実践を重ねることと、何を経験として受け取るのかとの関係が検討されている。",
+      },
+      {
+        type: "paragraph",
+        text: "Schille-Hudson、Weisman、Luhrmann（2024）は、「Prayer and Perceptual (and Other) Experiences」で、複数の文化圏を対象に、祈りと知覚的・感覚的経験との関係を調べている。",
+      },
+      {
+        type: "paragraph",
+        text: "この研究では、日常的に祈りに費やす時間と、神や霊に由来すると受け取られる知覚的・感覚的経験を報告する頻度との関連が報告されている。この結果から確認できるのは両者の関連であり、祈りによって知覚経験が変化したという因果関係については、さらに検討が必要である。",
+      },
+      { type: "paragraph", text: "瞑想研究にも、注意の反復的な訓練という点から関連する議論がある。" },
+      {
+        type: "paragraph",
+        text: "Lutz、Slagter、Dunne、Davidson（2008）は、レビュー論文「Attention Regulation and Monitoring in Meditation」で、瞑想を、集中注意瞑想（Focused Attention Meditation: FA）と開放モニタリング瞑想（Open Monitoring Meditation: OM）に区別して整理している。",
+      },
+      { type: "paragraph", text: "集中注意瞑想では、呼吸など特定の対象に注意を向け、注意が逸れた場合に再びその対象へ戻す。" },
+      {
+        type: "paragraph",
+        text: "開放モニタリング瞑想では、注意を向ける対象をあらかじめ一つに限定せず、そのとき生じる身体感覚、音、感情、思考などに気づくことに重点を置く。",
+      },
+      {
+        type: "paragraph",
+        text: "祈り、瞑想、植物観察、舞台鑑賞、ケアは、それぞれ異なる実践である。そのため、宗教経験や瞑想について得られた研究結果を、その他の実践へそのまま適用することはできない。",
+      },
+      { type: "paragraph", text: "ここで確認できるのは、より限定されたことである。" },
+      {
+        type: "paragraph",
+        text: "特定の仕方で注意を向けることを反復することと、その後の注意や知覚経験との関係が、実際に研究対象になっている。",
+      },
+      { type: "paragraph", text: "そこから、「ふと」についても一つの問いが生まれる。" },
+      {
+        type: "paragraph",
+        text: "その人が世界とどのように関わることを繰り返してきたかは、その後に何が「気づきうるもの」になるかと関係するのだろうか。",
+      },
+      {
+        type: "paragraph",
+        text: "名付けと反復は、実際の経験のなかでは相互に関係すると考えられる。本稿ではそれぞれの作用を検討するため、いったん区別して捉えている。",
+      },
+      { type: "paragraph", text: "名付けやカテゴリー化は、何を同じもの／異なるものとして区別するかに関係しうる。" },
+      { type: "paragraph", text: "反復される実践は、何にどのような仕方で注意を向けてきたかに関係しうる。" },
+      {
+        type: "paragraph",
+        text: "ここまで辿ってくると、「ふと」の一瞬を見るためには、その瞬間よりも前へ時間を広げる必要があることが見えてくる。",
+      },
+    ],
+  },
+  {
+    heading: "6. 「ふと」の手前には時間がある",
+    blocks: [
+      { type: "paragraph", text: "最初の例に戻る。" },
+      { type: "paragraph", text: "昨日も通った道で、今日は一輪の花に「ふと」目が向いた。" },
+      { type: "paragraph", text: "この出来事を、その瞬間だけから考えると、「突然、花に気づいた」と記述することになる。" },
+      {
+        type: "paragraph",
+        text: "しかし、ここまで検討してきた研究を踏まえると、その一瞬の手前には、少なくとも異なる二つの時間を考えることができる。",
+      },
+      { type: "subheading", text: "長い時間――なぜ「これ」に気づきうるのか" },
+      { type: "paragraph", text: "一つは、その人と世界との関係が形成されてきた時間である。" },
+      { type: "paragraph", text: "身体をもつ存在として、どのような環境と関わってきたのか。" },
+      { type: "paragraph", text: "どのような文化的・社会的環境のなかで、何を重要なものとして扱ってきたのか。" },
+      { type: "paragraph", text: "何に名前を与え、何を同じもの／異なるものとして区別することを学んできたのか。" },
+      { type: "paragraph", text: "そして、何に注意を向ける実践を繰り返してきたのか。" },
+      {
+        type: "paragraph",
+        text: "環世界、文化的アフォーダンス、言語的カテゴリー、反復される実践に関する研究は、それぞれ異なる対象を扱っている。",
+      },
+      {
+        type: "paragraph",
+        text: "それらを本稿の問いから見渡すと、現在何が意味をもって現れるかには、それ以前に形成されてきた人と世界との関係が関与している可能性が見えてくる。",
+      },
+      { type: "paragraph", text: "ここから生じるのが、" },
+      { type: "paragraph", text: "なぜ、この花はこの人にとって「気づきうるもの」になっていたのか。" },
+      { type: "paragraph", text: "という問いである。" },
+      { type: "paragraph", text: "たとえば、その人は少し前に「ホトケノザ」という名前を知ったのかもしれない。" },
+      {
+        type: "paragraph",
+        text: "植物を観察することを繰り返すうちに、以前なら背景だった小さな違いが区別しやすくなっていたのかもしれない。",
+      },
+      { type: "paragraph", text: "誰かと花について話した経験が、その後の注意と関係しているかもしれない。" },
+      { type: "paragraph", text: "もちろん、これらのどれか一つが「ふと」を引き起こしたと考えることはできない。" },
+      {
+        type: "paragraph",
+        text: "ここで言えるのは、何がその人にとって気づきうるものなのかが、その瞬間以前の経験と無関係とは限らないということである。",
+      },
+      { type: "subheading", text: "直前の時間――なぜ「今」気づいたのか" },
+      { type: "paragraph", text: "しかし、それだけでは最初の問いには答えられない。" },
+      { type: "paragraph", text: "その花が以前から「気づきうるもの」になっていたとしても、なぜ昨日ではなく、今日だったのだろう。" },
+      { type: "paragraph", text: "ここには、もう一つ別の時間がある。" },
+      { type: "paragraph", text: "「ふと」が生じる直前の時間である。" },
+      {
+        type: "paragraph",
+        text: "その日の身体状態、直前に読んだ文章、誰かとの会話、少し前に見たもの、そのとき考えていたことなどが考えられる。",
+      },
+      { type: "paragraph", text: "同じ人が同じ道を歩いていても、毎回同じものに注意が向くわけではない。" },
+      { type: "paragraph", text: "すると、" },
+      { type: "paragraph", text: "なぜ、今日のこの瞬間に花へ注意が向いたのか。" },
+      { type: "paragraph", text: "という問いが残る。" },
+      {
+        type: "paragraph",
+        text: "本稿で検討した先行研究からは、「なぜこれに気づきうるのか」という比較的長い形成過程について、いくつかの手がかりを得ることができた。",
+      },
+      { type: "paragraph", text: "一方、「なぜ今なのか」という直前の条件については、まだ十分に検討できていない。" },
+      { type: "paragraph", text: "したがって、本稿の段階で個々の「ふと」が生じる原因を特定することはできない。" },
+      { type: "paragraph", text: "ここで提示できるのは、より限定された仮説である。" },
+      {
+        type: "paragraph",
+        text: "「ふと」は一瞬の出来事として経験される一方、その成立には、それ以前に形成されてきた人と世界との関係が関与している可能性がある。",
+      },
+      { type: "paragraph", text: "「今からあの花に気づこう」と意図して注意を向けたわけではない。" },
+      { type: "paragraph", text: "気づいたときには、すでに花を見ていた。" },
+      { type: "paragraph", text: "その意味で、「ふと」は主観的には突然の出来事として経験される。" },
+      {
+        type: "paragraph",
+        text: "しかし、その花を他のものから区別できること、そこに意味を見いだせること、ある差異が注意を引きうることには、それ以前の経験が関係している可能性がある。",
+      },
+      { type: "paragraph", text: "言い換えれば、" },
+      { type: "paragraph", text: "「ふと」という一瞬には、それよりも長い時間が折り重なっているのかもしれない。" },
+      {
+        type: "paragraph",
+        text: "この「長い時間」が個々の「ふと」をどこまで説明できるのかは、まだわからない。身体、文化、言語、実践のそれぞれがどの程度関係するのかについても、今後の検討が必要である。",
+      },
+      {
+        type: "paragraph",
+        text: "ここでは、「ふと」をその瞬間だけから切り出すのではなく、その人と世界との関係が形成されてきた時間のなかに位置づけて検討するという見方を、今後の研究のための仮説として置く。",
+      },
+    ],
+  },
+  {
+    heading: "7. では、「ふと」をどう記録すればいいのか",
+    blocks: [
+      { type: "paragraph", text: "この仮説は、「ふと」をどのように記録するかという研究方法にも関係する。" },
+      {
+        type: "paragraph",
+        text: "これまで「花にふと気づいた」という出来事を記録するとき、中心になるのは、その瞬間に何が起きたのかだった。",
+      },
+      {
+        type: "paragraph",
+        text: "しかし、「ふと」の手前にある時間まで研究対象に含めるなら、その瞬間だけを記録するのでは十分ではないかもしれない。",
+      },
+      { type: "paragraph", text: "少なくとも、三つの時間を記録してみることができる。" },
+      { type: "paragraph", text: "第一に、その瞬間に何が起きたのか。" },
+      { type: "paragraph", text: "何を見たのか。何を思い出したのか。身体がどう動いたのか。どのような変化として「ふと」を経験したのか。" },
+      { type: "paragraph", text: "第二に、その人と対象とのあいだに何が積み重なっていたのか。" },
+      {
+        type: "paragraph",
+        text: "以前からその対象を知っていたのか。何と呼んでいたのか。いつその名前を知ったのか。どのような経験をしてきたのか。似たものに繰り返し注意を向けてきたのか。",
+      },
+      { type: "paragraph", text: "第三に、その直前に何が起きていたのか。" },
+      {
+        type: "paragraph",
+        text: "その直前に何をしていたのか。何を見たり読んだりしていたのか。誰かと何を話していたのか。その日の身体状態はどうだったのか。",
+      },
+      { type: "paragraph", text: "つまり、" },
+      { type: "paragraph", text: "その瞬間に何が起きたのか。" },
+      { type: "paragraph", text: "そこまでに何が積み重なっていたのか。" },
+      { type: "paragraph", text: "その直前に何が起きていたのか。" },
+      {
+        type: "paragraph",
+        text: "この三つを記録することで、「なぜこれに気づきうるのか」と「なぜ今だったのか」を、実際の経験から検討できるかもしれない。",
+      },
+      { type: "paragraph", text: "ただし、ここにはもう一つ問題がある。" },
+      { type: "paragraph", text: "記録すること自体が、その後の「ふと」を変える可能性がある。" },
+      { type: "paragraph", text: "一度「ホトケノザにふと目が向いた」と記録すれば、「ホトケノザ」という名前をもう一度確認することになる。" },
+      { type: "paragraph", text: "写真を撮れば、その形をもう一度見る。" },
+      { type: "paragraph", text: "記録を読み返せば、再びそこへ注意を向ける。" },
+      {
+        type: "paragraph",
+        text: "つまり、「ふと」を観察するための記録が、同時に、その後に何が「気づきうるもの」になるのかを変える実践にもなりうる。",
+      },
+      {
+        type: "paragraph",
+        text: "これは研究上のノイズとして取り除くべきものなのか。それとも、「気づき」が育っていく過程そのものとして観察すべきなのか。",
+      },
+      { type: "paragraph", text: "この点も含めて、今後の実践研究で試していきたい。" },
+    ],
+  },
+  {
+    heading: "8. なぜ私たちは、ある瞬間に「ふと」気づくのか",
+    blocks: [
+      { type: "paragraph", text: "本稿の出発点は、なぜ私たちは、ある瞬間に「ふと」気づくのかという問いだった。" },
+      { type: "paragraph", text: "今回の検討から見えてきたのは、この問いを「その瞬間」だけから考えることの難しさである。" },
+      { type: "paragraph", text: "何かに「ふと」気づく。" },
+      { type: "paragraph", text: "その出来事は、一瞬に見える。" },
+      {
+        type: "paragraph",
+        text: "しかし、その何かがすでにその人にとって「気づきうるもの」になっていた背景には、身体と環境との関係、文化や他者との関わり、言葉による名付け、カテゴリーの学習、反復してきた実践など、それ以前の時間が関係している可能性がある。",
+      },
+      { type: "paragraph", text: "ただし、本稿で参照した研究は、それぞれ異なる対象と方法をもつ。" },
+      {
+        type: "paragraph",
+        text: "ユクスキュルの環世界論は、一人の人間にとって意味をもって現れる世界が、日々の学習や実践によって変化することを直接示すものではない。本稿では、「同じ環境に存在すること」と「同じ意味世界を経験すること」を区別するための出発点として用いた。",
+      },
+      {
+        type: "paragraph",
+        text: "文化心理学における文化間比較についても、集団レベルで観察された傾向を個人の知覚へそのまま適用することはできない。文化圏内部の差異や、社会的・歴史的条件を含めて検討する必要がある。",
+      },
+      {
+        type: "paragraph",
+        text: "言語的ラベルやカテゴリー化については、カテゴリー学習や視覚探索との関係が報告されている。その知見から、日常生活における「名付け」と「気づき」の関係をどこまで説明できるかについては、さらに検討が必要である。",
+      },
+      {
+        type: "paragraph",
+        text: "反復される実践についても同様である。祈りや瞑想について得られた知見を、植物観察、舞台鑑賞、ケアなどの実践へ直接一般化することはできない。",
+      },
+      { type: "paragraph", text: "したがって、本稿で扱った複数の研究を、一つの因果モデルとして統合することはできない。" },
+      { type: "paragraph", text: "ここで得られたのは、より限定された見方である。" },
+      { type: "paragraph", text: "「ふと」が生じた一瞬だけを見るのではなく、その人と世界との関係が、それ以前にどのように形成されてきたのかを見る。" },
+      { type: "paragraph", text: "そうすると、「ふと」という一瞬の背後に、それまで見えていなかった時間が現れてくる。" },
+      { type: "paragraph", text: "一方で、それだけではまだ、タイトルの問いには答えられていない。" },
+      { type: "paragraph", text: "その人にとって花がすでに「気づきうるもの」になっていたとしても、なぜ今日の、あの瞬間だったのかはわからない。" },
+      {
+        type: "paragraph",
+        text: "長い時間のなかで「気づきうるもの」が形成されてきたとして、それがある瞬間に背景から前景へ移るとき、何が起きているのだろうか。",
+      },
+      { type: "paragraph", text: "「ふと立ち止まる」。" },
+      { type: "paragraph", text: "「ふと見る」。" },
+      { type: "paragraph", text: "「ふと思い出す」。" },
+      { type: "paragraph", text: "「ふと思う」。" },
+      { type: "paragraph", text: "そこでは、身体、知覚、記憶、思考のいずれか一つだけが変化しているのだろうか。" },
+      { type: "paragraph", text: "それとも、それまで続いていた人と世界との関係そのものに、ごく小さな変化が生じているのだろうか。" },
+      { type: "paragraph", text: "そして、その変化において、「私が気づいた」と言えるほど、主体は明確なのだろうか。" },
+      { type: "paragraph", text: "本稿では「ふと」の手前へ時間を広げた。" },
+      { type: "paragraph", text: "次の研究断面では、時間尺度を反転させる。" },
+      { type: "paragraph", text: "「ふと」が生じる、その短い時間の内部では何が起きているのか。" },
+      {
+        type: "paragraph",
+        text: "そこから、「ふと」における主体、注意、身体、そして人と世界との関係に生じる微細な変化について、さらに検討していく。",
+      },
+    ],
+  },
+  {
+    heading: "参考文献",
+    blocks: [
+      {
+        type: "list",
+        items: [
+          "Cassaniti, J. L., & Luhrmann, T. M. (2014). The cultural kindling of spiritual experiences. Current Anthropology, 55(S10), S333–S343.",
+          "ギブソン, J. J.（1985）『生態学的視覚論――ヒトの知覚世界を探る』古崎敬・古崎愛子・辻敬一郎・村瀬旻訳、サイエンス社。（原著1979年）",
+          "Lupyan, G., Rakison, D. H., & McClelland, J. L. (2007). Language is not just for talking: Redundant labels facilitate learning of novel categories. Psychological Science, 18(12), 1077–1083.",
+          "Lupyan, G., & Swingley, D. (2012). Self-directed speech affects visual search performance. The Quarterly Journal of Experimental Psychology, 65(6), 1068–1085.",
+          "Lutz, A., Slagter, H. A., Dunne, J. D., & Davidson, R. J. (2008). Attention regulation and monitoring in meditation. Trends in Cognitive Sciences, 12(4), 163–169.",
+          "Masuda, T., & Nisbett, R. E. (2001). Attending holistically versus analytically: Comparing the context sensitivity of Japanese and Americans. Journal of Personality and Social Psychology, 81(5), 922–934.",
+          "ニスベット, R. E.（2004）『木を見る西洋人 森を見る東洋人――思考の違いはいかにして生まれるか』村本由紀子訳、ダイヤモンド社。",
+          "Nisbett, R. E., & Miyamoto, Y. (2005). The influence of culture: Holistic versus analytic perception. Trends in Cognitive Sciences, 9(10), 467–473.",
+          "Nisbett, R. E., Peng, K., Choi, I., & Norenzayan, A. (2001). Culture and systems of thought: Holistic versus analytic cognition. Psychological Review, 108(2), 291–310.",
+          "Pérez-Gay Juárez, F., Sicotte, T., Thériault, C., & Harnad, S. (2019). Category learning can alter perception and its neural correlates. PLOS ONE, 14(12), e0226000.",
+          "Ramstead, M. J. D., Veissière, S. P. L., & Kirmayer, L. J. (2016). Cultural affordances: Scaffolding local worlds through shared intentionality and regimes of attention. Frontiers in Psychology, 7, 1090.",
+          "ラーマン, T. M.（2024）『リアル・メイキング――いかにして「神」は現実となるのか』柳澤田実訳、慶應義塾大学出版会。（原著2020年）",
+          "Schille-Hudson, E., Weisman, K., & Luhrmann, T. M. (2024). Prayer and perceptual (and other) experiences. Cognitive Science, 48(12), e70029.",
+          "ユクスキュル, J. von・クリサート, G.（2005）『生物から見た世界』日高敏隆・羽田節子訳、岩波文庫。（原著1934年）",
+        ],
+      },
+    ],
+  },
+];
+---
+
+<DefaultLayout title="研究断面1.5 ｜ ふ、と">
+  <ResearchReviewArticle
+    sectionLabel="Research Review"
+    title="研究断面1.5"
+    subtitle="なぜ私たちは、ある瞬間に「ふと」気づくのか──その手前にある経験と時間"
+    sections={sections}
+  />
+</DefaultLayout>
