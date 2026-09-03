@@ -59,6 +59,13 @@
  * なったため、CurrentWorkItem.bodyの型をstringからstring[]に変更
  * した(CurrentWorkList.astro側も合わせて更新)。「Fieldnote（仮称）」
  * 項目の文言は今回の指示に含まれていないため変更していない。
+ *
+ * 【「Fieldnote（仮称）」項目の削除(2026-09-03、Decision Log 0077)】
+ * プロジェクトオーナーの指示により、「Fieldnote（仮称）」への言及を
+ * 全ページから削除することになったため、currentWorkItemsから
+ * 「Practice」項目(上記0074時点では変更せず残していたもの)を
+ * まるごと削除した。/fieldnote(Fieldnote Reading最小プロトタイプ、
+ * Decision Log 0066)自体は今回の対象外で、引き続き公開している。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -87,12 +94,6 @@ const currentWorkItems: CurrentWorkItem[] = [
     ],
     linkLabel: "研究断面を見る",
     linkHref: "/research",
-  },
-  {
-    label: "Practice",
-    title: "Fieldnote（仮称）",
-    body: ["会話、読書、風景、身体感覚など、日常のなかで生まれた小さな接触を失わず、問いへ育てていくための研究環境を制作しています。"],
-    statusLabel: "制作・検証中",
   },
 ];
 
