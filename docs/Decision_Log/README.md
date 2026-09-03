@@ -142,4 +142,6 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0067](./0067-footer-nav-align-header.md) | FooterナビゲーションをHeaderと同じ3項目に揃える |
 | [0068](./0068-research-review-1-5.md) | 研究断面01と02のあいだに「研究断面1.5」を追加する |
 | [0069](./0069-research-review-1-5-paragraph-density.md) | 研究断面1.5の段落構成を、原稿の改行から意味のまとまりへ組み替える |
+| [0070](./0070-research-review-1-5-touchups.md) | 研究断面1.5の句点削除と夜空背景の適用 |
+| [0071](./0071-night-background-full-rollout.md) | 夜空背景を、DefaultLayoutを使う全ページに揃える |
 | [0072](./0072-about-fieldnote-content-update.md) | 「運営者について」本文の改訂とHome「Practice」項目の更新 |
