@@ -1,4 +1,4 @@
-# 0058. Fieldnote Reading 最小プロトタイプを実装する
+# 0066. Fieldnote Reading 最小プロトタイプを実装する
 
 - 日付: 2026-09-02
 - 状態: 採用中

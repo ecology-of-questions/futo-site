@@ -13,19 +13,19 @@
  * - 「Home」の文字リンクは削除した(ロゴ自体が常にHomeへのリンクの
  *   ため、同じ行き先へのリンクを重複させない)。
  * - 「Research」→「研究断面」、新規「ふ、とについて」(/about)・
- *   「note」(外部・任意設定)・「お問い合わせ」(/contact)を追加した。
- * - noteはsrc/config/site.tsのnoteUrlが未設定の場合、リンクにせず
- *   「note(準備中)」という非リンクのテキストとして表示する
- *   (存在しないリンクを作らない、実在しないURLを補完しない、
- *   という方針のため)。
+ *   「お問い合わせ」(/contact)を追加した。
  * - Mobile幅(899.98px以下)では、項目数が増えたことで折り返しが
  *   窮屈になるため、開閉式のシンプルなメニューに切り替えた。
  *   フレームワーク/アニメーションライブラリを使わず、素の
  *   <button>+aria-expanded+ごく短いvanilla JSで実装している。
+ *
+ * 【2026-08-17再改訂(Decision Log 0058)】noteはサイト内の主要ページ
+ * ではなく外部の発信先として扱うことになったため、Headerからは
+ * 削除した(Footerには引き続き外部リンクとして残す)。ナビゲーションは
+ * 研究断面/ふ、とについて/お問い合わせの3項目になった。
  * ------------------------------------------------------------
  */
 import styles from "./Header.module.css";
-import { noteUrl } from "@/config/site";
 ---
 
 <header class={styles.header}>
@@ -53,23 +53,6 @@ import { noteUrl } from "@/config/site";
     <nav id="site-nav" class={styles.nav} aria-label="サイト内ナビゲーション" data-nav>
       <a class={styles.navLink} href="/research">研究断面</a>
       <a class={styles.navLink} href="/about">ふ、とについて</a>
-      {
-        noteUrl ? (
-          <a
-            class={styles.navLink}
-            href={noteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="note(外部サイトが新しいタブで開きます)"
-          >
-            note
-          </a>
-        ) : (
-          <span class={styles.navLinkPending} aria-hidden="true">
-            note(準備中)
-          </span>
-        )
-      }
       <a class={styles.navLink} href="/contact">お問い合わせ</a>
     </nav>
   </div>

@@ -1,7 +1,10 @@
 # 0057. 正式公開に向けたHeader/Footer/About/Contact/Home更新
 
 - 日付: 2026-08-17
-- 状態: 採用中
+- 状態: 一部上書き済み(→ 0058)。noteのプロフィールURLが確定し、
+  Header内のnote項目・「note(準備中)」表示・Contactページの
+  メール/フォーム分岐は撤去された。About/Home/参考文献の部分は
+  そのまま有効。詳細はDecision Log 0058参照。
 
 ## Decision
 

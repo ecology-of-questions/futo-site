@@ -1,44 +1,15 @@
 /**
  * index.module.css
  * ------------------------------------------------------------
- * Home専用のページレベルスタイル。渦のアートワークをDesktop幅で
- * ページ全体のposition: fixed背景として表示するための.background
- * を定義する(2026-08-15、Decision Log 0024)。
+ * Home専用のページレベルスタイル。
  *
- * Mobileでは非表示(display: none)。Mobileの透かし表示は
- * Hero内蔵のまま(Decision Log 0023)で、このファイルの対象外。
+ * Desktop幅の「夜空」背景(紺+光の粒)は、以前はこのファイルに
+ * 直接実装していたが(2026-08-15 Decision Log 0024、2026-09-03
+ * Decision Log 0059/0060)、/research・/about・/contactにも
+ * 揃える指示を受けてNightBackground.astroへ切り出した
+ * (2026-09-03、Decision Log 0063)。
  * ------------------------------------------------------------
  */
-
-.background {
-  display: none;
-  position: fixed;
-  inset: 0;
-  /* Header(position: fixed; z-index: 100)より背面、かつ本文
-     (Hero .copy / ResearchStatement 等、通常のフロー内コンテンツ)
-     より背面にするため負のz-indexにする。通常のフロー内コンテンツは
-     position指定がなくても常にz-index:0の位置指定要素より手前に
-     描画されるため、この背景を「本文より背面」にするには0ではなく
-     負の値が必要 */
-  z-index: -1;
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-.background :global(img) {
-  width: 100%;
-  height: 100%;
-  /* ページ全体を覆う背景として、画像の絵柄を大きく行き渡らせる
-     (Hero.module.cssのMobile透かしと同じ理由。Decision Log 0023参照) */
-  object-fit: cover;
-  object-position: center;
-}
-
-@media (min-width: 900px) {
-  .background {
-    display: block;
-  }
-}
 
 .currentWorkHeading {
   /* 「いま、取り組んでいること」セクションの見出し(2026-08-17、

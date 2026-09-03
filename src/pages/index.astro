@@ -32,6 +32,26 @@
  * 変更していない。あくまで「そのHero相当のビジュアルを、ページ全体の
  * 視覚的トーンとして拡張した」という位置づけ。Mobileでは変更せず、
  * Hero内蔵の透かし(Decision Log 0023)のまま。
+ *
+ * 【Desktop背景「夜空」化(2026-09-03、Decision Log 0059)】
+ * プロジェクトオーナーの発案により、上記のDesktop背景を生成りの
+ * 透かしから「夜空」に変更し、ふと現れて消える光の粒を追加した。
+ * DefaultLayoutにtheme="night"を渡し、Desktop幅でmain/footer配下の
+ * 文字色を反転させている(global.css参照)。Mobileでは変更なし。
+ *
+ * 【Desktop背景から画像を撤去(2026-09-03、Decision Log 0060)】
+ * プロジェクトオーナーの指示により、上記「夜空」背景から渦の
+ * アートワーク(VisualFragment)を外し、紺の背景と光の粒のみに
+ * した。.background側での直接利用がなくなったためVisualFragmentの
+ * importは削除したが、Hero側(Mobileの透かし表現、Decision Log
+ * 0023)がvisualSrc propとして引き続き参照するため、heroVisualSrc
+ * 自体は残している。
+ *
+ * 【他ページへの展開に伴うコンポーネント化(2026-09-03、Decision Log
+ * 0063)】この「夜空」背景(紺の背景色+光の粒)を/research・/about・
+ * /contactにも揃える指示を受け、NightBackground.astroとして切り出
+ * した。以前ここに直接書いていた.background/.lights divは
+ * <NightBackground />に置き換えている。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -39,7 +59,7 @@ import Hero from "@components/Hero.astro";
 import ResearchStatement from "@components/ResearchStatement.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import CurrentWorkList from "@components/CurrentWorkList.astro";
-import VisualFragment from "@components/VisualFragment.astro";
+import NightBackground from "@components/NightBackground.astro";
 import styles from "./index.module.css";
 import type { CurrentWorkItem } from "@/types/currentWork";
 
@@ -69,10 +89,8 @@ const currentWorkItems: CurrentWorkItem[] = [
 const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
 ---
 
-<DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践">
-  <div class={styles.background} aria-hidden="true">
-    <VisualFragment src={heroVisualSrc} alt="" />
-  </div>
+<DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践" theme="night">
+  <NightBackground />
 
   <Hero
     headingLines={["気づいたら、", "そこに問いがある"]}
@@ -82,7 +100,7 @@ const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
       "その積み重ねが、研究になり、実践になる。",
       "ふ、と は、そんな時間を届ける研究室です。",
     ]}
-    ctaLabel="研究について知る"
+    ctaLabel="Research Statementを読む"
     ctaHref="#research-statement"
     scrollTargetId="research-statement"
     visualSrc={heroVisualSrc}

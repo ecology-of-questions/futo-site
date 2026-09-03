@@ -129,5 +129,13 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0054](./0054-research-list-compact.md) | /researchページの一覧を、コンパクトな行+矢印の形に作り替える |
 | [0055](./0055-research-list-spacing.md) | /researchページの見出し位置を上げ、区切り線を一本化する |
 | [0056](./0056-research-list-description-side.md) | /research一覧の右側に説明文を2行までの要約として復活させる |
-| [0057](./0057-official-launch-update.md) | 正式公開に向けたHeader/Footer/About/Contact/Home更新 |
-| [0058](./0058-fieldnote-reading-mvp.md) | Fieldnote Reading 最小プロトタイプを実装する |
+| [0057](./0057-official-launch-update.md) | 正式公開に向けたHeader/Footer/About/Contact/Home更新(→ 一部上書き済み、0058) |
+| [0058](./0058-note-contact-finalize.md) | noteプロフィールURLの確定を受け、note導線とContactページを一本化する |
+| [0059](./0059-home-night-sky-background.md) | Home Desktop背景を「夜空」にし、ふと現れて消える光を追加する |
+| [0060](./0060-home-night-background-remove-artwork.md) | Home夜空背景から渦のアートワーク画像を撤去し、光のみにする |
+| [0061](./0061-home-night-color-ultramarine.md) | Home夜空背景の色を、プロジェクトオーナー指定の群青に変更する |
+| [0062](./0062-home-night-color-darker.md) | Home夜空背景の群青を、黒よりに調整する |
+| [0063](./0063-night-background-expand-to-subpages.md) | 夜空背景を/research・/about・/contactにも揃え、コンポーネント化する |
+| [0064](./0064-research-list-description-left-align.md) | /research一覧の説明文を右揃えから左揃えに変更する |
+| [0065](./0065-hero-cta-wording.md) | Hero CTAの文言を「研究について知る」から「Research Statementを読む」に変更する |
+| [0066](./0066-fieldnote-reading-mvp.md) | Fieldnote Reading 最小プロトタイプを実装する |

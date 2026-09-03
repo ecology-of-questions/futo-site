@@ -48,13 +48,6 @@
   opacity: 1;
 }
 
-.navLinkPending {
-  /* noteのURLが未設定の間、リンクにせず「準備中」として表示する
-     (2026-08-17、Decision Log 0057)。存在しないリンクを作らない方針。 */
-  color: var(--color-ink);
-  opacity: 0.4;
-}
-
 .menuToggle {
   /* Desktop幅(min-width: 900px)では非表示。Mobile幅でのみ現れる
      開閉ボタン(2026-08-17、Decision Log 0057)。 */

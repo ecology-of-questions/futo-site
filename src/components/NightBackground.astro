@@ -1,0 +1,28 @@
+---
+/**
+ * NightBackground.astro
+ * ------------------------------------------------------------
+ * Desktop幅(900px以上)のページ全体を貫くposition: fixed背景
+ * (紺の背景色+ふと現れて消える光の粒)。もともとHome専用として
+ * index.module.cssに実装していたもの(2026-09-03、Decision Log
+ * 0059〜0062)を、他ページ(/research, /about, /contact)にも
+ * 揃える指示(2026-09-03)を受けてコンポーネントとして切り出した。
+ *
+ * 使い方: DefaultLayoutに`theme="night"`を渡した上で、ページの
+ * 先頭(<ResearchSection>等の前)にこのコンポーネントを配置する。
+ * `theme="night"`側がmain/footerの文字色を反転させ、この
+ * コンポーネント側が実際の背景(色+光)を描画する、という役割分担。
+ * ------------------------------------------------------------
+ */
+import styles from "./NightBackground.module.css";
+---
+
+<div class={styles.background} aria-hidden="true">
+  <div class={styles.lights}>
+    <span class={styles.light}></span>
+    <span class={styles.light}></span>
+    <span class={styles.light}></span>
+    <span class={styles.light}></span>
+    <span class={styles.light}></span>
+  </div>
+</div>
