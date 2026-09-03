@@ -21,13 +21,19 @@
  * 変更していない(Decision Log 0008・0013)。Home(抜粋)とこのページ
  * (全文)は、同じコンポーネントにpropsとして異なるparagraphsを
  * 渡しているだけである。
+ *
+ * 【夜空背景(2026-09-03、Decision Log 0071)】Home・/research・
+ * /about・/contact・研究断面01・1.5に揃えている「夜空」背景を、
+ * このページにも適用した。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchStatement from "@components/ResearchStatement.astro";
+import NightBackground from "@components/NightBackground.astro";
 ---
 
-<DefaultLayout title="Research Statement ｜ ふ、と">
+<DefaultLayout title="Research Statement ｜ ふ、と" theme="night">
+  <NightBackground />
   <ResearchStatement
     title="Research Statement"
     heading="気づいたら、そこに問いがある"

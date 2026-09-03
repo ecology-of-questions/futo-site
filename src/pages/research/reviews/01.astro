@@ -59,10 +59,20 @@
  * 02以降を追加する際は、このファイルと同じ構造で
  * `src/pages/research/reviews/02.astro` 等を追加し、
  * ResearchReviewArticleコンポーネントを再利用する想定。
+ *
+ * 【2026-09-03五度目の追記(Decision Log 0071)】Home・/research・
+ * /about・/contact・研究断面1.5に揃えている「夜空」背景(Decision Log
+ * 0059〜0063、0070)を、このページにも適用した。DefaultLayoutに
+ * theme="night"を渡し、<NightBackground />を配置している。節3の
+ * 図1(figure-1.svg)は#2b2a26固定色の線・文字を背景透過で描いて
+ * おり夜空背景の上では読めなくなるため、図版に常に生成りの地を
+ * 敷く対応をResearchReviewArticle.module.css側で行った(図版
+ * ファイル自体は変更していない)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchReviewArticle from "@components/ResearchReviewArticle.astro";
+import NightBackground from "@components/NightBackground.astro";
 import type { ReviewSection } from "@/types/researchReview";
 
 const sections: ReviewSection[] = [
@@ -322,7 +332,8 @@ const sections: ReviewSection[] = [
 ];
 ---
 
-<DefaultLayout title="研究断面01 ｜ ふ、と">
+<DefaultLayout title="研究断面01 ｜ ふ、と" theme="night">
+  <NightBackground />
   <ResearchReviewArticle
     sectionLabel="Research Review"
     title="研究断面01"

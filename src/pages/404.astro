@@ -16,14 +16,19 @@
  * ResearchSectionは「Homeを構成する各セクションの共通ラッパー」と
  * 位置づけられており(ResearchSection.astro参照)、このページは
  * Homeの一部ではないため使わず、Heroと同様に独自レイアウトを持つ。
+ *
+ * 【夜空背景(2026-09-03、Decision Log 0071)】サイト全体(DefaultLayout
+ * を使う各ページ)に揃えている「夜空」背景を、このページにも適用した。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ArrowLink from "@components/ArrowLink.astro";
+import NightBackground from "@components/NightBackground.astro";
 import styles from "./404.module.css";
 ---
 
-<DefaultLayout title="ページが見つかりません ｜ ふ、と">
+<DefaultLayout title="ページが見つかりません ｜ ふ、と" theme="night">
+  <NightBackground />
   <section class={styles.section} aria-label="ページが見つかりません">
     <h1 class={styles.heading}>気づいたら、道に迷っていた。</h1>
     <div class={styles.body}>
