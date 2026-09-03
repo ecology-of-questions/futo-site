@@ -145,3 +145,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0070](./0070-research-review-1-5-touchups.md) | 研究断面1.5の句点削除と夜空背景の適用 |
 | [0071](./0071-night-background-full-rollout.md) | 夜空背景を、DefaultLayoutを使う全ページに揃える |
 | [0072](./0072-about-fieldnote-content-update.md) | 「運営者について」本文の改訂とHome「Practice」項目の更新 |
+| [0073](./0073-review-figure-currentcolor.md) | 研究断面01の図版を、生成りの版面ではなくcurrentColorで背景に溶け込ませる |
