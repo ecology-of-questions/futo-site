@@ -32,6 +32,12 @@
  * 変更していない。あくまで「そのHero相当のビジュアルを、ページ全体の
  * 視覚的トーンとして拡張した」という位置づけ。Mobileでは変更せず、
  * Hero内蔵の透かし(Decision Log 0023)のまま。
+ *
+ * 【Desktop背景「夜空」化(2026-09-03、Decision Log 0059)】
+ * プロジェクトオーナーの発案により、上記のDesktop背景を生成りの
+ * 透かしから「夜空」に変更し、ふと現れて消える光の粒を追加した。
+ * DefaultLayoutにtheme="night"を渡し、Desktop幅でmain/footer配下の
+ * 文字色を反転させている(global.css参照)。Mobileでは変更なし。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -69,9 +75,16 @@ const currentWorkItems: CurrentWorkItem[] = [
 const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
 ---
 
-<DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践">
+<DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践" theme="night">
   <div class={styles.background} aria-hidden="true">
     <VisualFragment src={heroVisualSrc} alt="" />
+    <div class={styles.lights}>
+      <span class={styles.light}></span>
+      <span class={styles.light}></span>
+      <span class={styles.light}></span>
+      <span class={styles.light}></span>
+      <span class={styles.light}></span>
+    </div>
   </div>
 
   <Hero
