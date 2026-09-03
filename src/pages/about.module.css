@@ -24,10 +24,3 @@
 .body p {
   margin: 0;
 }
-
-.operatorPlaceholder {
-  margin: var(--space-3) 0 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  opacity: 0.5;
-}
