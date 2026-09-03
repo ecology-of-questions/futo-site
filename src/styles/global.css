@@ -65,13 +65,15 @@ button {
   font: inherit;
 }
 
-/* Home「夜空」背景(2026-09-03、Decision Log 0059)。
-   Desktop幅でHome全体のposition: fixed背景が--color-nightになる際、
-   main/footer配下の文字色(--color-ink継承分)だけを--color-paperに
-   反転させる。header要素は対象に含めないため、bodyに直接ではなく
-   main/footerというdescendant combinatorで指定している(Headerは
-   常に不透明な--color-paper背景のままなので、反転させると逆に
-   読みにくくなる)。Mobileでは背景自体が夜空にならないため対象外。 */
+/* 「夜空」背景(2026-09-03、Decision Log 0059)。DefaultLayoutで
+   theme="night"を渡したページ(Home、/research、/about、/contact。
+   Decision Log 0063)で、Desktop幅のposition: fixed背景
+   (<NightBackground />)が--color-nightになる際、main/footer配下の
+   文字色(--color-ink継承分)だけを--color-paperに反転させる。
+   header要素は対象に含めないため、bodyに直接ではなくmain/footerと
+   いうdescendant combinatorで指定している(Headerは常に不透明な
+   --color-paper背景のままなので、反転させると逆に読みにくくなる)。
+   Mobileでは背景自体が夜空にならないため対象外。 */
 @media (min-width: 900px) {
   body[data-theme="night"] main,
   body[data-theme="night"] footer {

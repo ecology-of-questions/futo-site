@@ -19,7 +19,10 @@ interface Props {
   /**
    * "night" にすると、Desktop幅でmain/footerの文字色(--color-ink)を
    * --color-paperに反転させる(2026-09-03、Decision Log 0059)。
-   * Home(夜空背景)専用。他ページでは指定しない = 既定の配色のまま。
+   * 実際の背景(紺+光の粒)は<NightBackground />側が描画するため、
+   * このpropとセットで使う。当初Home専用だったが、2026-09-03の
+   * 指示により/research・/about・/contactにも適用した
+   * (Decision Log 0063)。指定しないページは既定の配色のまま。
    */
   theme?: "default" | "night";
 }
