@@ -1,0 +1,35 @@
+/**
+ * CursorGlow.module.css
+ * ------------------------------------------------------------
+ * CursorGlow.astro専用スタイル。Desktop幅(900px以上)限定で、
+ * カーソル位置を中心にした円形のグラデーションを描画する
+ * (2026-09-03、Decision Log 0078)。
+ * ------------------------------------------------------------
+ */
+
+.glow {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 36rem;
+  height: 36rem;
+  margin: -18rem 0 0 -18rem; /* transformで動かす中心点を、円の中心に合わせる */
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(247, 243, 234, 0.14) 0%, rgba(247, 243, 234, 0) 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+  will-change: transform;
+}
+
+@media (min-width: 900px) {
+  .glow {
+    display: block;
+  }
+}
+
+.glow[data-visible="true"] {
+  opacity: 1;
+}
