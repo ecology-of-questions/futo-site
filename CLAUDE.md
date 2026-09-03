@@ -49,6 +49,9 @@ Parking Lot (do not implement until after beta)
   `ResearchReviewArticle` component/structure. See Decision Log 0030.
 - Research Review version history display (still parked — no review
   has a revision history to show yet)
+- 支援（寄付）ページ (Support/Donation page) — Project Owner requested
+  this on 2026-09-03; decided to defer until after beta launch. See
+  Decision Log 0075.
 
 If a task in this list comes up, record the reasoning in Decision Log
 and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
