@@ -1,7 +1,11 @@
 # 0058. noteプロフィールURLの確定を受け、note導線とContactページを一本化する
 
 - 日付: 2026-08-17
-- 状態: 採用中(Decision Log 0057を一部上書き)
+- 状態: 一部上書き済み(→ 0067)。Footerの個別noteリンクは、Header/
+  Footerの項目数を揃える目的で削除された(noteへの導線はContactの
+  「noteから問い合わせる」に一本化)。それ以外の内容(Header/Contact
+  周りの記述)はそのまま有効。詳細はDecision Log 0067参照。
+  (Decision Log 0057を一部上書き)
 
 ## Decision
 
