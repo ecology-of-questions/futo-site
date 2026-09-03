@@ -132,3 +132,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0057](./0057-official-launch-update.md) | 正式公開に向けたHeader/Footer/About/Contact/Home更新(→ 一部上書き済み、0058) |
 | [0058](./0058-note-contact-finalize.md) | noteプロフィールURLの確定を受け、note導線とContactページを一本化する |
 | [0059](./0059-home-night-sky-background.md) | Home Desktop背景を「夜空」にし、ふと現れて消える光を追加する |
+| [0060](./0060-home-night-background-remove-artwork.md) | Home夜空背景から渦のアートワーク画像を撤去し、光のみにする |
