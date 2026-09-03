@@ -52,6 +52,20 @@
  * /contactにも揃える指示を受け、NightBackground.astroとして切り出
  * した。以前ここに直接書いていた.background/.lights divは
  * <NightBackground />に置き換えている。
+ *
+ * 【「いま、取り組んでいること」文言改訂(2026-09-03、Decision Log
+ * 0074)】プロジェクトオーナーの指示により、導入文・「問いの生態系」
+ * ・「研究断面」の説明文を差し替えた。「研究断面」の説明文は2段落に
+ * なったため、CurrentWorkItem.bodyの型をstringからstring[]に変更
+ * した(CurrentWorkList.astro側も合わせて更新)。「Fieldnote（仮称）」
+ * 項目の文言は今回の指示に含まれていないため変更していない。
+ *
+ * 【「Fieldnote（仮称）」項目の削除(2026-09-03、Decision Log 0077)】
+ * プロジェクトオーナーの指示により、「Fieldnote（仮称）」への言及を
+ * 全ページから削除することになったため、currentWorkItemsから
+ * 「Practice」項目(上記0074時点では変更せず残していたもの)を
+ * まるごと削除した。/fieldnote(Fieldnote Reading最小プロトタイプ、
+ * Decision Log 0066)自体は今回の対象外で、引き続き公開している。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -67,22 +81,19 @@ const currentWorkItems: CurrentWorkItem[] = [
   {
     label: "Research",
     title: "問いの生態系",
-    body: "「ふと」と呼ばれる、人と世界との関係が変化する瞬間を観察し、その先で問いがどのように育っていくのかを探っています。",
+    body: ["「ふと」という、人と世界との関係が変化する瞬間を観察し、その先で問いがどのように育っていくのかを探っています。"],
     linkLabel: "Research Statementを読む",
     linkHref: "/research-statement",
   },
   {
     label: "Research Review",
     title: "研究断面",
-    body: "調査や実践から、その時点で見えていることを記録しています。結論ではなく、これから更新されていく研究の断面です。",
+    body: [
+      "リサーチしている中で立ち現れてきた、「そのとき考えていること」を切り取って記録しています。",
+      "論文のような、検証結果や結論ではなく、後々変わりうるかもしれない考えも大切にしていきます。",
+    ],
     linkLabel: "研究断面を見る",
     linkHref: "/research",
-  },
-  {
-    label: "Practice",
-    title: "Fieldnote（仮称）",
-    body: "会話、読書、風景、身体感覚など、日常のなかで生まれた小さな接触を失わず、問いへ育てていくための研究環境を制作しています。",
-    statusLabel: "制作・検証中",
   },
 ];
 
@@ -133,7 +144,7 @@ const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
   <ResearchSection ariaLabel="いま、取り組んでいること" id="current-work">
     <h2 class={styles.currentWorkHeading}>いま、取り組んでいること</h2>
     <p class={styles.currentWorkIntro}>
-      公開研究室「ふ、と」では、「ふと」という瞬間を手がかりに、問いがどのように立ち上がり、育っていくのかを観察しています。調べること、記録すること、つくることを往復しながら、研究の過程をひらいていきます。
+      公開研究室「ふ、と」では、「ふと」という瞬間を手がかりに、問いがどのように立ち上がり、育っていくのかを観察しています。リサーチ、記録、つくることを往復しながら、研究の過程をひらいていきます。
     </p>
     <CurrentWorkList items={currentWorkItems} />
   </ResearchSection>
