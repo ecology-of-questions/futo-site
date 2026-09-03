@@ -1,0 +1,243 @@
+/**
+ * index.module.css
+ * ------------------------------------------------------------
+ * Fieldnote Reading専用のスタイル。
+ * サイト全体のglobal.cssは読み込まない(Header固定表示分の
+ * padding-topなど、Header/Footerを前提にした調整を持ち込まない
+ * ため)。html/bodyの最小限のリセットはこのファイルの:global()で
+ * 行う。色・余白・タイポグラフィはtokens.cssのトークンのみを
+ * 参照する(CLAUDE.md: 値のハードコード禁止)。
+ * ------------------------------------------------------------
+ */
+
+:global(html) {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+:global(body) {
+  margin: 0;
+  height: 100%;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:global(*),
+:global(*::before),
+:global(*::after) {
+  box-sizing: border-box;
+}
+
+.app {
+  min-height: 100dvh;
+}
+
+/* ---------- Setup view(タイトル入力) ---------- */
+
+.setupView {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-3);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+}
+
+.setupHeading {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+}
+
+.setupForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 28rem;
+}
+
+.label {
+  font-size: var(--fs-sm);
+  opacity: 0.8;
+}
+
+.titleInput {
+  font-size: var(--fs-lg);
+  font-family: var(--font-body);
+  padding: var(--space-2);
+  border: 1px solid var(--color-ink);
+  background-color: transparent;
+  color: var(--color-ink);
+}
+
+.primaryButton {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--fs-base);
+  font-family: var(--font-sans);
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  border: none;
+  cursor: pointer;
+  transition: opacity var(--transition-base);
+}
+
+.primaryButton:hover {
+  opacity: 0.85;
+}
+
+.setupError {
+  margin: 0;
+  max-width: 28rem;
+  color: var(--color-ink);
+  background-color: var(--color-accent-beige);
+  padding: var(--space-2);
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Camera view(撮影画面) ---------- */
+
+.cameraView {
+  position: fixed;
+  inset: 0;
+  background-color: black;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shutterFlash {
+  position: absolute;
+  inset: 0;
+  background-color: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease-out;
+}
+
+.cameraTopBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: calc(env(safe-area-inset-top) + var(--space-2)) var(--space-3) var(--space-2);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent);
+}
+
+.sessionTitleLabel {
+  margin: 0;
+  color: var(--color-paper);
+  font-size: var(--fs-sm);
+}
+
+.endButton {
+  padding: var(--space-1) var(--space-2);
+  background-color: transparent;
+  color: var(--color-paper);
+  border: 1px solid var(--color-paper);
+  cursor: pointer;
+}
+
+.cameraError {
+  position: absolute;
+  top: 30%;
+  left: var(--space-3);
+  right: var(--space-3);
+  margin: 0;
+  text-align: center;
+  color: var(--color-paper);
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: var(--space-2);
+}
+
+.cameraBottomBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4) calc(env(safe-area-inset-bottom) + var(--space-3));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+}
+
+.shotCount {
+  margin: 0;
+  min-width: 3.5rem;
+  color: var(--color-paper);
+  font-size: var(--fs-sm);
+}
+
+.spacer {
+  min-width: 3.5rem;
+}
+
+.captureButton {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background-color: var(--color-paper);
+  border: 4px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.captureButton:disabled {
+  opacity: 0.5;
+}
+
+/* ---------- List view(撮影ページの一覧) ---------- */
+
+.listView {
+  min-height: 100dvh;
+  padding: var(--space-4) var(--space-3);
+}
+
+.listHeading {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-body);
+  font-size: var(--fs-xl);
+}
+
+.listMeta {
+  margin: 0 0 var(--space-4);
+  opacity: 0.7;
+  font-size: var(--fs-sm);
+}
+
+.captureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.captureGrid img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid var(--color-ink);
+}
+
+.captureGrid p {
+  grid-column: 1 / -1;
+  opacity: 0.7;
+}

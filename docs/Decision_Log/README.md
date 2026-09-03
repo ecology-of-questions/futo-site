@@ -138,3 +138,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0063](./0063-night-background-expand-to-subpages.md) | 夜空背景を/research・/about・/contactにも揃え、コンポーネント化する |
 | [0064](./0064-research-list-description-left-align.md) | /research一覧の説明文を右揃えから左揃えに変更する |
 | [0065](./0065-hero-cta-wording.md) | Hero CTAの文言を「研究について知る」から「Research Statementを読む」に変更する |
+| [0066](./0066-fieldnote-reading-mvp.md) | Fieldnote Reading 最小プロトタイプを実装する |
