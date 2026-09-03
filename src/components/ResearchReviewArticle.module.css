@@ -144,6 +144,13 @@
   max-width: 28rem;
   height: auto;
   margin-inline: auto;
+  /* 図版(例: 01のfigure-1.svg)は#2b2a26固定色の線・文字を背景
+     透過で描いており、夜空背景(--color-night)のページに置くと
+     読めなくなる。--color-paperは夜空テーマでも値が変わらない
+     ため、常に生成りの地を敷いて図版の可読性を保つ(2026-09-03、
+     Decision Log 0071)。生成り背景のページでは元のページ地色と
+     同色になるため、見た目上の変化はない。 */
+  background-color: var(--color-paper);
 }
 
 .row .image {
