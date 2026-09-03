@@ -18,6 +18,12 @@
  * 【2026-08-16追記2】図版・表をfloatで回り込ませる方式(Decision Log
  * 0038〜0040)を経て、最終的にRowBlockで図版・表を横並びに配置する
  * 方式に落ち着いた(Decision Log 0041)。floatは使っていない。
+ *
+ * 【2026-09-03追記(Decision Log 0073)】ImageBlockに`inlineSvg`を
+ * 追加した。SVG図版を<img src>での外部参照ではなくDOMにインライン
+ * 展開することで、SVG側の色をcurrentColorにでき、ページの文字色
+ * (--color-ink、夜空テーマでは--color-paperに反転)へ自動的に
+ * 追従できるようにした。詳細はDecision Log 0073参照。
  * ------------------------------------------------------------
  */
 
@@ -56,6 +62,15 @@ export interface ImageBlock {
   alt: string;
   width: number;
   height: number;
+  /**
+   * trueの場合、srcのSVGファイルをDOMにインライン展開する
+   * (2026-09-03、Decision Log 0073)。SVG側の色をcurrentColorに
+   * しておくことで、ページの文字色(夜空テーマでの反転を含む)に
+   * 自動的に追従できる。<img src>での外部参照はホストページの
+   * CSS変数・currentColorを継承しないため、これが必要な図版
+   * (線・文字に単色を使うシンプルな図)にのみ使う。
+   */
+  inlineSvg?: boolean;
 }
 
 /**
