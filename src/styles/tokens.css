@@ -20,10 +20,11 @@
   --color-ink: #2b2a26;         /* 仮値: 柔らかい黒(純黒 #000 は使わない) */
   --color-accent-green: #a9b79c; /* 仮値: 淡い緑 */
   --color-accent-beige: #d8cbb0; /* 仮値: ベージュ */
-  --color-night: #1c2438; /* Home背景「夜空」用の紺(2026-09-03、Decision Log 0059)。
-    --color-paper(#f7f3ea)とのコントラスト比は約13.9:1で、WCAG AAA(7:1)を
-    大きく上回る。純黒(#000)を避けている既存方針(--color-ink参照)に
-    合わせ、こちらも彩度をわずかに残した紺にしている。 */
+  --color-night: #4c6cb3; /* Home背景「夜空」用の群青(2026-09-03、
+    プロジェクトオーナー指定のHEX値。Decision Log 0061で#1c2438から
+    変更)。--color-paper(#f7f3ea)とのコントラスト比は約4.6:1で、
+    WCAG AA(通常テキスト4.5:1)は満たすがAAA(7:1)には届かない。
+    詳細はDecision Log 0061参照。 */
 
   /* -----------------------------
    * Typography
