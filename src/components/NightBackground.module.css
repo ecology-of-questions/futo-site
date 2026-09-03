@@ -1,0 +1,106 @@
+/**
+ * NightBackground.module.css
+ * ------------------------------------------------------------
+ * NightBackground.astro専用スタイル。Desktop幅(900px以上)限定で
+ * position: fixedの紺の背景と、ふと現れて消える光の粒を描画する。
+ * 元はindex.module.css(Home専用)にあった実装(2026-09-03、
+ * Decision Log 0059〜0062)を、他ページにも揃えるためコンポーネント
+ * 化した際にそのまま移設した。
+ * ------------------------------------------------------------
+ */
+
+.background {
+  display: none;
+  position: fixed;
+  inset: 0;
+  /* Header(position: fixed; z-index: 100)より背面、かつ本文
+     (通常のフロー内コンテンツ)より背面にするため負のz-indexに
+     する。通常のフロー内コンテンツはposition指定がなくても常に
+     z-index:0の位置指定要素より手前に描画されるため、この背景を
+     「本文より背面」にするには0ではなく負の値が必要 */
+  z-index: -1;
+  background-color: var(--color-night);
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .background {
+    display: block;
+  }
+}
+
+.lights {
+  position: absolute;
+  inset: 0;
+}
+
+.light {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(247, 243, 234, 0.9) 0%, rgba(247, 243, 234, 0) 70%);
+  opacity: 0;
+  animation-name: lightPulse;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  /* prefers-reduced-motion: reduceの場合、global.cssの指定により
+     animation-durationが0.01ms・iteration-countが1に強制されるため、
+     光は一瞬でこのkeyframeの終端(opacity: 0)に落ち着き、点滅しない */
+}
+
+/* 「ふと複数の光がじんわりと現れる。そしていつの間にか消える」という
+   イメージのため、durationを長め(9〜13秒)にし、animation-delayを
+   負の値にして各光の開始位相をずらしている(同時に光らない) */
+.light:nth-child(1) {
+  top: 18%;
+  left: 22%;
+  width: 5rem;
+  height: 5rem;
+  animation-duration: 11s;
+  animation-delay: -2s;
+}
+
+.light:nth-child(2) {
+  top: 62%;
+  left: 68%;
+  width: 3.5rem;
+  height: 3.5rem;
+  animation-duration: 9s;
+  animation-delay: -6s;
+}
+
+.light:nth-child(3) {
+  top: 40%;
+  left: 80%;
+  width: 6rem;
+  height: 6rem;
+  animation-duration: 13s;
+  animation-delay: -9s;
+}
+
+.light:nth-child(4) {
+  top: 78%;
+  left: 30%;
+  width: 4rem;
+  height: 4rem;
+  animation-duration: 10s;
+  animation-delay: -4s;
+}
+
+.light:nth-child(5) {
+  top: 10%;
+  left: 58%;
+  width: 3rem;
+  height: 3rem;
+  animation-duration: 12s;
+  animation-delay: -1s;
+}
+
+@keyframes lightPulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}

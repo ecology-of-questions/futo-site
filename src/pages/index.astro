@@ -46,6 +46,12 @@
  * importは削除したが、Hero側(Mobileの透かし表現、Decision Log
  * 0023)がvisualSrc propとして引き続き参照するため、heroVisualSrc
  * 自体は残している。
+ *
+ * 【他ページへの展開に伴うコンポーネント化(2026-09-03、Decision Log
+ * 0063)】この「夜空」背景(紺の背景色+光の粒)を/research・/about・
+ * /contactにも揃える指示を受け、NightBackground.astroとして切り出
+ * した。以前ここに直接書いていた.background/.lights divは
+ * <NightBackground />に置き換えている。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -53,6 +59,7 @@ import Hero from "@components/Hero.astro";
 import ResearchStatement from "@components/ResearchStatement.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import CurrentWorkList from "@components/CurrentWorkList.astro";
+import NightBackground from "@components/NightBackground.astro";
 import styles from "./index.module.css";
 import type { CurrentWorkItem } from "@/types/currentWork";
 
@@ -83,15 +90,7 @@ const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
 ---
 
 <DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践" theme="night">
-  <div class={styles.background} aria-hidden="true">
-    <div class={styles.lights}>
-      <span class={styles.light}></span>
-      <span class={styles.light}></span>
-      <span class={styles.light}></span>
-      <span class={styles.light}></span>
-      <span class={styles.light}></span>
-    </div>
-  </div>
+  <NightBackground />
 
   <Hero
     headingLines={["気づいたら、", "そこに問いがある"]}
