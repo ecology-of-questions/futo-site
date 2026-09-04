@@ -17,20 +17,17 @@
  * 外部フォームバックエンドサービス(Formspree)へ<form>を直接POSTする
  * 形にしている。
  *
- * formspreeFormIdはプレースホルダー。プロジェクトオーナーが
- * サイト専用のGmailアドレスでFormspreeに登録し、フォームを作成した
- * 後に、実際のForm IDに差し替える必要がある(Decision Log 0076参照)。
+ * 【2026-09-04改訂】プロジェクトオーナーがサイト専用Gmail
+ * (futoing@gmail.com)でFormspreeに登録し、実際のForm IDが発行された
+ * ため、formspreeFormIdをプレースホルダーから実値に差し替えた。
  * ------------------------------------------------------------
  */
 
 /** noteのプロフィールURL。Header/Footerの外部リンク、Contactページの問い合わせ導線から参照する。 */
 export const noteUrl = "https://note.com/dreamers";
 
-/**
- * FormspreeのForm ID。https://formspree.io/f/{formspreeFormId} がPOST先になる。
- * TODO: プロジェクトオーナーがFormspreeでフォームを作成した後、実際のIDに差し替える。
- */
-export const formspreeFormId = "YOUR_FORM_ID";
+/** FormspreeのForm ID。https://formspree.io/f/{formspreeFormId} がPOST先になる。 */
+export const formspreeFormId = "mvkoqzov";
 
 /** Formspreeへの実際のPOST先URL。 */
 export const contactFormEndpoint = `https://formspree.io/f/${formspreeFormId}`;
