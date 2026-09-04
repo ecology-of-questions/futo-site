@@ -41,7 +41,7 @@
 - [x] Research Review 詳細UIの実装 — 一部解禁済み(01・1.5、Decision Log 0030・0068)
 - [ ] Research Reviewのバージョン管理
 - [ ] Research Fragmentsの実装
-- [ ] Contactフォームの送信先設定(FormspreeのForm ID、Decision Log 0076参照。現在プレースホルダー)
+- [x] Contactフォームの送信先設定 — FormspreeのForm ID設定・実機での送信確認まで完了(Decision Log 0076)
 
 ---
 

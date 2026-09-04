@@ -67,10 +67,11 @@
   Form ID(`mvkoqzov`)を発行。`src/config/site.ts`の
   `formspreeFormId`をプレースホルダーから実値に差し替えた。この
   作業を行ったサンドボックス環境からはネットワークポリシーにより
-  `formspree.io`への疎通確認ができなかったため、実際の送信動作
-  (フォーム送信→`futoing@gmail.com`への着信、初回送信時の
-  Formspree確認メール承認)はプロジェクトオーナー側での実機確認が
-  必要。
+  `formspree.io`への疎通確認ができなかったため、実際の送信動作は
+  プロジェクトオーナー側での実機確認を依頼した。
+  → 同日、プロジェクトオーナーが実際にContactフォームから送信し、
+  HTTPステータス200での成功と、`futoing@gmail.com`への着信を確認。
+  Contactフォームは本番で問題なく機能している。
 - Formspreeの無料枠(月50件)を超える、あるいはFormspree自体を
   変更したくなった場合は、`src/config/site.ts`の`contactFormEndpoint`
   を差し替えるだけで他サービスに移行できる(フォーム自体のマークアップ
