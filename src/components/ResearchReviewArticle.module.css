@@ -71,17 +71,21 @@
   /* ArrowLink(.link/.arrow、ArrowLink.module.css)と同じ「下線+矢印」の
      テキストリンク調にした。枠で囲んだボタンは「箱っぽく重い」という
      指摘(Header 3本線メニューのDecision Log 0088と同じ理由)を受け、
-     2026-09-04に変更した(Decision Log 0093)。 */
+     2026-09-04に変更した(Decision Log 0093)。「戻る/次へ」という
+     文字ラベルも「本当に文字で説明が必要か」との指摘を受けて撤去し、
+     矢印のみの表示にした(2026-09-04、Decision Log 0094)。視覚的な
+     ラベルがなくなる分、aria-label="戻る"/"次へ"をボタンに追加して
+     スクリーンリーダーでの分かりやすさを維持している(Headerの
+     ハンバーガーメニュー、Decision Log 0087と同じ考え方)。 */
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
+  justify-content: center;
+  font-size: var(--fs-base);
   color: var(--color-ink);
   background: none;
   border: none;
   border-bottom: 1px solid currentColor;
-  padding: 0 0 2px;
+  padding: 0 var(--space-1) 2px;
   cursor: pointer;
   transition: opacity var(--transition-base);
 }
