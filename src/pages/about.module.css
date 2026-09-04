@@ -19,6 +19,11 @@
   margin-top: var(--space-3);
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+  /* Desktop幅で1行67文字前後まで伸びて読みにくいという指摘を受け、
+     読みやすい行幅の上限を設定した(2026-09-04、Decision Log
+     0089)。ResearchReviewArticle.module.cssの.paragraphと同じ
+     36rem。 */
+  max-width: 36rem;
 }
 
 .body p {

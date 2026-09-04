@@ -14,11 +14,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4); /* 段落間の余白。余白を思考時間として扱う(Design Spec 10) */
-  /* 読みやすい行幅(36rem→52rem、Decision Log 0008・0012・0029)で
-     本文を制限する方針を廃止し、コンテナ(ResearchSection、
-     content-max-width)いっぱいに本文を使う形に変更した
-     (2026-08-15、Decision Log 0031)。 */
   margin-top: var(--space-3);
+  /* 読みやすい行幅(36rem→52rem、Decision Log 0008・0012・0029)の
+     制限は、2026-08-15にDecision Log 0031でコンテナいっぱいに
+     広げる方針に変更されたが、Desktop幅で1行54文字前後まで伸びて
+     読みにくいという指摘を受け、2026-09-04に52remの上限を再導入した
+     (Decision Log 0089)。 */
+  max-width: 52rem;
 }
 
 .paragraph {
