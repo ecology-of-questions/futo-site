@@ -34,6 +34,67 @@
      (2026-09-04、Decision Log 0089)。 */
 }
 
+.page {
+  /* pagesOf指定時、1画面ぶんのsectionをまとめる単位(2026-09-04、
+     Decision Log 0092)。.articleと同じsection間の余白を持たせる。
+     [hidden]のUAデフォルト(display: none)がこのdisplay: flexに
+     負けないよう明示的に上書きする。 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.page[hidden] {
+  display: none;
+}
+
+.pagerControls {
+  /* 1画面ずつ切り替えるページングの操作UI(2026-09-04、Decision Log
+     0092)。JSが無効な環境ではhidden属性のまま(pager.ts参照)。
+     ResearchSectionは子要素間にgapを持たないため、他の直接の子要素
+     (.title/.subtitle/.article)と同様に自分自身でmargin-topを
+     持たせて前の要素との間隔を確保する。 */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.pagerControls[hidden] {
+  /* [hidden]のUAデフォルト(display: none)は、同じ詳細度の
+     .pagerControls(display: flex)に負けるため明示的に上書きする
+     (.page[hidden]と同じ理由)。 */
+  display: none;
+}
+
+.pagerButton {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink);
+  background: none;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  transition: opacity var(--transition-base);
+}
+
+.pagerButton:hover,
+.pagerButton:focus-visible {
+  opacity: 0.7;
+}
+
+.pagerButton:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.pagerStatus {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.6;
+}
+
 .section {
   display: flex;
   flex-direction: column;

@@ -39,6 +39,13 @@
  * 適用した。DefaultLayoutにtheme="night"を渡し、<NightBackground />
  * を配置している。01(研究断面01)は現時点では対象外のまま
  * (Decision Log 0063時点でも詳細ページは対象に含めていなかった)。
+ *
+ * 【1画面ずつ切り替えるページング追加(2026-09-04、Decision Log
+ * 0092)】「文字での説明を減らせないか」との指摘を受け、9 sectionを
+ * 節2つずつ+参考文献の5画面(pagesOf=[2,2,2,2,1])に分け、
+ * `ResearchReviewArticle`に渡した。URLは変えず、「次へ/戻る」
+ * ボタンで画面を切り替える(JS無効時は全sectionがそのまま表示
+ * される)。本文は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -390,5 +397,6 @@ const sections: ReviewSection[] = [
     title="研究断面1.5"
     subtitle="なぜ私たちは、ある瞬間に「ふと」気づくのか──その手前にある経験と時間"
     sections={sections}
+    pagesOf={[2, 2, 2, 2, 1]}
   />
 </DefaultLayout>

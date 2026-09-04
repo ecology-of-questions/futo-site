@@ -31,6 +31,13 @@
  * 「世界は昨日と変わっていないのに、世界と自分との関わり方が少し
  * 変わる。」に修正した。Home(index.astro)の抜粋にある同じ一節も
  * 合わせて修正している。
+ *
+ * 【1画面ずつ切り替えるページング追加(2026-09-04、Decision Log 0092)】
+ * 「文字での説明を減らせないか」との指摘を受け、14段落を意味の
+ * まとまりごとに5画面(2/2/3/3/4段落)へ分け、`pagesOf`で
+ * `ResearchStatement`に渡した。URLは変えず、「次へ/戻る」ボタンで
+ * 画面を切り替える(JS無効時は全段落がそのまま表示される)。文章
+ * そのもの(語順・言葉遣い・段落の区切り)は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -83,6 +90,7 @@ import NightBackground from "@components/NightBackground.astro";
         "公開研究室「ふ、と」は、「ふと」から育っていく問いを、ともに観察し、記録し、ひらいていくための場所です。",
       ],
     ]}
+    pagesOf={[2, 2, 3, 3, 4]}
     linkLabel="研究の記録を見る"
     linkHref="/research#research-reviews"
   />

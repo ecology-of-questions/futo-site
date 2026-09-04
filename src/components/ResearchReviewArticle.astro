@@ -25,6 +25,13 @@
  * 配置する方式に落ち着いた(Decision Log 0041)。個々のブロックの
  * 描画はReviewContentBlock.astroに切り出し、セクション直下と
  * RowBlock内の両方から再利用している。
+ *
+ * 【1画面ずつ切り替えるページング(2026-09-04、Decision Log 0092)】
+ * 「文字での説明を減らせないか」との指摘を受け、任意で`pagesOf`
+ * (各画面に含むsection数の配列)を渡せるようにした。指定時は
+ * sectionsをその単位でグループ化し、1画面ずつ表示を切り替える
+ * (URLは変えない、`src/lib/pager.ts`。ResearchStatementと同じ
+ * 仕組み)。省略時は従来通り全sectionを1画面に表示する。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
@@ -40,9 +47,27 @@ interface Props {
   title: string;
   subtitle?: string;
   sections: ReviewSection[];
+  /**
+   * 画面ごとのsection数(合計はsections.lengthと一致させる)。指定時は
+   * この単位でsectionをグループ化し、1画面ずつ切り替えるページングを
+   * 有効にする(Decision Log 0092)。省略時は全sectionを1画面に表示する。
+   */
+  pagesOf?: number[];
 }
 
-const { sectionLabel, title, subtitle, sections } = Astro.props;
+const { sectionLabel, title, subtitle, sections, pagesOf } = Astro.props;
+
+const pages: ReviewSection[][] = pagesOf
+  ? (() => {
+      const result: ReviewSection[][] = [];
+      let offset = 0;
+      for (const size of pagesOf) {
+        result.push(sections.slice(offset, offset + size));
+        offset += size;
+      }
+      return result;
+    })()
+  : [sections];
 ---
 
 <ResearchSection ariaLabel={title}>
@@ -50,24 +75,46 @@ const { sectionLabel, title, subtitle, sections } = Astro.props;
   <h1 class={styles.title}>{title}</h1>
   {subtitle && <p class={styles.subtitle}>{subtitle}</p>}
 
-  <div class={styles.article}>
+  <div data-pager={pagesOf ? true : undefined}>
+    <div class={styles.article}>
+      {
+        pages.map((pageSections) => (
+          <div class={styles.page} data-pager-page tabindex="-1">
+            {pageSections.map((section) => (
+              <section class={styles.section}>
+                <h2 class={styles.sectionHeading}>{section.heading}</h2>
+                {section.blocks.map((block) =>
+                  block.type === "row" ? (
+                    <div class={styles.row}>
+                      {block.items.map((item) => (
+                        <ReviewContentBlock block={item} />
+                      ))}
+                    </div>
+                  ) : (
+                    <ReviewContentBlock block={block} />
+                  ),
+                )}
+              </section>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+
     {
-      sections.map((section) => (
-        <section class={styles.section}>
-          <h2 class={styles.sectionHeading}>{section.heading}</h2>
-          {section.blocks.map((block) =>
-            block.type === "row" ? (
-              <div class={styles.row}>
-                {block.items.map((item) => (
-                  <ReviewContentBlock block={item} />
-                ))}
-              </div>
-            ) : (
-              <ReviewContentBlock block={block} />
-            ),
-          )}
-        </section>
-      ))
+      pagesOf && (
+        <div class={styles.pagerControls} data-pager-controls hidden>
+          <button type="button" class={styles.pagerButton} data-pager-prev>
+            戻る
+          </button>
+          <span class={styles.pagerStatus} data-pager-status />
+          <button type="button" class={styles.pagerButton} data-pager-next>
+            次へ
+          </button>
+        </div>
+      )
     }
   </div>
 </ResearchSection>
+
+<script src="../lib/pager.ts"></script>

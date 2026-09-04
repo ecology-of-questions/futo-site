@@ -34,6 +34,15 @@
  * の通りResearch Reviews等と同じ扱い)とは別に追加した(Decision Log
  * 0016)。titleは今まで通りSectionTitleとして小さく表示し、heading
  * は文章本文の一部として、段落より大きい見出しサイズで表示する。
+ *
+ * 【1画面ずつ切り替えるページング(2026-09-04、Decision Log 0092)】
+ * 「文字での説明を減らせないか」との指摘を受け、段落数が多い場合に
+ * 任意で`pagesOf`(各画面に含む段落数の配列)を渡せるようにした。
+ * 指定時は段落をその単位でグループ化し、1画面ずつ表示を切り替える
+ * (URLは変えない、`src/lib/pager.ts`)。省略時は従来通り全段落を
+ * 1画面に表示する(Home抜粋での用途はこちら)。どの段落をどの画面に
+ * まとめるかは文章の意味的な区切りに沿うため、コンポーネント側では
+ * 判断せず、呼び出し側(ページ)がpagesOfとして指定する。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
@@ -50,9 +59,27 @@ interface Props {
   /** Researchページ等、続きへの導線(回遊のため。Decision Log 0010・0011) */
   linkLabel?: string;
   linkHref?: string;
+  /**
+   * 画面ごとの段落数(合計はparagraphs.lengthと一致させる)。指定時は
+   * この単位で段落をグループ化し、1画面ずつ切り替えるページングを
+   * 有効にする(Decision Log 0092)。省略時は全段落を1画面に表示する。
+   */
+  pagesOf?: number[];
 }
 
-const { title, heading, paragraphs, linkLabel, linkHref } = Astro.props;
+const { title, heading, paragraphs, linkLabel, linkHref, pagesOf } = Astro.props;
+
+const pages: string[][][] = pagesOf
+  ? (() => {
+      const result: string[][][] = [];
+      let offset = 0;
+      for (const size of pagesOf) {
+        result.push(paragraphs.slice(offset, offset + size));
+        offset += size;
+      }
+      return result;
+    })()
+  : [paragraphs];
 ---
 
 <ResearchSection ariaLabel={title} id="research-statement">
@@ -60,18 +87,38 @@ const { title, heading, paragraphs, linkLabel, linkHref } = Astro.props;
 
   {heading && <p class={styles.heading}>{heading}</p>}
 
-  <div class={styles.statement}>
+  <div data-pager={pagesOf ? true : undefined}>
+    <div class={styles.statement}>
+      {
+        pages.map((pageParagraphs) => (
+          <div class={styles.page} data-pager-page tabindex="-1">
+            {pageParagraphs.map((lines) => (
+              <p class={styles.paragraph}>
+                {lines.map((line, i) => (
+                  <Fragment>
+                    {i > 0 && <br />}
+                    {line}
+                  </Fragment>
+                ))}
+              </p>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+
     {
-      paragraphs.map((lines) => (
-        <p class={styles.paragraph}>
-          {lines.map((line, i) => (
-            <Fragment>
-              {i > 0 && <br />}
-              {line}
-            </Fragment>
-          ))}
-        </p>
-      ))
+      pagesOf && (
+        <div class={styles.pagerControls} data-pager-controls hidden>
+          <button type="button" class={styles.pagerButton} data-pager-prev>
+            戻る
+          </button>
+          <span class={styles.pagerStatus} data-pager-status />
+          <button type="button" class={styles.pagerButton} data-pager-next>
+            次へ
+          </button>
+        </div>
+      )
     }
   </div>
 
@@ -83,3 +130,5 @@ const { title, heading, paragraphs, linkLabel, linkHref } = Astro.props;
     )
   }
 </ResearchSection>
+
+<script src="../lib/pager.ts"></script>

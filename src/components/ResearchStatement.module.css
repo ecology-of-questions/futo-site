@@ -23,6 +23,21 @@
   max-width: 52rem;
 }
 
+.page {
+  /* pagesOf指定時、1画面ぶんの段落をまとめる単位(2026-09-04、
+     Decision Log 0092)。.statementと同じ段落間の余白を持たせる。
+     data-pager-pageが非表示になったとき、[hidden]のUAデフォルト
+     (display: none)がこのdisplay: flexに負けないよう明示的に
+     上書きする。 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.page[hidden] {
+  display: none;
+}
+
 .paragraph {
   margin: 0;
   /* サイト内で最も多く使われている「本文サイズ」(--fs-base)に統一
@@ -30,6 +45,50 @@
      Log 0074)と同じ理由・同じ変更。 */
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+}
+
+.pagerControls {
+  /* 1画面ずつ切り替えるページングの操作UI(2026-09-04、Decision Log
+     0092)。JSが無効な環境ではhidden属性のまま(pager.ts参照)。 */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.pagerControls[hidden] {
+  /* [hidden]のUAデフォルト(display: none)は、同じ詳細度の
+     .pagerControls(display: flex)に負けるため明示的に上書きする
+     (.page[hidden]と同じ理由)。 */
+  display: none;
+}
+
+.pagerButton {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink);
+  background: none;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+  transition: opacity var(--transition-base);
+}
+
+.pagerButton:hover,
+.pagerButton:focus-visible {
+  opacity: 0.7;
+}
+
+.pagerButton:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.pagerStatus {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.6;
 }
 
 .link {
