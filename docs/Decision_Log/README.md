@@ -154,3 +154,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0079](./0079-cursor-glow-tuning.md) | カーソル追従の光を、範囲を狭く・強度を強く調整する |
 | [0080](./0080-copy-fixes-header-color.md) | 文言修正3件とHeaderの文字色変更 |
 | [0081](./0081-newsletter-deferred.md) | メルマガは、β公開後に着手する |
+| [0082](./0082-hero-heading-font-and-ogp.md) | Hero見出しに手書き調フォント(Klee One)を採用し、OGPを実装する |

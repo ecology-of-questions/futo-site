@@ -1,7 +1,12 @@
 .heading {
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
-  font-weight: 500;
+  /* Hero見出しと同じ文言(「気づいたら、そこに問いがある」)のため、
+     フォントも揃える(2026-09-04、Decision Log 0082)。Home抜粋・
+     全文ページ(research-statement.astro)の両方で使われる、この
+     コンポーネント唯一のheading表示箇所に適用される。 */
+  font-family: var(--font-hero-heading);
+  font-weight: 600;
   margin: var(--space-3) 0 0;
 }
 
