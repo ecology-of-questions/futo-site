@@ -153,3 +153,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0078](./0078-cursor-glow-home-experiment.md) | カーソル追従の光を、Homeページのみに試験的に実装する(→ 一部上書き済み、0079) |
 | [0079](./0079-cursor-glow-tuning.md) | カーソル追従の光を、範囲を狭く・強度を強く調整する |
 | [0080](./0080-copy-fixes-header-color.md) | 文言修正3件とHeaderの文字色変更 |
+| [0081](./0081-newsletter-deferred.md) | メルマガは、β公開後に着手する |
