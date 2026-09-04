@@ -1,16 +1,21 @@
 /**
  * NightBackground.module.css
  * ------------------------------------------------------------
- * NightBackground.astro専用スタイル。Desktop幅(900px以上)限定で
- * position: fixedの紺の背景と、ふと現れて消える光の粒を描画する。
- * 元はindex.module.css(Home専用)にあった実装(2026-09-03、
- * Decision Log 0059〜0062)を、他ページにも揃えるためコンポーネント
- * 化した際にそのまま移設した。
+ * NightBackground.astro専用スタイル。position: fixedの紺の背景と、
+ * ふと現れて消える光の粒を描画する。元はindex.module.css(Home専用)
+ * にあった実装(2026-09-03、Decision Log 0059〜0062)を、他ページにも
+ * 揃えるためコンポーネント化した際にそのまま移設した。
+ *
+ * 【Mobileにも適用(2026-09-04、Decision Log 0085)】当初はDesktop幅
+ * (900px以上)限定だった(Mobileは別途Hero内蔵の透かし表現、
+ * Decision Log 0023)が、プロジェクトオーナーの指示によりMobileにも
+ * 同じ夜空背景を適用することになった。Desktop限定にしていた
+ * `@media (min-width: 900px)`によるdisplay制御を撤去した。
  * ------------------------------------------------------------
  */
 
 .background {
-  display: none;
+  display: block;
   position: fixed;
   inset: 0;
   /* Header(position: fixed; z-index: 100)より背面、かつ本文
@@ -21,12 +26,6 @@
   z-index: -1;
   background-color: var(--color-night);
   pointer-events: none;
-}
-
-@media (min-width: 900px) {
-  .background {
-    display: block;
-  }
 }
 
 .lights {
