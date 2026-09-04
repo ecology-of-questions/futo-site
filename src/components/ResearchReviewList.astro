@@ -35,6 +35,15 @@
  * 受け、行を2カラム(左: 番号+タイトル/サブタイトル、右: 説明文
  * (2行まで)+更新日+矢印)のグリッドに変更した。Mobile幅では
  * 1カラムに積む。
+ *
+ * 【2026-09-04改訂(Decision Log 0093)】Desktop幅の2カラム構成は、
+ * 1つの記事の中で視線が左右に分断される(タイトル/サブタイトルは
+ * 左、説明文/日付は右)という指摘を受け、Desktop・Mobile共通の
+ * 縦1カラム構成に作り直した。情報の並び順を「番号・日付 → タイトル
+ * → 副題 → 要約 → 読む」に統一し、要約の2行clampも解除して全文を
+ * 表示する。あわせて、公開済みエントリのタイトルをh2として実装し、
+ * 構想中のエントリを「次に考えていること」という別セクション
+ * (見出しつき)に分離した。
  * ------------------------------------------------------------
  */
 import styles from "./ResearchReviewList.module.css";
@@ -55,31 +64,35 @@ const { published, planned } = Astro.props;
   {
     published.map((entry) => (
       <a class={styles.entry} href={entry.href}>
-        <span class={styles.entryMain}>
-          <span class={styles.entryTitle}>
-            <span class={styles.number}>{entry.number}</span> {entry.title}
-          </span>
-          <span class={styles.entrySubtitle}>── {entry.subtitle}</span>
+        <span class={styles.entryMeta}>
+          {entry.number}　{entry.updatedLabel}
         </span>
-        <span class={styles.entrySide}>
-          <span class={styles.entryDescription}>{entry.description}</span>
-          <span class={styles.entryMeta}>
-            {entry.updatedLabel}
-            <span aria-hidden="true" class={styles.arrow}>
-              →
-            </span>
+        <h2 class={styles.entryTitle}>{entry.title}</h2>
+        <span class={styles.entrySubtitle}>── {entry.subtitle}</span>
+        <p class={styles.entryDescription}>{entry.description}</p>
+        <span class={styles.entryReadMore}>
+          読む
+          <span aria-hidden="true" class={styles.arrow}>
+            →
           </span>
         </span>
       </a>
     ))
   }
-
-  {
-    planned.map((entry) => (
-      <p class={styles.plannedEntry}>
-        <span class={styles.number}>{entry.number}</span> {entry.title}
-        （{entry.stageLabel}）
-      </p>
-    ))
-  }
 </div>
+
+{
+  planned.length > 0 && (
+    <div class={styles.plannedSection}>
+      <h2 class={styles.plannedHeading}>次に考えていること</h2>
+      <div class={styles.plannedList}>
+        {planned.map((entry) => (
+          <p class={styles.plannedEntry}>
+            <span class={styles.number}>{entry.number}</span> {entry.title}
+            （{entry.stageLabel}）
+          </p>
+        ))}
+      </div>
+    </div>
+  )
+}

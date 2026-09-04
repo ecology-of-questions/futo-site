@@ -66,6 +66,11 @@
  * ノート。」を、別々の`<p>`(強制的に改行される2行)から、1つの`<p>`
  * (自然な折返しに任せる1段落)に統合した。文章そのもの(語順・言葉遣い)
  * は変更していない。
+ *
+ * 【一覧を縦1カラムに作り直し(2026-09-04、Decision Log 0093)】
+ * ResearchReviewList側の改訂に合わせ、見出し「研究断面」を
+ * (見出しではない)<p>から、このページ固有の<h1>に変更した
+ * (公開済み各記事のタイトルはResearchReviewList側でh2として実装)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -111,7 +116,7 @@ const plannedReviews: PlannedReviewEntry[] = [
   <ResearchSection ariaLabel="Research" id="research-reviews">
     <SectionTitle>RESEARCH</SectionTitle>
     <div class={styles.headingRow}>
-      <p class={styles.heading}>研究断面</p>
+      <h1 class={styles.heading}>研究断面</h1>
       <div class={styles.note}>
         <p>観察し、記録し、対話し、つくり、また観察する。その過程を残していくための研究ノート。</p>
       </div>
