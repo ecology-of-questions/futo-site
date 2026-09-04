@@ -52,6 +52,9 @@ Parking Lot (do not implement until after beta)
 - 支援（寄付）ページ (Support/Donation page) — Project Owner requested
   this on 2026-09-03; decided to defer until after beta launch. See
   Decision Log 0075.
+- メルマガ (Newsletter/mailing list) — Project Owner asked about this
+  on 2026-09-04; decided to defer until after beta launch. See
+  Decision Log 0081.
 
 If a task in this list comes up, record the reasoning in Decision Log
 and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
