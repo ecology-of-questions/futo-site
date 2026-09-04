@@ -15,6 +15,13 @@
   margin: 0;
 }
 
+.note {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.7;
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -34,26 +41,62 @@
   font-size: var(--fs-sm);
 }
 
-.required {
+/* 「必須」「任意」共通の表示スタイル。どちらも同じ見た目にすることで、
+   ラベルの一部として自然に読める(2026-09-04、Decision Log 0083)。 */
+.badge {
   opacity: 0.6;
 }
 
 .input,
+.select,
 .textarea {
   font-family: var(--font-sans);
+  /* --fs-base(16px)を下回るとiOS Safariが入力時に自動でページを
+     拡大するため、モバイルでの意図しないズームを避ける値として
+     維持する(2026-09-04、Decision Log 0083で明記)。 */
   font-size: var(--fs-base);
   color: var(--color-ink-on-surface);
   background-color: var(--color-paper);
   border: 1px solid var(--color-accent-beige);
   border-radius: 2px;
   padding: var(--space-1) var(--space-2);
+  width: 100%;
   transition: border-color var(--transition-base);
 }
 
 .input:focus,
+.select:focus,
 .textarea:focus {
   outline: none;
   border-color: var(--color-accent-green);
+}
+
+/* キーボード操作時のみ、境界線の色に加えて輪郭線でも焦点位置を
+   明示する(マウスクリックでは出さない、2026-09-04、Decision Log
+   0083)。 */
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible {
+  outline: 2px solid var(--color-accent-green);
+  outline-offset: 1px;
+}
+
+.select {
+  /* ブラウザ既定のselect矢印はデザインが揃わないため非表示にし、
+     input/textareaと共通の地色・枠線の上に、控えめな矢印(CSSのみで
+     描く小さな山形)を背景画像として描く(2026-09-04、Decision Log
+     0083)。2つの小さな三角形(45deg/135degのグラデーション)を
+     5pxずつ横にずらして並べることで、下向きの山形に見せている。 */
+  appearance: none;
+  cursor: pointer;
+  padding-right: var(--space-5);
+  background-repeat: no-repeat;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-ink-on-surface) 50%),
+    linear-gradient(135deg, var(--color-ink-on-surface) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) center,
+    calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
 }
 
 .textarea {
@@ -74,6 +117,13 @@
   white-space: nowrap;
 }
 
+.privacyNote {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.7;
+}
+
 .submit {
   align-self: flex-start;
   font-family: var(--font-sans);
@@ -84,12 +134,18 @@
   border-radius: 2px;
   padding: var(--space-1) var(--space-3);
   cursor: pointer;
-  transition: opacity var(--transition-base);
+  transition:
+    opacity var(--transition-base),
+    background-color var(--transition-base);
 }
 
-.submit:hover,
-.submit:focus-visible {
+.submit:hover {
   opacity: 0.7;
+}
+
+.submit:focus-visible {
+  outline: 2px solid var(--color-accent-green);
+  outline-offset: 2px;
 }
 
 .submit:disabled {
@@ -102,4 +158,21 @@
   min-height: 1.5em;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+}
+
+.status[data-state="success"] {
+  font-weight: 500;
+}
+
+.status[data-state="error"] {
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 899.98px) {
+  .form {
+    max-width: 100%;
+  }
 }
