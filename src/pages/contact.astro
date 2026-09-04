@@ -35,6 +35,14 @@
  * 自動的に拾うため、送信処理自体の変更は不要だった。お問い合わせ
  * 内容欄には、何を書けばよいかの補足文を追加した。送信ボタンの下には
  * 入力情報の用途を説明する一文(個人情報の取り扱い)を追加した。
+ *
+ * 【Desktop 2カラム化(2026-09-04、Decision Log 0094)】導入文とフォーム
+ * が縦に連続し、フォームが「読ませるページ」の続きに見えるという
+ * 指摘(ChatGPT/Creative Directorからの提案、プロジェクトオーナー
+ * 確認済み)を受け、Desktop幅で「左: 導入文 / 右: フォーム」の
+ * 2カラムに分けた。Mobile幅では従来通り、導入文→フォームの順に
+ * 縦積みにする。文言・送信処理(Formspree、honeypot、送信状態表示)は
+ * 変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -50,12 +58,15 @@ import { contactFormEndpoint } from "@/config/site";
   <ResearchSection ariaLabel="Contact">
     <SectionTitle>CONTACT</SectionTitle>
 
+    <div class={styles.layout}>
+    <div class={styles.intro}>
     <h1 class={styles.heading}>お問い合わせ</h1>
     <div class={styles.body}>
       <p>「ふ、と」の研究や活動に関するお問い合わせを受け付けています。</p>
       <p>
         音や場所、歩くこと、記録、対話などを通して、気づきや問いが生まれる過程を一緒に観察する実践にも取り組んでいく予定です。関心の重なることがありましたら、お知らせください。
       </p>
+    </div>
     </div>
 
     <form class={styles.form} method="POST" action={contactFormEndpoint} data-contact-form>
@@ -97,6 +108,7 @@ import { contactFormEndpoint } from "@/config/site";
 
       <p class={styles.status} data-contact-status role="status" aria-live="polite"></p>
     </form>
+    </div>
   </ResearchSection>
 </DefaultLayout>
 

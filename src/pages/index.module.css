@@ -27,6 +27,23 @@
   line-height: var(--lh-body);
 }
 
+.openPracticePanel {
+  /* 「一緒に試す」だけ、紺の背景に対してごく淡く明るい面を敷き、
+     他セクションと区別できる「独立した区画」に見せる(2026-09-04、
+     Decision Log 0094)。新しいHEX値を決め打ちせず、既存の
+     --color-nightをcolor-mixでわずかに明るくした値を使う。カード的な
+     影・太い枠線・大きな角丸は使わず、静かなトーンを保つ。 */
+  background-color: color-mix(in srgb, var(--color-night) 100%, white 6%);
+  border-radius: 4px;
+  padding: var(--space-4);
+}
+
+@media (min-width: 600px) {
+  .openPracticePanel {
+    padding: var(--space-5);
+  }
+}
+
 .openPracticeHeading {
   /* 「一緒に試す」セクションの見出し(2026-09-04、Decision Log 0091)。
      .currentWorkHeadingと同じfs-xlの控えめな見出しサイズ。 */

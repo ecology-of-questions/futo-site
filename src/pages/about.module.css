@@ -1,15 +1,49 @@
-.heading {
-  font-size: var(--fs-xl);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: var(--space-3) 0 0;
+/* 【2カラム化(2026-09-04、Decision Log 0094)】3区画すべてが同じ
+   見た目で連続し、区切りが分かりにくいという指摘を受け、Desktop幅
+   では各区画を「左: 見出し(控えめなラベル) / 右: 本文」の2カラムに
+   分け、区画同士の境界に細い罫線を入れた。Mobile幅では従来通り
+   縦積みに戻す(見出しサイズも従来のfs-xlに戻す)。 */
+.block {
+  padding-block: var(--space-4);
 }
 
+.block:first-child {
+  /* SectionTitle(「ABOUT」)とh1の間の余白。従来h1側のmargin-topで
+     確保していたが、Desktop幅の2カラムでh1と本文の縦位置を揃える
+     ため、この余白は.block側のpadding-topに寄せた。 */
+  padding-top: var(--space-3);
+}
+
+.block + .block {
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+@media (min-width: 900px) {
+  .block {
+    display: grid;
+    grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+  }
+}
+
+.heading,
 .subheading {
+  margin: 0;
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  margin: var(--space-6) 0 0;
+}
+
+@media (min-width: 900px) {
+  /* Desktop幅では、見出しを本文より控えめな「ラベル」として縮小する
+     (h1/h2というタグ自体は変更しない。見た目のみの調整)。marginは
+     どちらも0のままなので、右カラムの本文と上端が揃う。 */
+  .heading,
+  .subheading {
+    font-size: var(--fs-lg);
+    opacity: 0.75;
+  }
 }
 
 .body {
@@ -26,6 +60,35 @@
   max-width: 36rem;
 }
 
+@media (min-width: 900px) {
+  .body {
+    margin-top: 0;
+  }
+}
+
 .body p {
   margin: 0;
+}
+
+/* 「観察する→気づく→…」のプロセス表示(2026-09-04、Decision Log
+   0094)。本文の一文と同じ語をそのまま使い、視覚的な補足として
+   追加する。Meta的な控えめなサイズ(fs-sm・淡い)にし、本文より
+   目立たせない。 */
+.process {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.7;
+}
+
+.process li:not(:last-child)::after {
+  content: "↓";
+  display: block;
+  margin-top: var(--space-1);
+  opacity: 0.5;
 }
