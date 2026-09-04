@@ -95,24 +95,25 @@ button {
 
 /* 「夜空」背景(2026-09-03、Decision Log 0059)。DefaultLayoutで
    theme="night"を渡したページ(Home、/research、/about、/contact。
-   Decision Log 0063)で、Desktop幅のposition: fixed背景
-   (<NightBackground />)が--color-nightになる際、main/footer配下の
-   文字色(--color-ink継承分)だけを--color-paperに反転させる。
-   header要素は対象に含めないため、bodyに直接ではなくmain/footerと
-   いうdescendant combinatorで指定している(Headerは常に不透明な
-   --color-paper背景のままなので、反転させると逆に読みにくくなる)。
-   Mobileでは背景自体が夜空にならないため対象外。 */
-@media (min-width: 900px) {
-  body[data-theme="night"] main,
-  body[data-theme="night"] footer {
-    --color-ink: var(--color-paper);
-    /* bodyの`color`は既にDefaultLayoutの外側で解決済みの値が
-       子孫へ継承されるため、--color-inkを上書きするだけでは
-       明示的にcolorを再指定していない要素(例: Hero見出しh1)に
-       反映されない。main/footer自身のcolorも明示的に再指定し、
-       通常の継承でその値を下流へ伝える */
-    color: var(--color-ink);
-  }
+   Decision Log 0063)で、position: fixed背景(<NightBackground />)が
+   --color-nightになる際、main/footer配下の文字色(--color-ink継承分)
+   だけを--color-paperに反転させる。header要素は対象に含めないため、
+   bodyに直接ではなくmain/footerというdescendant combinatorで指定
+   している(Headerは常に不透明な--color-paper背景のままなので、
+   反転させると逆に読みにくくなる)。
+   【Mobileにも適用(2026-09-04、Decision Log 0085)】当初はDesktop幅
+   (900px以上)限定だったが、<NightBackground />をMobileにも適用する
+   指示を受け、この文字色反転もあわせてMobileに広げた
+   (@media (min-width: 900px)を撤去)。 */
+body[data-theme="night"] main,
+body[data-theme="night"] footer {
+  --color-ink: var(--color-paper);
+  /* bodyの`color`は既にDefaultLayoutの外側で解決済みの値が
+     子孫へ継承されるため、--color-inkを上書きするだけでは
+     明示的にcolorを再指定していない要素(例: Hero見出しh1)に
+     反映されない。main/footer自身のcolorも明示的に再指定し、
+     通常の継承でその値を下流へ伝える */
+  color: var(--color-ink);
 }
 
 /* prefers-reduced-motion への配慮(アクセシビリティ方針) */

@@ -81,6 +81,21 @@
  *   (全文ページ`research-statement.astro`の同じ一節も合わせて修正)
  * - 「いま、取り組んでいること」導入文に、「観察しています。」の
  *   直後で改行(`<br />`)を1箇所追加
+ *
+ * 【夜空背景をMobileにも適用(2026-09-04、Decision Log 0085)】
+ * プロジェクトオーナーの指示により、上記0059・0063でDesktop幅
+ * (900px以上)限定にしていた<NightBackground />・文字色反転を
+ * Mobileにも広げた。この時点ではHero内蔵の透かし(Decision Log
+ * 0023)はそのまま残り、紺の背景の上に重ねて表示されていた。
+ *
+ * 【Hero内蔵の透かし画像を撤去(2026-09-04、Decision Log 0086)】
+ * プロジェクトオーナーから「トップページの古い右側の画像はPC版同様
+ * 削除して」との指示を受け、Mobile限定で残っていたHero内蔵の透かし
+ * (渦のアートワーク、Decision Log 0023)を撤去した。Desktopは
+ * Decision Log 0060で既に画像なしになっていたため、これで
+ * Desktop・Mobileともに渦のアートワーク画像を一切使わない構成に
+ * 揃った。heroVisualSrc・Hero側のvisualSrc/visualAlt propは不要に
+ * なったため削除した(詳細はHero.astro参照)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -112,8 +127,6 @@ const currentWorkItems: CurrentWorkItem[] = [
     linkHref: "/research",
   },
 ];
-
-const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
 ---
 
 <DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践" theme="night">
@@ -131,8 +144,6 @@ const heroVisualSrc = "/images/hero/03_top_page_artwork.png";
     ctaLabel="Research Statementを読む"
     ctaHref="#research-statement"
     scrollTargetId="research-statement"
-    visualSrc={heroVisualSrc}
-    visualAlt=""
   />
 
   <ResearchStatement

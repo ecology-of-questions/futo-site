@@ -1,7 +1,11 @@
 # 0063. 夜空背景を/research・/about・/contactにも揃え、コンポーネント化する
 
 - 日付: 2026-09-03
-- 状態: 採用中
+- 状態: 一部上書き済み(→ 0085)。当初Desktop幅(900px以上)限定と
+  していた適用範囲は、2026-09-04にMobileにも拡張された。ページの
+  組み合わせ(Home・/research・/about・/contact)や
+  `NightBackground`コンポーネント化自体はそのまま有効。詳細は
+  Decision Log 0085参照。
 
 ## Decision
 
