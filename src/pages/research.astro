@@ -60,6 +60,12 @@
  * オーナーから共有された原稿(PDF)をもとに、研究断面01と02のあいだに
  * 「1.5」を追加した。詳細ページはsrc/pages/research/reviews/1-5.astro
  * (URLは/research/reviews/1-5)。
+ *
+ * 【見出し下の説明文を1段落に統合(2026-09-04)】「観察し、記録し、
+ * 対話し、つくり、また観察する。」「その過程を残していくための研究
+ * ノート。」を、別々の`<p>`(強制的に改行される2行)から、1つの`<p>`
+ * (自然な折返しに任せる1段落)に統合した。文章そのもの(語順・言葉遣い)
+ * は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -107,8 +113,7 @@ const plannedReviews: PlannedReviewEntry[] = [
     <div class={styles.headingRow}>
       <p class={styles.heading}>研究断面</p>
       <div class={styles.note}>
-        <p>観察し、記録し、対話し、つくり、また観察する。</p>
-        <p>その過程を残していくための研究ノート。</p>
+        <p>観察し、記録し、対話し、つくり、また観察する。その過程を残していくための研究ノート。</p>
       </div>
     </div>
     <ResearchReviewList published={publishedReviews} planned={plannedReviews} />
