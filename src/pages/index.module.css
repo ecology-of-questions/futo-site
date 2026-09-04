@@ -26,3 +26,31 @@
   font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
+
+.openPracticeHeading {
+  /* 「一緒に試す」セクションの見出し(2026-09-04、Decision Log 0091)。
+     .currentWorkHeadingと同じfs-xlの控えめな見出しサイズ。 */
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: var(--space-3) 0 0;
+}
+
+.openPracticeBody {
+  /* 「一緒に試す」セクションの本文(2026-09-04、Decision Log 0091)。
+     複数段落をSectionTitle/見出しと同じ余白の考え方で並べる。 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.openPracticeBody p {
+  margin: 0;
+}
+
+.openPracticeLinks {
+  margin-top: var(--space-3);
+}

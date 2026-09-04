@@ -26,6 +26,15 @@
  * fetchによるAjax送信は「デフォルトのページ遷移を止めて同じページ内で
  * 結果を表示する」という進行拡張(progressive enhancement)として
  * 追加している。
+ *
+ * 【「一緒に試す」導線に合わせた拡充(2026-09-04、Decision Log 0091)】
+ * Homeに追加した「一緒に試す」(OPEN PRACTICE)セクションのリンク先が
+ * このページのため、導入文を実践への言及を含む内容に差し替えた。
+ * あわせて、任意項目「お問い合わせの種類」(name="type")を追加した。
+ * 既存のJS(fetchでFormData(form)をそのまま送信)がフィールドを
+ * 自動的に拾うため、送信処理自体の変更は不要だった。お問い合わせ
+ * 内容欄には、何を書けばよいかの補足文を追加した。送信ボタンの下には
+ * 入力情報の用途を説明する一文(個人情報の取り扱い)を追加した。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -43,8 +52,9 @@ import { contactFormEndpoint } from "@/config/site";
 
     <h1 class={styles.heading}>お問い合わせ</h1>
     <div class={styles.body}>
+      <p>「ふ、と」の研究や活動に関するお問い合わせを受け付けています。</p>
       <p>
-        以下のフォームからお気軽にお問い合わせください。
+        音や場所、歩くこと、記録、対話などを通して、気づきや問いが生まれる過程を一緒に観察する実践にも取り組んでいく予定です。関心の重なることがありましたら、お知らせください。
       </p>
     </div>
 
@@ -63,11 +73,27 @@ import { contactFormEndpoint } from "@/config/site";
       </div>
 
       <div class={styles.field}>
+        <label class={styles.label} for="contact-type">お問い合わせの種類</label>
+        <select class={styles.select} id="contact-type" name="type">
+          <option value="">選択してください（任意）</option>
+          <option value="研究や活動について">研究や活動について</option>
+          <option value="実践への参加・協働について">実践への参加・協働について</option>
+          <option value="取材・掲載について">取材・掲載について</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+
+      <div class={styles.field}>
         <label class={styles.label} for="contact-message">お問い合わせ内容 <span class={styles.required}>必須</span></label>
+        <p class={styles.hint}>
+          ご関心のあることや、「ふ、と」と一緒に試してみたいことなどを、決まっている範囲でお書きください。
+        </p>
         <textarea class={styles.textarea} id="contact-message" name="message" rows="8" required></textarea>
       </div>
 
       <button class={styles.submit} type="submit">送信する</button>
+
+      <p class={styles.privacyNote}>ご入力いただいた情報は、お問い合わせへの対応のためにのみ使用します。</p>
 
       <p class={styles.status} data-contact-status role="status" aria-live="polite"></p>
     </form>

@@ -6,6 +6,9 @@
 }
 
 .body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3); /* 導入文が複数段落になったため(2026-09-04、Decision Log 0091) */
   margin-top: var(--space-3);
   /* サイト内で最も多く使われている「本文サイズ」(--fs-base)に統一
      (2026-09-04、Decision Log 0090)。Aboutページの本文(Decision
@@ -42,7 +45,8 @@
 }
 
 .input,
-.textarea {
+.textarea,
+.select {
   font-family: var(--font-sans);
   font-size: var(--fs-base);
   color: var(--color-ink-on-surface);
@@ -54,7 +58,8 @@
 }
 
 .input:focus,
-.textarea:focus {
+.textarea:focus,
+.select:focus {
   outline: none;
   border-color: var(--color-accent-green);
 }
@@ -62,6 +67,20 @@
 .textarea {
   resize: vertical;
   line-height: var(--lh-body);
+}
+
+.select {
+  /* お問い合わせの種類(任意項目、2026-09-04、Decision Log 0091)。
+     .input/.textareaと同じ見た目に揃え、ネイティブのselect外観
+     以外はカスタマイズしない(静かなトーンを保つため装飾を足さない)。 */
+  cursor: pointer;
+}
+
+.hint {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.6;
 }
 
 .honeypot {
@@ -98,6 +117,15 @@
 .submit:disabled {
   cursor: default;
   opacity: 0.5;
+}
+
+.privacyNote {
+  /* 送信ボタン下の個人情報の取り扱いに関する注記(2026-09-04、
+     Decision Log 0091)。.hintと同じ控えめなスタイル。 */
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.6;
 }
 
 .status {
