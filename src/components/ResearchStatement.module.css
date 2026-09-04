@@ -23,7 +23,10 @@
 
 .paragraph {
   margin: 0;
-  font-size: var(--fs-lg);
+  /* サイト内で最も多く使われている「本文サイズ」(--fs-base)に統一
+     (2026-09-04、Decision Log 0090)。Aboutページの本文(Decision
+     Log 0074)と同じ理由・同じ変更。 */
+  font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
 
