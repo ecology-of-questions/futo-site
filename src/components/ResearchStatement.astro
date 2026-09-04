@@ -111,11 +111,13 @@ const pages: string[][][] = pagesOf
       pagesOf && (
         <div class={styles.pagerControls} data-pager-controls hidden>
           <button type="button" class={styles.pagerButton} data-pager-prev>
+            <span aria-hidden="true" class={styles.pagerArrowPrev}>←</span>
             戻る
           </button>
           <span class={styles.pagerStatus} data-pager-status />
           <button type="button" class={styles.pagerButton} data-pager-next>
             次へ
+            <span aria-hidden="true" class={styles.pagerArrowNext}>→</span>
           </button>
         </div>
       )

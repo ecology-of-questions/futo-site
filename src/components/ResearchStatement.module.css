@@ -64,25 +64,48 @@
 }
 
 .pagerButton {
+  /* ArrowLink(.link/.arrow、ArrowLink.module.css)と同じ「下線+矢印」の
+     テキストリンク調にした。枠で囲んだボタンは「箱っぽく重い」という
+     指摘(Header 3本線メニューのDecision Log 0088と同じ理由)を受け、
+     2026-09-04に変更した(Decision Log 0093)。 */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   color: var(--color-ink);
   background: none;
-  border: 1px solid var(--color-accent-beige);
-  border-radius: 2px;
-  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-bottom: 1px solid currentColor;
+  padding: 0 0 2px;
   cursor: pointer;
   transition: opacity var(--transition-base);
 }
 
 .pagerButton:hover,
 .pagerButton:focus-visible {
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .pagerButton:disabled {
   cursor: default;
   opacity: 0.3;
+  border-bottom-color: transparent; /* これ以上進めない方向には下線(=行き先がある合図)を出さない */
+}
+
+.pagerArrowPrev,
+.pagerArrowNext {
+  transition: transform var(--transition-base);
+}
+
+.pagerButton:not(:disabled):hover .pagerArrowPrev,
+.pagerButton:not(:disabled):focus-visible .pagerArrowPrev {
+  transform: translateX(-4px);
+}
+
+.pagerButton:not(:disabled):hover .pagerArrowNext,
+.pagerButton:not(:disabled):focus-visible .pagerArrowNext {
+  transform: translateX(4px);
 }
 
 .pagerStatus {
