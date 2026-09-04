@@ -39,6 +39,13 @@
    * ----------------------------- */
   --font-body: "Hiragino Mincho ProN", "Yu Mincho", serif; /* 仮: 静かな雑誌の質感を想定した仮フォント */
   --font-sans: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  --font-hero-heading: "Klee One", var(--font-body); /* 「気づいたら、そこに問いがある」専用
+    (2026-09-04、Decision Log 0082)。「ふと」という瞬間性・手触りを
+    フォント自体でも体現するため、手書きの質感を持つKlee Oneを採用。
+    global.cssで自己ホストしている@font-faceは、この見出し文字列
+    ("気づいたら、そこに問いがある")に含まれる文字だけをサブセット化
+    しているため、他のテキストにこのtokenを流用しないこと(未収録の
+    文字は--font-bodyへフォールバックする)。 */
 
   --fs-base: 1rem;
   --fs-sm: 0.875rem;

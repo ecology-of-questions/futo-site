@@ -45,7 +45,12 @@
 .heading {
   font-size: var(--fs-3xl);
   line-height: var(--lh-hero-heading);
-  font-weight: 500;
+  /* 「気づいたら、そこに問いがある」というコピー自体の意味(「ふと」の
+     瞬間性)を、フォントの手触りでも体現するため--font-hero-headingを
+     使う(2026-09-04、Decision Log 0082)。Klee Oneはweight 600のみ
+     自己ホストしているため、weightもそれに合わせる。 */
+  font-family: var(--font-hero-heading);
+  font-weight: 600;
   /* headingLinesの改行位置はコピーの意図そのものであり(Hero.astro props
      コメント参照)、ブラウザの自動折り返しが意図しない位置(文字の途中)に
      割り込まないようにする */

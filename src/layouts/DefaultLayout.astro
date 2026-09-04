@@ -7,6 +7,14 @@
  * Header / Footer の配置場所を担う。
  *
  * 各ページはこのレイアウトで <slot /> にコンテンツを流し込む。
+ *
+ * 【OGP対応(2026-09-04、Decision Log 0082)】X(Twitter)・LINE・
+ * Slack等でリンクを共有した際のプレビュー用に、og系・twitter系の
+ * メタタグを追加した。og:image・og:urlはastro.config.mjsの
+ * `site`設定を使って絶対URLを生成する(Astro.site)。画像は現時点
+ * では全ページ共通の1枚(public/images/ogp/default.png)。ページ
+ * ごとに専用画像を用意したくなった場合は、`ogImage` propを追加
+ * すれば個別に上書きできる構造にしてある。
  * ------------------------------------------------------------
  */
 import "@styles/global.css";
@@ -32,6 +40,9 @@ const {
   description = "世界を観察するための、研究と実践。",
   theme = "default",
 } = Astro.props;
+
+const ogImageUrl = new URL("/images/ogp/default.png", Astro.site);
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -43,6 +54,20 @@ const {
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/images/logo/favicon.svg" />
     <link rel="alternate icon" href="/images/logo/favicon.ico" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="公開研究室 ふ、と" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:locale" content="ja_JP" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
   </head>
   <body data-theme={theme === "night" ? "night" : undefined}>
     <Header />
