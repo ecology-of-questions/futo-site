@@ -26,6 +26,12 @@
  * fetchによるAjax送信は「デフォルトのページ遷移を止めて同じページ内で
  * 結果を表示する」という進行拡張(progressive enhancement)として
  * 追加している。
+ *
+ * 【フォーム項目・文言の拡充(2026-09-04、Decision Log 0083)】
+ * プロジェクトオーナーの指示により、導入文・注記文を差し替え、
+ * 「お問い合わせ種別」(select、任意)を追加した。二重送信防止・
+ * 送信中表示・プライバシー注記も追加している。詳細はDecision Log
+ * 0083参照。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -44,30 +50,77 @@ import { contactFormEndpoint } from "@/config/site";
     <h1 class={styles.heading}>お問い合わせ</h1>
     <div class={styles.body}>
       <p>
-        以下のフォームからお気軽にお問い合わせください。
+        研究についてのご質問、取材・掲載、協働のご相談などがありましたら、こちらからお送りください。
       </p>
     </div>
+    <p class={styles.note}>内容を確認のうえ、通常5日以内にご返信します。</p>
 
     <form class={styles.form} method="POST" action={contactFormEndpoint} data-contact-form>
       <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <input type="hidden" name="_subject" value="ふ、と お問い合わせ" />
+      <input type="hidden" name="_subject" value="ふ、と｜ウェブサイトからのお問い合わせ" />
 
       <div class={styles.field}>
-        <label class={styles.label} for="contact-name">お名前</label>
-        <input class={styles.input} type="text" id="contact-name" name="name" autocomplete="name" />
+        <label class={styles.label} for="contact-name">
+          お名前 <span class={styles.badge}>任意</span>
+        </label>
+        <input
+          class={styles.input}
+          type="text"
+          id="contact-name"
+          name="name"
+          autocomplete="name"
+          placeholder="例）山田 花子"
+        />
       </div>
 
       <div class={styles.field}>
-        <label class={styles.label} for="contact-email">ご返信先メールアドレス <span class={styles.required}>必須</span></label>
-        <input class={styles.input} type="email" id="contact-email" name="email" autocomplete="email" required />
+        <label class={styles.label} for="contact-email">
+          ご返信先メールアドレス <span class={styles.badge}>必須</span>
+        </label>
+        <input
+          class={styles.input}
+          type="email"
+          id="contact-email"
+          name="email"
+          autocomplete="email"
+          placeholder="例）example@email.com"
+          required
+        />
       </div>
 
       <div class={styles.field}>
-        <label class={styles.label} for="contact-message">お問い合わせ内容 <span class={styles.required}>必須</span></label>
-        <textarea class={styles.textarea} id="contact-message" name="message" rows="8" required></textarea>
+        <label class={styles.label} for="contact-category">
+          お問い合わせ種別 <span class={styles.badge}>任意</span>
+        </label>
+        <select class={styles.select} id="contact-category" name="category">
+          <option value="">選択してください</option>
+          <option value="研究について">研究について</option>
+          <option value="取材・掲載について">取材・掲載について</option>
+          <option value="協働・共同制作について">協働・共同制作について</option>
+          <option value="イベントについて">イベントについて</option>
+          <option value="その他">その他</option>
+        </select>
       </div>
 
-      <button class={styles.submit} type="submit">送信する</button>
+      <div class={styles.field}>
+        <label class={styles.label} for="contact-message">
+          お問い合わせ内容 <span class={styles.badge}>必須</span>
+        </label>
+        <textarea
+          class={styles.textarea}
+          id="contact-message"
+          name="message"
+          rows="8"
+          placeholder="ご相談内容をご記入ください"
+          required
+        ></textarea>
+      </div>
+
+      <p class={styles.privacyNote}>ご入力いただいた情報は、お問い合わせへの対応にのみ使用します。</p>
+
+      <button class={styles.submit} type="submit" data-submit-label="送信する" data-pending-label="送信中…">
+        送信する
+      </button>
 
       <p class={styles.status} data-contact-status role="status" aria-live="polite"></p>
     </form>
@@ -77,15 +130,28 @@ import { contactFormEndpoint } from "@/config/site";
 <script>
   const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
   const status = document.querySelector<HTMLElement>("[data-contact-status]");
+  const submitButton = form?.querySelector<HTMLButtonElement>("[data-submit-label]") ?? null;
 
-  if (form && status) {
+  let isSubmitting = false;
+
+  if (form && status && submitButton) {
+    const pendingLabel = submitButton.dataset.pendingLabel ?? "送信中…";
+    const submitLabel = submitButton.dataset.submitLabel ?? "送信する";
+
     form.addEventListener("submit", async (event) => {
+      // ブラウザは無効な項目(required・type="email")があると、この
+      // submitイベント自体を発火させずネイティブのエラー表示(キーボード・
+      // スクリーンリーダー双方に伝わる)を出す。ここに到達している時点で
+      // 既にバリデーション済みのため、追加のチェックは不要。
       event.preventDefault();
 
-      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-      submitButton?.setAttribute("disabled", "true");
-      status.textContent = "送信中...";
-      status.dataset.state = "pending";
+      if (isSubmitting) return;
+      isSubmitting = true;
+
+      submitButton.disabled = true;
+      submitButton.textContent = pendingLabel;
+      status.textContent = "";
+      status.removeAttribute("data-state");
 
       try {
         const response = await fetch(form.action, {
@@ -95,18 +161,20 @@ import { contactFormEndpoint } from "@/config/site";
         });
 
         if (response.ok) {
-          status.textContent = "送信しました。ご連絡ありがとうございます。";
+          status.textContent = "お問い合わせを受け付けました。ご連絡ありがとうございます。";
           status.dataset.state = "success";
           form.reset();
         } else {
-          status.textContent = "送信に失敗しました。時間をおいて再度お試しください。";
+          status.textContent = "送信できませんでした。時間をおいて、もう一度お試しください。";
           status.dataset.state = "error";
         }
       } catch {
-        status.textContent = "送信に失敗しました。通信環境をご確認のうえ再度お試しください。";
+        status.textContent = "送信できませんでした。時間をおいて、もう一度お試しください。";
         status.dataset.state = "error";
       } finally {
-        submitButton?.removeAttribute("disabled");
+        submitButton.disabled = false;
+        submitButton.textContent = submitLabel;
+        isSubmitting = false;
       }
     });
   }
