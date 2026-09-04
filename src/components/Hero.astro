@@ -7,16 +7,16 @@
  * 実装元: Home_Hero_v1_mockup.png / Home_Hero_v1_spec.md
  *
  * レイアウト:
- * - Desktop: ビジュアルはこのコンポーネントの外(pages/index.astro)で
- *   ページ全体のposition: fixed背景として表示するため、Hero内では
- *   非表示にする(2026-08-15、Decision Log 0024)。以前は左右分割
- *   (左コピー/右ビジュアル)だったが、渦のアートワークをHome全体の
- *   背景に格上げしたことに伴う変更。
- * - Mobile: ビジュアルをコピーの背景に大きく重ね、低opacityの
- *   「透かし」として配置する(2026-08-15、Decision Log 0023)。
- *   以前は縦積み(コピー → ビジュアル)だったが、モバイル幅の
- *   縦スペースを圧迫していたため変更した。この透かしはHero内蔵の
- *   ままで、Decision Log 0024の対象外(Mobileは今回変更しない)。
+ * - Desktop: ビジュアル(渦のアートワーク)はDecision Log 0024で
+ *   Home全体のposition: fixed背景に格上げされ、その後Decision Log
+ *   0060で背景からも撤去された。Hero自体はコピーのみのシンプルな
+ *   構成。
+ * - Mobile: 以前はビジュアルをコピーの背景に重ねる「透かし」表現
+ *   だったが(2026-08-15、Decision Log 0023)、Desktopの背景も
+ *   アートワークなしの「夜空」のみになったこと(Decision Log 0085)
+ *   に揃え、2026-09-04にMobileの透かしも撤去した(Decision Log
+ *   0086)。現在はDesktop・Mobileともにコピーのみで、渦の
+ *   アートワーク画像はHeroで使用していない。
  *
  * コンテンツ(コピー・CTA・画像)はこのコンポーネント内にハードコードせず、
  * すべて props として呼び出し側(pages/index.astro)から渡す。
@@ -27,7 +27,6 @@
  * (Implementation Notes for Claude より)。
  * ------------------------------------------------------------
  */
-import VisualFragment from "./VisualFragment.astro";
 import ArrowLink from "./ArrowLink.astro";
 import styles from "./Hero.module.css";
 
@@ -40,8 +39,6 @@ interface Props {
   ctaHref: string;
   /** スクロール誘導の遷移先(未指定時はScroll表示を出さない) */
   scrollTargetId?: string;
-  visualSrc?: string;
-  visualAlt?: string;
 }
 
 const {
@@ -50,8 +47,6 @@ const {
   ctaLabel,
   ctaHref,
   scrollTargetId,
-  visualSrc,
-  visualAlt,
 } = Astro.props;
 ---
 
@@ -82,9 +77,5 @@ const {
         </a>
       )
     }
-  </div>
-
-  <div class={styles.visual}>
-    <VisualFragment src={visualSrc} alt={visualAlt} />
   </div>
 </section>

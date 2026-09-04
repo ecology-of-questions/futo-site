@@ -6,8 +6,6 @@
   margin-inline: auto;
   padding-inline: var(--content-padding-inline);
   padding-block: var(--space-6) var(--space-5);
-  /* Mobileでは.visualをこの要素基準でabsolute配置する(透かし表現) */
-  position: relative;
 }
 
 @media (min-width: 900px) {
@@ -20,14 +18,6 @@
     align-items: center;
     padding-block: var(--space-7) var(--space-6);
   }
-
-  .visual {
-    /* ビジュアルはページ全体の背景(pages/index.module.css)側に
-       移したため、Hero内蔵の.visual(Mobile限定の透かし。
-       Decision Log 0023)はDesktopでは非表示にする
-       (2026-08-15、Decision Log 0024)。 */
-    display: none;
-  }
 }
 
 .copy {
@@ -35,11 +25,6 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-3);
-  /* Mobileで.visualを背景として重ねる(透かし)ため、コピーを
-     常に前面に出す(2026-08-15、Decision Log 0023)。Desktopでも
-     position: relativeは無害なのでmedia query分岐は不要。 */
-  position: relative;
-  z-index: 1;
 }
 
 .heading {
@@ -97,45 +82,5 @@
   }
   50% {
     transform: translateY(4px);
-  }
-}
-
-.visual {
-  width: 100%;
-  /* 03_top_page_artwork.png(1536x1024 = 3:2)に合わせた既定の枠比率
-     (2026-08-07)。Desktopでは@media (min-width: 900px)側で
-     display: noneにするため実際には使われないが、Mobileの
-     @media (max-width: 899.98px)がaspect-ratio: autoで明示的に
-     上書きするまでの基準値として残している。 */
-  aspect-ratio: 3 / 2;
-}
-
-@media (max-width: 899.98px) {
-  .visual {
-    /* コピーの背景に大きく重ねる「透かし」表現(2026-08-15、
-       Decision Log 0023)。.hero(position: relative)を基準に
-       全面配置し、opacityでコピーの可読性を確保しつつ、
-       z-indexで.copy(z-index:1)より確実に背面へ回す。
-       クリック・タップ操作に干渉しないようpointer-eventsも切る。
-       aspect-ratioをautoに戻すのは、inset:0による.hero基準の
-       全面ストレッチをaspect-ratioで妨げないようにするため。 */
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    aspect-ratio: auto;
-    opacity: 0.4;
-    pointer-events: none;
-  }
-
-  /* VisualFragment側のobject-fit: containは、.visualがDesktopの
-     3:2の箱を前提にした値。Mobileでは.visualがコピーの縦に長い
-     背面全体(inset:0)まで広がるため、containのままだと画像が
-     横幅基準の細い帯にレターボックスされ、絵柄のごく一部
-     (キャンバス中央〜右寄りに集中している範囲。Decision Log 0018
-     参照)しか透けて見えない。coverに切り替え、背面エリア全体に
-     絵柄が大きく行き渡るようにする(2026-08-15追記)。 */
-  .visual :global(img) {
-    object-fit: cover;
-    object-position: center;
   }
 }
