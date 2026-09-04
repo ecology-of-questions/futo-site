@@ -62,6 +62,15 @@
   送信ボタンを押すとエラーメッセージが出る)。プロジェクトオーナーが
   Formspreeでアカウント・フォームを作成し、実際のForm IDを
   `src/config/site.ts`に反映してから本番公開する必要がある。
+  → 2026-09-04、プロジェクトオーナーがサイト専用Gmail
+  (`futoing@gmail.com`)でFormspreeアカウントを作成し、実際の
+  Form ID(`mvkoqzov`)を発行。`src/config/site.ts`の
+  `formspreeFormId`をプレースホルダーから実値に差し替えた。この
+  作業を行ったサンドボックス環境からはネットワークポリシーにより
+  `formspree.io`への疎通確認ができなかったため、実際の送信動作
+  (フォーム送信→`futoing@gmail.com`への着信、初回送信時の
+  Formspree確認メール承認)はプロジェクトオーナー側での実機確認が
+  必要。
 - Formspreeの無料枠(月50件)を超える、あるいはFormspree自体を
   変更したくなった場合は、`src/config/site.ts`の`contactFormEndpoint`
   を差し替えるだけで他サービスに移行できる(フォーム自体のマークアップ
