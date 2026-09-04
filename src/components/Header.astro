@@ -30,6 +30,15 @@
  * 変更した。Headerの背景自体は常に--color-paper(生成り)のままの
  * ため(Decision Log 0059の注記参照)、群青の文字が生成りの地の上に
  * 乗る形になる。
+ *
+ * 【Mobileメニューボタンをハンバーガーアイコンに変更(2026-09-04、
+ * Decision Log 0087)】プロジェクトオーナーの指示により、「メニュー」
+ * という文字ラベルのボタンを、3本線のハンバーガーアイコンに差し替えた。
+ * 視覚的なラベルがなくなる分、aria-label="メニュー"をボタンに追加し、
+ * スクリーンリーダー等での分かりやすさを維持している。開いた状態
+ * (aria-expanded="true")ではCSSのみでアイコンを×形に変形させる
+ * (JS側の追加実装は不要。既存のaria-expanded切り替えロジックを
+ * そのままCSSセレクタで利用)。
  * ------------------------------------------------------------
  */
 import styles from "./Header.module.css";
@@ -52,9 +61,10 @@ import styles from "./Header.module.css";
       class={styles.menuToggle}
       aria-expanded="false"
       aria-controls="site-nav"
+      aria-label="メニュー"
       data-menu-toggle
     >
-      メニュー
+      <span class={styles.menuIcon} aria-hidden="true"></span>
     </button>
 
     <nav id="site-nav" class={styles.nav} aria-label="サイト内ナビゲーション" data-nav>
