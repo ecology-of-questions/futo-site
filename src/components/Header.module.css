@@ -52,14 +52,15 @@
   /* Desktop幅(min-width: 900px)では非表示。Mobile幅でのみ現れる
      開閉ボタン(2026-08-17、Decision Log 0057)。中身は3本線の
      ハンバーガーアイコン(2026-09-04、Decision Log 0087。以前は
-     「メニュー」という文字ラベルだった)。 */
+     「メニュー」という文字ラベルだった)。枠線で囲むと箱っぽく重い
+     見た目になるため、ボタン自体には枠線を付けずアイコンのみを
+     表示する(2026-09-04、Decision Log 0088)。 */
   display: none;
   align-items: center;
   justify-content: center;
   background: none;
-  border: 1px solid var(--color-accent-beige);
-  border-radius: 2px;
-  padding: var(--space-1) var(--space-2);
+  border: none;
+  padding: var(--space-1);
   color: var(--color-night);
   cursor: pointer;
   transition: opacity var(--transition-base);
