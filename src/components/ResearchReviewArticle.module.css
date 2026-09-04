@@ -25,9 +25,13 @@
   gap: var(--space-6); /* セクション間の余白。余白を思考時間として扱う(Design Spec 10) */
   margin-top: var(--space-5);
   /* 読みやすい行幅で本文を制限する方針(Research Statementと同様に
-     36remを想定していた)を廃止し、コンテナ(ResearchSection、
-     content-max-width)いっぱいに本文を使う形にした(2026-08-15、
-     Decision Log 0031)。 */
+     36remを想定していた)は、2026-08-15にDecision Log 0031で
+     コンテナいっぱいに広げる方針に変更された。.article自体の幅は
+     広いままにしておく必要がある(.row内の図版・表を横並びに大きく
+     見せるDecision Log 0042〜045のレイアウトが、.articleの幅を
+     前提にしているため)。そのため、幅を戻すのは本文の
+     .paragraph/.list/.quoteという「素の文章」の要素だけに絞った
+     (2026-09-04、Decision Log 0089)。 */
 }
 
 .section {
@@ -67,6 +71,10 @@
      本文と揃えてlh-bodyに戻した(2026-08-17、Decision Log 0051)。 */
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+  /* Desktop幅で1行67文字前後まで伸びて読みにくいという指摘を受け、
+     読みやすい行幅の上限を再導入した(2026-09-04、Decision Log
+     0089)。.row内のtable/imageは対象外(.articleのコメント参照)。 */
+  max-width: 36rem;
 }
 
 .list {
@@ -77,6 +85,7 @@
   padding-left: var(--space-3);
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+  max-width: 36rem; /* .paragraphと同じ理由(Decision Log 0089) */
 }
 
 .table {
@@ -128,6 +137,7 @@
   font-size: var(--fs-base);
   line-height: var(--lh-body);
   opacity: 0.85;
+  max-width: 36rem; /* .paragraphと同じ理由(Decision Log 0089) */
 }
 
 .subheading {
