@@ -18,16 +18,12 @@
  *   0086)。現在はDesktop・Mobileともにコピーのみで、渦の
  *   アートワーク画像はHeroで使用していない。
  *
- * コンテンツ(コピー・CTA・画像)はこのコンポーネント内にハードコードせず、
+ * コンテンツ(コピー)はこのコンポーネント内にハードコードせず、
  * すべて props として呼び出し側(pages/index.astro)から渡す。
  * 「世界観・コピーは変更しない」方針のもと、コピー修正が発生した場合に
  * コンポーネントのロジックへ触れずに page 側だけで完結させるため。
- *
- * スクロール誘導は装飾ではなく体験の一部として最小限で実装する
- * (Implementation Notes for Claude より)。
  * ------------------------------------------------------------
  */
-import ArrowLink from "./ArrowLink.astro";
 import styles from "./Hero.module.css";
 
 interface Props {
@@ -35,19 +31,9 @@ interface Props {
   headingLines: string[];
   /** サブコピー(複数行) */
   bodyLines: string[];
-  ctaLabel: string;
-  ctaHref: string;
-  /** スクロール誘導の遷移先(未指定時はScroll表示を出さない) */
-  scrollTargetId?: string;
 }
 
-const {
-  headingLines,
-  bodyLines,
-  ctaLabel,
-  ctaHref,
-  scrollTargetId,
-} = Astro.props;
+const { headingLines, bodyLines } = Astro.props;
 ---
 
 <section class={styles.hero} aria-label="ふ、とについて">
@@ -66,16 +52,5 @@ const {
     <div class={styles.body}>
       {bodyLines.map((line) => <p>{line}</p>)}
     </div>
-
-    <ArrowLink href={ctaHref} label={ctaLabel} />
-
-    {
-      scrollTargetId && (
-        <a class={styles.scroll} href={`#${scrollTargetId}`}>
-          <span>Scroll</span>
-          <span aria-hidden="true" class={styles.scrollArrow}>↓</span>
-        </a>
-      )
-    }
   </div>
 </section>
