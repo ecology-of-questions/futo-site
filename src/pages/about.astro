@@ -66,15 +66,53 @@
  * 構成する。本文で同じ内容を文章として説明済みのため、図自体は
  * aria-hidden="true"で装飾扱いにし、スクリーンリーダーには本文の
  * 一文のみを情報源として残す。
+ *
+ * 【ページヘッダーの分離・3セクション化(2026-09-05、ChatGPT/Creative
+ * Directorのレビュー、プロジェクトオーナー確認済み)】ページタイトル
+ * (h1)と各セクション見出し(h2)が同じ見た目(fs-xl)になっており、
+ * 「ABOUT(h2)の直後にh1」という見出し階層も不自然という指摘を
+ * 受けた。以下のように再構成した。
+ *
+ * - ページ冒頭を「独立したページヘッダー」として2カラムの外に出した。
+ *   Eyebrow「ABOUT」(セクション見出しではないため、他ページで使う
+ *   <SectionTitle>(h2)は使わず、同じ見た目のプレーンな<p>にした。
+ *   このページに限った対応で、他ページのSectionTitle実装は
+ *   変更していない)→ h1「公開研究室「ふ、と」について」→
+ *   Lead(元々1つ目のセクション本文だった最初の段落をここに移動)。
+ *   ページの最初の見出しがh1になるよう、見出し階層を修正した。
+ * - その下を「01 公開研究室として/02 研究と実践/03 運営者について」
+ *   という番号つきの3セクションにした。01の本文は、Leadに移した
+ *   最初の段落を除いた残りの段落(「大学や研究機関の内側だけでは
+ *   なく〜」)。02・03の本文・循環図は内容を変更していない。
+ * - サイズの階層を明確にした: ページタイトル(h1)はfs-xl・不透明
+ *   (このページで最も強い文字)、セクション番号はfs-sm・淡い、
+ *   セクション見出し(h2)はfs-lg・やや淡い(ページタイトルより
+ *   明確に小さい)、本文はfs-base、Leadはfs-lgで本文よりわずかに
+ *   大きく。
+ * - 2カラム(左: 番号+見出し、右: 本文)は01〜03のセクションのみに
+ *   限定し、ページヘッダーには使わない(タイトルが長いため、狭い
+ *   左カラムに収めると折り返しが増えてしまうため)。
+ * - セクション間の余白を広げた(Desktop: space-5=64px、
+ *   Mobile: space-4=40px)。見出しと本文自体の間隔は変更していない。
+ *
+ * 循環図は7項目(観察する/気づく/記録する/対話する/つくる/試す/また
+ * 観察する)から5項目(観察する/気づく/記録する/対話する/つくる・
+ * 試す)に整理し、最後の「つくる・試す」から最初の「観察する」へ戻る
+ * ことで循環を示す形にした(「また観察する」という独立ラベルは
+ * 削除。循環していること自体が「また観察する」を表すため)。円の
+ * 中心に「問いの生態系」を追加し、この図が単なる作業工程ではなく
+ * 「問いの生態系」の研究方法であることを示した。この「つくる・試す」
+ * という統合は、円環図(装飾要素、aria-hidden)のラベルのみに適用
+ * しており、本文の文章(「観察する、気づく、記録する、対話する、
+ * つくる、試す、そしてまた観察する。」)自体は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
-import SectionTitle from "@components/SectionTitle.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./about.module.css";
 
-const processSteps = ["観察する", "気づく", "記録する", "対話する", "つくる", "試す", "また観察する"];
+const processSteps = ["観察する", "気づく", "記録する", "対話する", "つくる・試す"];
 
 /**
  * 循環図の座標計算。円周上にprocessStepsの数だけ均等配置し(12時の
@@ -84,9 +122,9 @@ const processSteps = ["観察する", "気づく", "記録する", "対話する
  * 内側ではなく外側にそろえる(重なりを避けるため)。
  */
 const cycleCount = processSteps.length;
-const cycleRingRadius = 30;
-const cycleArrowRadius = 35;
-const cycleLabelRadius = 41;
+const cycleRingRadius = 27;
+const cycleArrowRadius = 33;
+const cycleLabelRadius = 37;
 
 function pointOnCircle(angleDeg: number, radius: number) {
   const rad = (angleDeg * Math.PI) / 180;
@@ -115,14 +153,20 @@ const cycleArrows = processSteps.map((_, i) => {
 >
   <NightBackground />
   <ResearchSection ariaLabel="About">
-    <SectionTitle>ABOUT</SectionTitle>
+    <div class={styles.pageHeader}>
+      <p class={styles.eyebrow}>ABOUT</p>
+      <h1 class={styles.pageTitle}>公開研究室「ふ、と」について</h1>
+      <p class={styles.lead}>
+        「ふ、と」は、日常のなかで生まれる小さな気づきや違和感を観察し、その先で問いがどのように育っていくのかを探る公開研究室です。
+      </p>
+    </div>
 
     <div class={styles.block}>
-      <h1 class={styles.heading}>公開研究室「ふ、と」について</h1>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>01</span>
+        <h2 class={styles.subheading}>公開研究室として</h2>
+      </div>
       <div class={styles.body}>
-        <p>
-          「ふ、と」は、日常のなかで生まれる小さな気づきや違和感を観察し、その先で問いがどのように育っていくのかを探る公開研究室です。
-        </p>
         <p>
           大学や研究機関の内側だけではなく、暮らし、読書、対話、制作といった日々の営みのなかにも、研究の始まりはあると考えています。完成した成果だけでなく、考え、迷い、試している過程からひらいていきます。
         </p>
@@ -130,7 +174,10 @@ const cycleArrows = processSteps.map((_, i) => {
     </div>
 
     <div class={styles.block}>
-      <h2 class={styles.subheading}>研究と実践</h2>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>02</span>
+        <h2 class={styles.subheading}>研究と実践</h2>
+      </div>
       <div class={styles.body}>
         <p>
           観察する、気づく、記録する、対話する、つくる、試す、そしてまた観察する。この循環を通して、「問いの生態系」を研究しています。
@@ -161,13 +208,21 @@ const cycleArrows = processSteps.map((_, i) => {
                 </span>
               ))
             }
+            <span class={styles.cycleCenter}>
+              問いの
+              <br />
+              生態系
+            </span>
           </div>
         </div>
       </div>
     </div>
 
     <div class={styles.block}>
-      <h2 class={styles.subheading}>運営者について</h2>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>03</span>
+        <h2 class={styles.subheading}>運営者について</h2>
+      </div>
       <div class={styles.body}>
         <p>
           「問いが生まれる前の瞬間」に関心を持ち、生活のなかで観察、記録、制作を続けています。現在は公開研究『問いの生態系』と、そのための研究環境を制作しています。大学や研究機関には今のところ所属せず、暮らしのなかから研究をひらく方法を探っています。

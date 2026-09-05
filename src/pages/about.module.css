@@ -1,17 +1,62 @@
+/* 【ページヘッダーの分離(2026-09-05)】ページタイトル(h1)と各セクション
+   見出し(h2)が同じ見た目になっており、ページの入口が弱いという指摘を
+   受け、ページ冒頭(Eyebrow・h1・Lead)を2カラムの外に独立したヘッダー
+   として切り出した。 */
+.pageHeader {
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 900px) {
+  .pageHeader {
+    margin-bottom: var(--space-5);
+  }
+}
+
+.eyebrow {
+  /* 他ページで使う<SectionTitle>(h2)と同じ見た目だが、このページの
+     先頭見出しをh1にするため、見出し要素ではなくpにしている
+     (このページのみの対応。<SectionTitle>自体は変更していない)。 */
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.pageTitle {
+  /* ページ内で最も強い文字。セクション見出し(.subheading、fs-lg)より
+     明確に大きく、不透明度も下げない。 */
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.lead {
+  /* 元は1つ目のセクション本文だった最初の段落。ページの要約として
+     ヘッダー側に移し、本文(fs-base)よりわずかに大きいLeadサイズに
+     する。 */
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-body);
+  max-width: 36rem;
+}
+
 /* 【2カラム化(2026-09-04、Decision Log 0094)】3区画すべてが同じ
    見た目で連続し、区切りが分かりにくいという指摘を受け、Desktop幅
-   では各区画を「左: 見出し(控えめなラベル) / 右: 本文」の2カラムに
-   分け、区画同士の境界に細い罫線を入れた。Mobile幅では従来通り
-   縦積みに戻す(見出しサイズも従来のfs-xlに戻す)。 */
+   では各区画を「左: 番号+見出し / 右: 本文」の2カラムに分け、
+   区画同士の境界に細い罫線を入れた。Mobile幅では縦積みにする。
+   【セクション間の余白を拡大(2026-09-05)】同じセクション内(見出しと
+   本文)の間隔は変えず、セクション同士の間だけDesktop 64px・
+   Mobile 40pxに広げた。 */
 .block {
   padding-block: var(--space-4);
 }
 
 .block:first-child {
-  /* SectionTitle(「ABOUT」)とh1の間の余白。従来h1側のmargin-topで
-     確保していたが、Desktop幅の2カラムでh1と本文の縦位置を揃える
-     ため、この余白は.block側のpadding-topに寄せた。 */
-  padding-top: var(--space-3);
+  padding-top: 0;
 }
 
 .block + .block {
@@ -24,26 +69,35 @@
     grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
     gap: var(--space-4);
     align-items: start;
+    padding-block: var(--space-5);
   }
+
+  /* .block:first-child(0,2,0)は.block(0,1,0)より詳細度が高いため、
+     ここで再指定しなくてもfirst-childのpadding-topは常に0のまま
+     (padding-bottomのみvar(--space-5)が効く)。 */
 }
 
-.heading,
+.blockLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.number {
+  /* ResearchReviewListの番号表示と同じ、小さく淡いMeta扱い。 */
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.6;
+}
+
 .subheading {
+  /* ページタイトル(.pageTitle、fs-xl・不透明)より明確に小さく、
+     やや淡くする。 */
   margin: 0;
-  font-size: var(--fs-xl);
+  font-size: var(--fs-lg);
   line-height: var(--lh-heading);
   font-weight: 500;
-}
-
-@media (min-width: 900px) {
-  /* Desktop幅では、見出しを本文より控えめな「ラベル」として縮小する
-     (h1/h2というタグ自体は変更しない。見た目のみの調整)。marginは
-     どちらも0のままなので、右カラムの本文と上端が揃う。 */
-  .heading,
-  .subheading {
-    font-size: var(--fs-lg);
-    opacity: 0.75;
-  }
+  opacity: 0.75;
 }
 
 .body {
@@ -70,22 +124,24 @@
   margin: 0;
 }
 
-/* 【循環図(2026-09-05)】「観察する→気づく→…→また観察する」を
+/* 【循環図(2026-09-05改訂)】「観察する→気づく→…→また観察する」を
    縦の矢印リストで表示していたが、「また観察する」で終わってしまい、
    本文にある「この循環を通して」(最後が最初に戻る)という内容が
-   伝わらないという指摘を受け、円周上に語を並べる循環図に作り直した。
-   本文の一文と同じ語をそのまま使い、視覚的な補足として追加する
-   (図自体はaria-hidden、本文が情報源)。 */
+   伝わらないという指摘を受け、円周上に語を並べる循環図にした。
+   さらに7項目では詰まって見えるという指摘を受け、5項目
+   (観察する/気づく/記録する/対話する/つくる・試す)に整理し、円の
+   中心に「問いの生態系」を追加した(装飾要素、aria-hidden。本文の
+   文章が情報源)。 */
 .cycleWrap {
   margin-top: var(--space-4);
-  padding-inline: 2.75rem;
-  padding-block: 1.25rem;
+  padding-inline: 4rem;
+  padding-block: 1.5rem;
 }
 
 .cycle {
   position: relative;
   width: 100%;
-  max-width: 18rem;
+  max-width: 17rem;
   aspect-ratio: 1;
   margin-inline: auto;
 }
@@ -96,7 +152,7 @@
   }
 
   .cycle {
-    max-width: 19rem;
+    max-width: 18rem;
   }
 }
 
@@ -118,7 +174,7 @@
   transform: translate(-50%, -50%) rotate(var(--cycle-rotate));
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .cycleLabel {
@@ -136,4 +192,16 @@
 
 .cycleLabel[data-align="right"] {
   transform: translate(-100%, -50%);
+}
+
+.cycleCenter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-heading);
+  opacity: 0.55;
 }
