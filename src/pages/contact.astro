@@ -51,19 +51,6 @@
  * 考え方で、Eyebrowを見出し要素ではないプレーンな<p>に変更し、
  * ページの最初の見出しがh1になるようにした(<SectionTitle>
  * コンポーネント自体は変更していない)。
- *
- * 【送信成功メッセージの変更・受付確認メール対応の準備(2026-09-05)】
- * プロジェクトオーナーの指示により、問い合わせた本人にも受付確認
- * メールを送れるようにする準備として、送信成功メッセージを
- * 「受付確認メールをご入力いただいたメールアドレスへお送りします。」
- * を含む文言に変更した。
- *
- * 【重要】この文言は、Formspree側でAutoresponse機能を有効化する
- * までは実態と合わない(実際にはメールが送られない)。フィールド
- * 名"email"の入力は既存のまま(Formspreeがこれを自動返信先として
- * 認識する要件は満たしている)で、コード変更はこのメッセージ差し替え
- * のみ。Formspree側の設定(プラン確認・Autoresponse有効化)が完了
- * するまでは、このブランチをmainにマージ/公開しないこと。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -122,6 +109,7 @@ import { contactFormEndpoint } from "@/config/site";
         <textarea class={styles.textarea} id="contact-message" name="message" rows="8" required></textarea>
       </div>
 
+      <p class={styles.hint} data-contact-response-note>通常3営業日以内を目安に返信します。</p>
       <button class={styles.submit} type="submit">送信する</button>
 
       <p class={styles.privacyNote}>ご入力いただいた情報は、お問い合わせへの対応のためにのみ使用します。</p>
@@ -135,6 +123,7 @@ import { contactFormEndpoint } from "@/config/site";
 <script>
   const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
   const status = document.querySelector<HTMLElement>("[data-contact-status]");
+  const responseNote = document.querySelector<HTMLElement>("[data-contact-response-note]");
 
   if (form && status) {
     form.addEventListener("submit", async (event) => {
@@ -154,16 +143,19 @@ import { contactFormEndpoint } from "@/config/site";
 
         if (response.ok) {
           status.textContent =
-            "送信しました。お問い合わせありがとうございます。受付確認メールをご入力いただいたメールアドレスへお送りします。";
+            "送信しました。お問い合わせありがとうございます。内容を確認のうえ、通常3営業日以内を目安に、ご入力いただいたメールアドレスへご連絡します。";
           status.dataset.state = "success";
+          responseNote?.setAttribute("hidden", "");
           form.reset();
         } else {
           status.textContent = "送信に失敗しました。時間をおいて再度お試しください。";
           status.dataset.state = "error";
+          responseNote?.removeAttribute("hidden");
         }
       } catch {
         status.textContent = "送信に失敗しました。通信環境をご確認のうえ再度お試しください。";
         status.dataset.state = "error";
+        responseNote?.removeAttribute("hidden");
       } finally {
         submitButton?.removeAttribute("disabled");
       }
