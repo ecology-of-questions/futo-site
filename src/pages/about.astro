@@ -54,6 +54,18 @@
  * そのまま残しつつ、同じ語をそのまま使った縦のプロセス表示(観察する
  * →気づく→記録する→対話する→つくる→試す→また観察する)として
  * 補足的に追加した。新しい語や言い換えは加えていない。
+ *
+ * 【プロセス表示を循環図に(2026-09-05)】縦の矢印リストだと「また
+ * 観察する」で終わってしまい、本文の「この循環を通して」という
+ * 内容(最後の観察するが最初の観察するに戻る)が伝わらないという
+ * 指摘を受け、7つの語を円周上に並べ、隣接する語の間を矢印でつなぐ
+ * 円環図に作り直した。矢印は最後の要素から最初の要素へも1本引かれ、
+ * 輪が閉じていることを視覚的に示す。外部の図形・アイコンライブラリは
+ * 使わず、位置計算(円周上の座標)はビルド時にAstro側で行い、
+ * 見た目は既存トークン(--color-accent-beige、--fs-sm等)のみで
+ * 構成する。本文で同じ内容を文章として説明済みのため、図自体は
+ * aria-hidden="true"で装飾扱いにし、スクリーンリーダーには本文の
+ * 一文のみを情報源として残す。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -63,6 +75,37 @@ import NightBackground from "@components/NightBackground.astro";
 import styles from "./about.module.css";
 
 const processSteps = ["観察する", "気づく", "記録する", "対話する", "つくる", "試す", "また観察する"];
+
+/**
+ * 循環図の座標計算。円周上にprocessStepsの数だけ均等配置し(12時の
+ * 位置から時計回り)、隣接する語の中間角度に矢印を1つずつ置く
+ * (最後→最初のペアも含めて輪を閉じる)。ラベルは中心からの角度に
+ * 応じて左揃え/右揃え/中央揃えを切り替え、円の外側にはみ出す方向を
+ * 内側ではなく外側にそろえる(重なりを避けるため)。
+ */
+const cycleCount = processSteps.length;
+const cycleRingRadius = 30;
+const cycleArrowRadius = 35;
+const cycleLabelRadius = 41;
+
+function pointOnCircle(angleDeg: number, radius: number) {
+  const rad = (angleDeg * Math.PI) / 180;
+  return { x: 50 + radius * Math.cos(rad), y: 50 + radius * Math.sin(rad) };
+}
+
+const cycleNodes = processSteps.map((label, i) => {
+  const angle = (i / cycleCount) * 360 - 90;
+  const { x, y } = pointOnCircle(angle, cycleLabelRadius);
+  const cos = Math.cos((angle * Math.PI) / 180);
+  const align = cos > 0.3 ? "left" : cos < -0.3 ? "right" : "center";
+  return { label, x, y, align };
+});
+
+const cycleArrows = processSteps.map((_, i) => {
+  const angle = ((i + 0.5) / cycleCount) * 360 - 90;
+  const { x, y } = pointOnCircle(angle, cycleArrowRadius);
+  return { x, y, rotate: angle + 90 };
+});
 ---
 
 <DefaultLayout
@@ -92,9 +135,34 @@ const processSteps = ["観察する", "気づく", "記録する", "対話する
         <p>
           観察する、気づく、記録する、対話する、つくる、試す、そしてまた観察する。この循環を通して、「問いの生態系」を研究しています。
         </p>
-        <ol class={styles.process}>
-          {processSteps.map((step) => <li>{step}</li>)}
-        </ol>
+        <div class={styles.cycleWrap}>
+          <div class={styles.cycle} aria-hidden="true">
+            <svg class={styles.cycleRing} viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r={cycleRingRadius} />
+            </svg>
+            {
+              cycleArrows.map((a) => (
+                <span
+                  class={styles.cycleArrow}
+                  style={`left:${a.x}%; top:${a.y}%; --cycle-rotate:${a.rotate}deg;`}
+                >
+                  →
+                </span>
+              ))
+            }
+            {
+              cycleNodes.map((n) => (
+                <span
+                  class={styles.cycleLabel}
+                  data-align={n.align}
+                  style={`left:${n.x}%; top:${n.y}%;`}
+                >
+                  {n.label}
+                </span>
+              ))
+            }
+          </div>
+        </div>
       </div>
     </div>
 
