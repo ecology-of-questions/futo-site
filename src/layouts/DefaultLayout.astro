@@ -22,6 +22,11 @@
  * 全ページ共通で「公開研究室ふ、と」に固定した。ブラウザタブの
  * `<title>`(検索結果・ブックマークでの識別に使うため、ページごとの
  * 違いを保つ必要がある)は、これまで通り`title` propを使う。
+ *
+ * 【og:site_nameも統一(同日追記)】プラットフォームによっては小さく
+ * 添えられる「サイト名」(og:site_name)が、従来「公開研究室 ふ、と」
+ * (半角スペースあり)と、og:titleの表記(「公開研究室ふ、と」)と
+ * 微妙にずれていたため、こちらも`sharedTitle`を参照するよう統一した。
  * ------------------------------------------------------------
  */
 import "@styles/global.css";
@@ -66,7 +71,7 @@ const sharedTitle = "公開研究室ふ、と";
     <link rel="canonical" href={canonicalUrl} />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="公開研究室 ふ、と" />
+    <meta property="og:site_name" content={sharedTitle} />
     <meta property="og:title" content={sharedTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
