@@ -52,35 +52,3 @@
 .body p {
   margin: 0;
 }
-
-.scroll {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  margin-top: var(--space-5);
-  font-size: var(--fs-sm);
-  text-decoration: none;
-  color: var(--color-ink);
-  opacity: 0.7;
-  transition: opacity var(--transition-base);
-}
-
-.scroll:hover,
-.scroll:focus-visible {
-  opacity: 1;
-}
-
-.scrollArrow {
-  animation: scroll-hint 2.4s ease-in-out infinite;
-}
-
-@keyframes scroll-hint {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(4px);
-  }
-}
