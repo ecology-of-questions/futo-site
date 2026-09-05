@@ -1,3 +1,17 @@
+/* 【Eyebrowをpに変更(2026-09-05)】<SectionTitle>(h2)を使うと
+   「h2の直後にh1」という不自然な順序になるため、見出し要素では
+   ないプレーンな<p>にした(Aboutページと同じ考え方、Decision Log
+   0096)。見た目はSectionTitle.module.cssの.titleと同じ。 */
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
 /* 【2カラム化(2026-09-04、Decision Log 0094)】導入文とフォームが
    縦に連続し、フォームが「読ませるページ」の続きに見えるという
    指摘を受け、Desktop幅では「左: 導入文 / 右: フォーム」の2カラムに
