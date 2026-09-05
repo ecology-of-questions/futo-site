@@ -109,6 +109,7 @@ import { contactFormEndpoint } from "@/config/site";
         <textarea class={styles.textarea} id="contact-message" name="message" rows="8" required></textarea>
       </div>
 
+      <p class={styles.hint} data-contact-response-note>通常3営業日以内を目安に返信します。</p>
       <button class={styles.submit} type="submit">送信する</button>
 
       <p class={styles.privacyNote}>ご入力いただいた情報は、お問い合わせへの対応のためにのみ使用します。</p>
@@ -122,6 +123,7 @@ import { contactFormEndpoint } from "@/config/site";
 <script>
   const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
   const status = document.querySelector<HTMLElement>("[data-contact-status]");
+  const responseNote = document.querySelector<HTMLElement>("[data-contact-response-note]");
 
   if (form && status) {
     form.addEventListener("submit", async (event) => {
@@ -140,16 +142,20 @@ import { contactFormEndpoint } from "@/config/site";
         });
 
         if (response.ok) {
-          status.textContent = "送信しました。ご連絡ありがとうございます。";
+          status.textContent =
+            "送信しました。お問い合わせありがとうございます。内容を確認のうえ、通常3営業日以内を目安に、ご入力いただいたメールアドレスへご連絡します。";
           status.dataset.state = "success";
+          responseNote?.setAttribute("hidden", "");
           form.reset();
         } else {
           status.textContent = "送信に失敗しました。時間をおいて再度お試しください。";
           status.dataset.state = "error";
+          responseNote?.removeAttribute("hidden");
         }
       } catch {
         status.textContent = "送信に失敗しました。通信環境をご確認のうえ再度お試しください。";
         status.dataset.state = "error";
+        responseNote?.removeAttribute("hidden");
       } finally {
         submitButton?.removeAttribute("disabled");
       }
