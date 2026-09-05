@@ -107,6 +107,17 @@
  * openPracticeLinks配列としてリンクを持たせている。あわせてHero本文
  * 末尾の一文を「ふ、と は、そんな時間を届ける研究室です。」から
  * 「「ふ、と」は、そんな営みをひらいていく公開研究室です。」に修正した。
+ *
+ * 【Hero本文の短縮・OPEN PRACTICEの背景差別化(2026-09-04、Decision
+ * Log 0094)】ChatGPT/Creative Directorから、Heroの4行がすぐ下の
+ * Research Statement抜粋と内容が重なっているという指摘を受け、
+ * プロジェクトオーナー確認のうえ2行に短縮した(文言はChatGPT提案を
+ * 採用)。あわせて、「一緒に試す」セクションのみ、紺の背景に対して
+ * ごく淡く明るい面(--color-nightをcolor-mixでわずかに明るくした
+ * もの。新しいHEX値を決め打ちせず、既存トークンから算出している)を
+ * 敷き、他のセクションと区別できる「独立した区画」として見せる
+ * ようにした(プロジェクトオーナーの指示により、他セクションへの
+ * 背景差別化は今回は見送り)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -158,10 +169,8 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
   <Hero
     headingLines={["気づいたら、", "そこに問いがある"]}
     bodyLines={[
-      "世界を、そっと観察する。",
-      "小さな気づきを、ていねいに拾い集める。",
-      "その積み重ねが、研究になり、実践になる。",
-      "「ふ、と」は、そんな営みをひらいていく公開研究室です。",
+      "日常に生まれる小さな気づきを観察し、",
+      "問いが育つ過程をひらく研究室です。",
     ]}
     ctaLabel="Research Statementを読む"
     ctaHref="#research-statement"
@@ -201,19 +210,21 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
   </ResearchSection>
 
   <ResearchSection ariaLabel="一緒に試す" id="open-practice">
-    <SectionTitle>OPEN PRACTICE</SectionTitle>
-    <h2 class={styles.openPracticeHeading}>一緒に試す</h2>
-    <div class={styles.openPracticeBody}>
-      <p>
-        「ふ、と」では、日常のなかで何かが気になり、まだ言葉にならない感覚が問いへと育っていく過程を、観察、記録、対話、制作を通して探っています。
-      </p>
-      <p>
-        現在、音や場所、歩くこと、身近なものなどを手がかりに、気づきが生まれる瞬間を一緒に観察する、小さな実践を準備しています。
-      </p>
-      <p>研究や制作の経験にかかわらず、関心の重なる方と、まずはお話しできたらと思います。</p>
-    </div>
-    <div class={styles.openPracticeLinks}>
-      {openPracticeLinks.map((link) => <ArrowLink href={link.href} label={link.label} />)}
+    <div class={styles.openPracticePanel}>
+      <SectionTitle>OPEN PRACTICE</SectionTitle>
+      <h2 class={styles.openPracticeHeading}>一緒に試す</h2>
+      <div class={styles.openPracticeBody}>
+        <p>
+          「ふ、と」では、日常のなかで何かが気になり、まだ言葉にならない感覚が問いへと育っていく過程を、観察、記録、対話、制作を通して探っています。
+        </p>
+        <p>
+          現在、音や場所、歩くこと、身近なものなどを手がかりに、気づきが生まれる瞬間を一緒に観察する、小さな実践を準備しています。
+        </p>
+        <p>研究や制作の経験にかかわらず、関心の重なる方と、まずはお話しできたらと思います。</p>
+      </div>
+      <div class={styles.openPracticeLinks}>
+        {openPracticeLinks.map((link) => <ArrowLink href={link.href} label={link.label} />)}
+      </div>
     </div>
   </ResearchSection>
 </DefaultLayout>

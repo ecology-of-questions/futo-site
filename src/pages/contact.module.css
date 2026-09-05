@@ -1,8 +1,25 @@
+/* 【2カラム化(2026-09-04、Decision Log 0094)】導入文とフォームが
+   縦に連続し、フォームが「読ませるページ」の続きに見えるという
+   指摘を受け、Desktop幅では「左: 導入文 / 右: フォーム」の2カラムに
+   分けた。Mobile幅では従来通り縦積みにする。 */
+.layout {
+  margin-top: var(--space-3);
+}
+
+@media (min-width: 900px) {
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: start;
+  }
+}
+
 .heading {
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  margin: var(--space-3) 0 0;
+  margin: 0;
 }
 
 .body {
@@ -27,6 +44,12 @@
   gap: var(--space-3);
   margin-top: var(--space-4);
   max-width: 32rem;
+}
+
+@media (min-width: 900px) {
+  .form {
+    margin-top: 0;
+  }
 }
 
 .field {

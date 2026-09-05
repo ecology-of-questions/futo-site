@@ -34,6 +34,17 @@
  * の通りResearch Reviews等と同じ扱い)とは別に追加した(Decision Log
  * 0016)。titleは今まで通りSectionTitleとして小さく表示し、heading
  * は文章本文の一部として、段落より大きい見出しサイズで表示する。
+ *
+ * 【章構成への対応(2026-09-04、Decision Log 0094)】全文ページ
+ * (research-statement.astro)は14段落が同じ本文サイズで連続しており、
+ * どこで話題が変わるのか掴みにくいという指摘(ChatGPT/Creative
+ * Directorからの提案、プロジェクトオーナー確認済み)を受け、任意prop
+ * `sections`(章見出し+段落の配列)を追加した。`sections`未指定時は
+ * 従来通り`paragraphs`をフラットに並べる(Homeの抜粋表示はこちらの
+ * ままで変更していない)。各章は`leadCount`(冒頭何段落をLeadサイズ
+ * (fs-lg)で見せるか)、`quote`(章内の一文を引用として視覚的に
+ * 抜き出す。元の段落から文言をコピーするのみで、新しい文章は追加
+ * しない)を任意で持てる。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
@@ -41,18 +52,32 @@ import SectionTitle from "./SectionTitle.astro";
 import ArrowLink from "./ArrowLink.astro";
 import styles from "./ResearchStatement.module.css";
 
+interface StatementSection {
+  /** 章見出し(h2として表示) */
+  heading: string;
+  /** 段落の配列。各段落は複数行(改行位置はコピーの意図そのものなので変更しない) */
+  paragraphs: string[][];
+  /** 章冒頭の何段落をLeadサイズ(fs-lg)で見せるか(省略時は0=通常サイズ) */
+  leadCount?: number;
+  /** 章内の一文を視覚的に引用として抜き出す(段落本文はそのまま残す。新規文言は追加しない) */
+  quote?: string;
+}
+
 interface Props {
   title: string;
   /** 文章自体の見出し(SectionTitleの控えめなラベルとは別。Decision Log 0016) */
   heading?: string;
-  /** 段落の配列。各段落は複数行(改行位置はコピーの意図そのものなので変更しない) */
-  paragraphs: string[][];
+  /** 段落の配列。各段落は複数行(改行位置はコピーの意図そのものなので変更しない)。
+      sections未指定時のフラット表示(Homeの抜粋)で使う。 */
+  paragraphs?: string[][];
+  /** 章見出しつきの表示(全文ページ)。指定時はparagraphsより優先される */
+  sections?: StatementSection[];
   /** Researchページ等、続きへの導線(回遊のため。Decision Log 0010・0011) */
   linkLabel?: string;
   linkHref?: string;
 }
 
-const { title, heading, paragraphs, linkLabel, linkHref } = Astro.props;
+const { title, heading, paragraphs, sections, linkLabel, linkHref } = Astro.props;
 ---
 
 <ResearchSection ariaLabel={title} id="research-statement">
@@ -60,20 +85,43 @@ const { title, heading, paragraphs, linkLabel, linkHref } = Astro.props;
 
   {heading && <p class={styles.heading}>{heading}</p>}
 
-  <div class={styles.statement}>
-    {
-      paragraphs.map((lines) => (
-        <p class={styles.paragraph}>
-          {lines.map((line, i) => (
-            <Fragment>
-              {i > 0 && <br />}
-              {line}
-            </Fragment>
-          ))}
-        </p>
-      ))
-    }
-  </div>
+  {
+    sections ? (
+      <div class={styles.chapters}>
+        {sections.map((section) => (
+          <div class={styles.chapter}>
+            <h2 class={styles.chapterHeading}>{section.heading}</h2>
+            {section.quote && <blockquote class={styles.quote}>{section.quote}</blockquote>}
+            <div class={styles.statement}>
+              {section.paragraphs.map((lines, i) => (
+                <p class={(section.leadCount ?? 0) > i ? styles.leadParagraph : styles.paragraph}>
+                  {lines.map((line, j) => (
+                    <Fragment>
+                      {j > 0 && <br />}
+                      {line}
+                    </Fragment>
+                  ))}
+                </p>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class={styles.statement}>
+        {(paragraphs ?? []).map((lines) => (
+          <p class={styles.paragraph}>
+            {lines.map((line, i) => (
+              <Fragment>
+                {i > 0 && <br />}
+                {line}
+              </Fragment>
+            ))}
+          </p>
+        ))}
+      </div>
+    )
+  }
 
   {
     linkLabel && linkHref && (

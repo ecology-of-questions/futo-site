@@ -35,3 +35,54 @@
 .link {
   margin-top: var(--space-2);
 }
+
+/* 【章構成(2026-09-04、Decision Log 0094)】以下、sections propを
+   渡した場合(全文ページ)にのみ使う。段落間の余白(space-4)より、
+   章と章の間の余白を大きく取り(space-6)、「意味のまとまりごとに
+   余白を変える」というChatGPT/Creative Directorの提案を反映した。 */
+.chapters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+}
+
+.chapter {
+  display: flex;
+  flex-direction: column;
+}
+
+.chapterHeading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0 0 var(--space-3);
+}
+
+/* 章内の.statementは.chapterHeading(または.quote)の margin-bottom で
+   既に間隔が空いているため、フラット表示用の margin-top: space-3 を
+   打ち消す(二重の余白を避ける)。 */
+.chapter .statement {
+  margin-top: 0;
+}
+
+/* 章冒頭のLead段落(leadCount指定時のみ)。本文(fs-base)より一段大きく
+   見せ、「どこが導入か」を視覚的に示す。 */
+.leadParagraph {
+  margin: 0;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-body);
+}
+
+/* 章内の一文を引用として抜き出す表示。段落本文はそのまま残し、この
+   要素は視覚的な目印(長文の途中の休憩)として追加する。
+   ResearchReviewArticle.module.cssの.quoteと同じ左罫線の見た目。 */
+.quote {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--color-accent-beige);
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-style: normal;
+  opacity: 0.85;
+}
