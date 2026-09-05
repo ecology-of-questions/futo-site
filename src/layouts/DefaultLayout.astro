@@ -15,6 +15,13 @@
  * では全ページ共通の1枚(public/images/ogp/default.png)。ページ
  * ごとに専用画像を用意したくなった場合は、`ogImage` propを追加
  * すれば個別に上書きできる構造にしてある。
+ *
+ * 【URLシェア時のタイトルを全ページ共通に(2026-09-05)】プロジェクト
+ * オーナーの指示により、og:title・twitter:title(リンクを共有した
+ * 際に表示される見出し)を、ページごとの`title`propとは切り離し、
+ * 全ページ共通で「公開研究室ふ、と」に固定した。ブラウザタブの
+ * `<title>`(検索結果・ブックマークでの識別に使うため、ページごとの
+ * 違いを保つ必要がある)は、これまで通り`title` propを使う。
  * ------------------------------------------------------------
  */
 import "@styles/global.css";
@@ -43,6 +50,8 @@ const {
 
 const ogImageUrl = new URL("/images/ogp/default.png", Astro.site);
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+/** URLシェア時に表示される見出し。ページごとの`title`とは切り離し、全ページ共通で固定する。 */
+const sharedTitle = "公開研究室ふ、と";
 ---
 
 <!doctype html>
@@ -58,14 +67,14 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="公開研究室 ふ、と" />
-    <meta property="og:title" content={title} />
+    <meta property="og:title" content={sharedTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:locale" content="ja_JP" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
+    <meta name="twitter:title" content={sharedTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
   </head>
