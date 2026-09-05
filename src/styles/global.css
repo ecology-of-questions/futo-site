@@ -11,30 +11,21 @@
 
 /* Klee One(手書き調のGoogle Fonts)を自己ホスト。「気づいたら、そこに
    問いがある」という1つの見出し文字列(Hero・Research Statement見出し、
-   Decision Log 0082)に含まれる文字だけをサブセット化した2ファイルの
+   Decision Log 0082)に含まれる文字だけをサブセット化した1ファイルの
    みを配置しているため、他の文字を含む用途には使わない
-   (tokens.cssの--font-hero-heading参照)。 */
+   (tokens.cssの--font-hero-heading参照)。
+   【2026-09-04改訂(Decision Log 0084)】当初は文字種ごとに
+   unicode-rangeを分けた2つの@font-faceで構成していたが、iOS
+   Safariで一方のファイルしか読み込まれず、見出しの一部がフォールバック
+   フォント(Yu Mincho等)で表示される不具合が判明した。fontToolsで
+   2ファイルを1つのwoff2に統合し、unicode-rangeを使わない単一の
+   @font-faceに変更した。 */
 @font-face {
   font-family: "Klee One";
   font-weight: 600;
   font-style: normal;
   font-display: swap;
-  src: url("/fonts/klee-one/klee-one-600-kanji.woff2") format("woff2");
-  unicode-range: U+4E, U+A0, U+3000, U+300C-300D, U+4E00, U+4E0A, U+4E2D, U+4E8B, U+4EBA, U+4F1A,
-    U+5165, U+5168, U+5185, U+51FA, U+5206, U+5229, U+524D, U+52D5, U+5408, U+554F, U+5831, U+5834,
-    U+5927, U+5B9A, U+5E74, U+5F0F, U+60C5, U+65B0, U+65B9, U+6642, U+6700, U+672C, U+682A, U+6B63,
-    U+6C17, U+7121, U+751F, U+7528, U+753B, U+76EE, U+793E, U+884C, U+898B, U+8A18, U+9593, U+95A2,
-    U+FF01, U+FF08-FF09;
-}
-
-@font-face {
-  font-family: "Klee One";
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-  src: url("/fonts/klee-one/klee-one-600-kana.woff2") format("woff2");
-  unicode-range: U+20, U+2027, U+3001-3002, U+3041-307F, U+3081-308F, U+3091-3093, U+3099-309A,
-    U+309D-309E, U+30A1-30E1, U+30E3-30ED, U+30EF-30F0, U+30F2-30F4, U+30FB-30FE, U+FF0C, U+FF0E;
+  src: url("/fonts/klee-one/klee-one-600.woff2") format("woff2");
 }
 
 *,
