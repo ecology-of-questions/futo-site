@@ -70,25 +70,70 @@
   margin: 0;
 }
 
-/* 「観察する→気づく→…」のプロセス表示(2026-09-04、Decision Log
-   0094)。本文の一文と同じ語をそのまま使い、視覚的な補足として
-   追加する。Meta的な控えめなサイズ(fs-sm・淡い)にし、本文より
-   目立たせない。 */
-.process {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  opacity: 0.7;
+/* 【循環図(2026-09-05)】「観察する→気づく→…→また観察する」を
+   縦の矢印リストで表示していたが、「また観察する」で終わってしまい、
+   本文にある「この循環を通して」(最後が最初に戻る)という内容が
+   伝わらないという指摘を受け、円周上に語を並べる循環図に作り直した。
+   本文の一文と同じ語をそのまま使い、視覚的な補足として追加する
+   (図自体はaria-hidden、本文が情報源)。 */
+.cycleWrap {
+  margin-top: var(--space-4);
+  padding-inline: 2.75rem;
+  padding-block: 1.25rem;
 }
 
-.process li:not(:last-child)::after {
-  content: "↓";
-  display: block;
-  margin-top: var(--space-1);
-  opacity: 0.5;
+.cycle {
+  position: relative;
+  width: 100%;
+  max-width: 18rem;
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+@media (min-width: 900px) {
+  .cycleWrap {
+    padding-inline: 3.5rem;
+  }
+
+  .cycle {
+    max-width: 19rem;
+  }
+}
+
+.cycleRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.cycleRing circle {
+  fill: none;
+  stroke: var(--color-accent-beige);
+  stroke-width: 0.6;
+}
+
+.cycleArrow {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--cycle-rotate));
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.45;
+}
+
+.cycleLabel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  opacity: 0.75;
+}
+
+.cycleLabel[data-align="left"] {
+  transform: translate(0, -50%);
+}
+
+.cycleLabel[data-align="right"] {
+  transform: translate(-100%, -50%);
 }
