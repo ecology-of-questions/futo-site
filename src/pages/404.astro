@@ -24,11 +24,13 @@
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ArrowLink from "@components/ArrowLink.astro";
 import NightBackground from "@components/NightBackground.astro";
+import CursorGlow from "@components/CursorGlow.astro";
 import styles from "./404.module.css";
 ---
 
 <DefaultLayout title="ページが見つかりません ｜ ふ、と" theme="night">
   <NightBackground />
+  <CursorGlow />
   <section class={styles.section} aria-label="ページが見つかりません">
     <h1 class={styles.heading}>気づいたら、道に迷っていた。</h1>
     <div class={styles.body}>

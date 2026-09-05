@@ -110,6 +110,7 @@
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import NightBackground from "@components/NightBackground.astro";
+import CursorGlow from "@components/CursorGlow.astro";
 import styles from "./about.module.css";
 
 const processSteps = ["観察する", "気づく", "記録する", "対話する", "つくる・試す"];
@@ -152,6 +153,7 @@ const cycleArrows = processSteps.map((_, i) => {
   theme="night"
 >
   <NightBackground />
+  <CursorGlow />
   <ResearchSection ariaLabel="About">
     <div class={styles.pageHeader}>
       <p class={styles.eyebrow}>ABOUT</p>

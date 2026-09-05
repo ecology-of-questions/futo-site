@@ -86,6 +86,7 @@ import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import ResearchReviewList from "@components/ResearchReviewList.astro";
 import NightBackground from "@components/NightBackground.astro";
+import CursorGlow from "@components/CursorGlow.astro";
 import styles from "./research.module.css";
 import type {
   PlannedReviewEntry,
@@ -121,6 +122,7 @@ const plannedReviews: PlannedReviewEntry[] = [
 
 <DefaultLayout title="Research ｜ ふ、と" theme="night">
   <NightBackground />
+  <CursorGlow />
   <ResearchSection ariaLabel="Research" id="research-reviews">
     <p class={styles.eyebrow}>RESEARCH</p>
     <div class={styles.headingRow}>

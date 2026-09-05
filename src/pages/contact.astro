@@ -62,12 +62,14 @@
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import NightBackground from "@components/NightBackground.astro";
+import CursorGlow from "@components/CursorGlow.astro";
 import styles from "./contact.module.css";
 import { contactFormEndpoint } from "@/config/site";
 ---
 
 <DefaultLayout title="お問い合わせ ｜ ふ、と" description="公開研究室「ふ、と」へのお問い合わせ。" theme="night">
   <NightBackground />
+  <CursorGlow />
   <ResearchSection ariaLabel="Contact">
     <p class={styles.eyebrow}>CONTACT</p>
 
