@@ -92,6 +92,8 @@ Google Fonts)を選んだ。
   用意したくなったタイミングで`ogImage` propを追加すれば拡張できる。
 - `astro.config.mjs`の`site`は、独自ドメインを取得した場合に更新が
   必要。
+  → 2026-09-05、プロジェクトオーナーが独自ドメイン`futoing.com`を
+  取得し、`site`を更新した。詳細はDecision Log 0098参照。
 
 ## Research Context
 
