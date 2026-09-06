@@ -32,6 +32,10 @@
   line-height: var(--lh-body);
 }
 
+.statement strong {
+  font-weight: 600;
+}
+
 .link {
   margin-top: var(--space-2);
 }

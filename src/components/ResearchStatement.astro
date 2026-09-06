@@ -78,6 +78,12 @@ interface Props {
 }
 
 const { title, heading, paragraphs, sections, linkLabel, linkHref } = Astro.props;
+
+/** "**強調**"記法を<strong>に変換する。paragraphsの型(string[][])を変えずに、
+    文中の一部だけを意味的に強調するために使う。 */
+function renderEmphasis(text: string) {
+  return text.split(/\*\*(.+?)\*\*/g).map((part, i) => ({ bold: i % 2 === 1, text: part }));
+}
 ---
 
 <ResearchSection ariaLabel={title} id="research-statement">
@@ -98,7 +104,9 @@ const { title, heading, paragraphs, sections, linkLabel, linkHref } = Astro.prop
                   {lines.map((line, j) => (
                     <Fragment>
                       {j > 0 && <br />}
-                      {line}
+                      {renderEmphasis(line).map((segment) =>
+                        segment.bold ? <strong>{segment.text}</strong> : segment.text
+                      )}
                     </Fragment>
                   ))}
                 </p>
@@ -114,7 +122,9 @@ const { title, heading, paragraphs, sections, linkLabel, linkHref } = Astro.prop
             {lines.map((line, i) => (
               <Fragment>
                 {i > 0 && <br />}
-                {line}
+                {renderEmphasis(line).map((segment) =>
+                  segment.bold ? <strong>{segment.text}</strong> : segment.text
+                )}
               </Fragment>
             ))}
           </p>
