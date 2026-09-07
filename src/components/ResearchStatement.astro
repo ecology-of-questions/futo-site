@@ -32,8 +32,13 @@
  * 2026-08-07: Research Statement正式版を受け、`heading`(文章自体の
  * 見出し)を`title`(セクション共通の控えめなラベル。Decision Log 0007
  * の通りResearch Reviews等と同じ扱い)とは別に追加した(Decision Log
- * 0016)。titleは今まで通りSectionTitleとして小さく表示し、heading
- * は文章本文の一部として、段落より大きい見出しサイズで表示する。
+ * 0016)。titleはSectionTitleと同じ見た目(装飾的なラベル)で小さく表示し、
+ * headingは文章本文の一部として、段落より大きい見出しサイズで表示する。
+ * titleは見出し階層上はページタイトルではないため<p>で描画し(見出し
+ * 要素は<SectionTitle>コンポーネントを介さず本コンポーネント側で
+ * 直接<p>にしている)、headingは呼び出し側から渡す`headingLevel`
+ * (h1|h2)で描画する。全文ページ(独立ページなのでh1)とHome抜粋
+ * (h2)とで、利用場所に応じて安全に切り替えられる。
  *
  * 【章構成への対応(2026-09-04、Decision Log 0094)】全文ページ
  * (research-statement.astro)は14段落が同じ本文サイズで連続しており、
@@ -48,9 +53,9 @@
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
-import SectionTitle from "./SectionTitle.astro";
 import ArrowLink from "./ArrowLink.astro";
 import styles from "./ResearchStatement.module.css";
+import sectionTitleStyles from "./SectionTitle.module.css";
 
 interface StatementSection {
   /** 章見出し(h2として表示) */
@@ -67,6 +72,9 @@ interface Props {
   title: string;
   /** 文章自体の見出し(SectionTitleの控えめなラベルとは別。Decision Log 0016) */
   heading?: string;
+  /** headingを描画する見出しレベル。全文ページ(独立したページなのでh1)と
+      Home抜粋(h2)とで、利用場所に応じて切り替える。省略時はh2。 */
+  headingLevel?: "h1" | "h2";
   /** 段落の配列。各段落は複数行(改行位置はコピーの意図そのものなので変更しない)。
       sections未指定時のフラット表示(Homeの抜粋)で使う。 */
   paragraphs?: string[][];
@@ -77,7 +85,16 @@ interface Props {
   linkHref?: string;
 }
 
-const { title, heading, paragraphs, sections, linkLabel, linkHref } = Astro.props;
+const {
+  title,
+  heading,
+  headingLevel = "h2",
+  paragraphs,
+  sections,
+  linkLabel,
+  linkHref,
+} = Astro.props;
+const HeadingTag = headingLevel;
 
 /** "**強調**"記法を<strong>に変換する。paragraphsの型(string[][])を変えずに、
     文中の一部だけを意味的に強調するために使う。 */
@@ -87,9 +104,9 @@ function renderEmphasis(text: string) {
 ---
 
 <ResearchSection ariaLabel={title} id="research-statement">
-  <SectionTitle>{title}</SectionTitle>
+  <p class={sectionTitleStyles.title}>{title}</p>
 
-  {heading && <p class={styles.heading}>{heading}</p>}
+  {heading && <HeadingTag class={styles.heading}>{heading}</HeadingTag>}
 
   {
     sections ? (
