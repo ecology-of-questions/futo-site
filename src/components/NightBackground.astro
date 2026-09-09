@@ -12,12 +12,26 @@
  * 先頭(<ResearchSection>等の前)にこのコンポーネントを配置する。
  * `theme="night"`側がmain/footerの文字色を反転させ、この
  * コンポーネント側が実際の背景(色+光)を描画する、という役割分担。
+ *
+ * 【Research Statementページ専用のグラデーション(2026-09-09)】
+ * `gradient` propをtrueにすると、単色(--color-night)の代わりに
+ * 縦方向の穏やかなグラデーション(--color-night-gradient-*)を描画し、
+ * 光の粒もわずかに弱める。既定はfalseで、Home・/research・/about・
+ * /contact・研究断面ページ等、他の呼び出し元の見た目・DOM構造は
+ * 一切変更していない。
  * ------------------------------------------------------------
  */
 import styles from "./NightBackground.module.css";
+
+interface Props {
+  /** trueでResearch Statementページ専用の背景グラデーションに切り替える(既定はfalse=単色)。 */
+  gradient?: boolean;
+}
+
+const { gradient = false } = Astro.props;
 ---
 
-<div class={styles.background} aria-hidden="true">
+<div class:list={[styles.background, { [styles.gradient]: gradient }]} aria-hidden="true">
   <div class={styles.lights}>
     <span class={styles.light}></span>
     <span class={styles.light}></span>
