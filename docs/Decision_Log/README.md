@@ -158,3 +158,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0084](./0084-klee-one-ios-safari-fix.md) | Klee OneがiOS Safariで表示されない不具合を修正する |
 | [0101](./0101-research-statement-full-rewrite.md) | Research Statement本文の全面書き換え、章構成を廃止する(→ 0094の項目2を一部上書き) |
 | [0102](./0102-home-research-statement-merge.md) | HeroとResearch Statementを統合し、専用ページを廃止して背景をグラデーション化する |
+| [0103](./0103-sitewide-copy-cleanup.md) | Research Statement以外のページの文章整理(重複削除・具体化) |
