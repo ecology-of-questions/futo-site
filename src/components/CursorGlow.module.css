@@ -14,6 +14,14 @@
  * .glow[data-visible="true"]側のopacityで一括管理する形に変えた
  * (以前はrgbaのalpha 0.4とdata-visibleのopacity 1が掛け合わさって
  * いたが、同じ視覚的な強さになるようdata-visible側に0.4を移した)。
+ *
+ * 【配合を調整(2026-09-10、Decision Log 0106)】NightBackgroundの光の粒
+ * が「点滅して見える」不具合(配合が薄すぎてコントラストが低く、
+ * ピーク付近でしか視認できなかったことが原因)を修正した際、同じ
+ * 「光」の仲間として見た目の強さを揃えるため、25%→40%に引き上げた。
+ * カーソル追従の光自体はループ再生ではなく、動かしている間だけ
+ * opacity 0.4で表示される仕組みのため点滅の問題はなかったが、
+ * NightBackgroundと並んだときの強さの差が不自然にならないようにした。
  * ------------------------------------------------------------
  */
 
@@ -29,7 +37,7 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--color-accent-blue) 25%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 40%, var(--color-paper)) 0%,
     transparent 70%
   );
   opacity: 0;
