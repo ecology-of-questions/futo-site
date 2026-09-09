@@ -1,32 +1,28 @@
 /**
  * NightBackground.module.css
  * ------------------------------------------------------------
- * NightBackground.astro専用スタイル。position: fixedの背景と、
- * ふと現れて消える光の粒を描画する。元はindex.module.css(Home専用)
- * にあった実装(2026-09-03、Decision Log 0059〜0062)を、他ページにも
- * 揃えるためコンポーネント化した際にそのまま移設した。
+ * NightBackground.astro専用スタイル。position: fixedの背景を描画する。
+ * 元はindex.module.css(Home専用)にあった実装(2026-09-03、Decision
+ * Log 0059〜0062)を、他ページにも揃えるためコンポーネント化した際に
+ * そのまま移設した。
  *
  * 【Mobileにも適用(2026-09-04、Decision Log 0085)】当初はDesktop幅
  * (900px以上)限定だった(Mobileは別途Hero内蔵の透かし表現、
  * Decision Log 0023)が、プロジェクトオーナーの指示によりMobileにも
- * 同じ夜空背景を適用することになった。Desktop限定にしていた
+ * 同じ背景を適用することになった。Desktop限定にしていた
  * `@media (min-width: 900px)`によるdisplay制御を撤去した。
  *
  * 【濃紺背景を廃止、ライトトーンに(2026-09-10、Decision Log 0104)】
  * プロジェクトオーナーの指示により、背景色を--color-night(濃紺)から
- * --color-paper(白に近い背景)に変更した。コンポーネント名・DOM構造・
- * 光の粒のアニメーションはそのまま残している(「配色に限定」という
- * 指示のため)。この時点では光の粒のrgba値を新--color-paperと同値に
- * 揃えたため、背景に溶け込んでほとんど見えなくなっていた。
+ * --color-paper(白に近い背景)に変更した。
  *
- * 【光を再び見えるように(2026-09-10、Decision Log 0105)】プロジェクト
- * オーナーから「じんわりとふとを体現する光を戻したい」という指示を
- * 受けた。濃紺背景では「白に近い色」がそのまま輝いて見えたが、地の色
- * 自体が白に近いライトトーンでは同じ発想が通用しない(白に白を重ねても
- * 見えない)。そこで、明るさの差ではなく色相の差で光を表現する方針に
- * 転換し、--color-accent-blue(サイトで唯一の彩度を持つ色)を
- * --color-paperにcolor-mix()で薄く溶かした色を使うようにした。新しい
- * HEX値を決め打ちせず、既存トークンから算出する方針は維持している。
+ * 【「ふと現れて消える光の粒」を削除(2026-09-10、Decision Log 0106)】
+ * ライトトーン化に伴い光の粒の色をcolor-mix()で作り直したが
+ * (Decision Log 0105)、プロジェクトオーナーから「光なくていい」
+ * との指示を受け、光の演出自体を撤去することになった。`.lights`/
+ * `.light`要素・`lightPulse`アニメーションを削除し、position: fixed
+ * の単色(または`.gradient`指定時はグラデーション)背景のみを描画する
+ * コンポーネントに戻した。経緯はDecision Log 0106参照。
  * ------------------------------------------------------------
  */
 
@@ -57,98 +53,4 @@
     var(--color-night-gradient-mid) 50%,
     var(--color-night-gradient-bottom) 100%
   );
-}
-
-.lights {
-  position: absolute;
-  inset: 0;
-}
-
-.light {
-  position: absolute;
-  border-radius: 50%;
-  /* 2026-09-10(Decision Log 0105)、--color-accent-blueを--color-paper
-     に30%だけ溶かした色を中心色にした(明るさではなく色相の差で光を
-     見せるため)。中心は不透明、70%地点で完全に透明になるグラデーション
-     自体はDecision Log 0059当時から変更していない。 */
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
-    transparent 70%
-  );
-  opacity: 0;
-  /* keyframe内のピーク不透明度をカスタムプロパティ化し、.gradient配下
-     (Research Statementページ)だけ弱められるようにしている
-     (2026-09-09)。既定値は変更前と同じ0.85。 */
-  --light-peak-opacity: 0.85;
-  animation-name: lightPulse;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  /* prefers-reduced-motion: reduceの場合、global.cssの指定により
-     animation-durationが0.01ms・iteration-countが1に強制されるため、
-     光は一瞬でこのkeyframeの終端(opacity: 0)に落ち着き、点滅しない */
-}
-
-/* Research Statementページの背景グラデーションに対して、光を今より
-   少し弱め、背景より目立たないようにする(2026-09-09)。 */
-.gradient .light {
-  --light-peak-opacity: 0.55;
-}
-
-/* 「ふと複数の光がじんわりと現れる。そしていつの間にか消える」という
-   イメージのため、durationを長め(9〜13秒)にし、animation-delayを
-   負の値にして各光の開始位相をずらしている(同時に光らない) */
-.light:nth-child(1) {
-  top: 18%;
-  left: 22%;
-  width: 5rem;
-  height: 5rem;
-  animation-duration: 11s;
-  animation-delay: -2s;
-}
-
-.light:nth-child(2) {
-  top: 62%;
-  left: 68%;
-  width: 3.5rem;
-  height: 3.5rem;
-  animation-duration: 9s;
-  animation-delay: -6s;
-}
-
-.light:nth-child(3) {
-  top: 40%;
-  left: 80%;
-  width: 6rem;
-  height: 6rem;
-  animation-duration: 13s;
-  animation-delay: -9s;
-}
-
-.light:nth-child(4) {
-  top: 78%;
-  left: 30%;
-  width: 4rem;
-  height: 4rem;
-  animation-duration: 10s;
-  animation-delay: -4s;
-}
-
-.light:nth-child(5) {
-  top: 10%;
-  left: 58%;
-  width: 3rem;
-  height: 3rem;
-  animation-duration: 12s;
-  animation-delay: -1s;
-}
-
-@keyframes lightPulse {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  50% {
-    opacity: var(--light-peak-opacity);
-  }
 }
