@@ -2,8 +2,7 @@
 /**
  * NightBackground.astro
  * ------------------------------------------------------------
- * Desktop幅(900px以上)のページ全体を貫くposition: fixed背景
- * (紺の背景色+ふと現れて消える光の粒)。もともとHome専用として
+ * ページ全体を貫くposition: fixed背景。もともとHome専用として
  * index.module.cssに実装していたもの(2026-09-03、Decision Log
  * 0059〜0062)を、他ページ(/research, /about, /contact)にも
  * 揃える指示(2026-09-03)を受けてコンポーネントとして切り出した。
@@ -11,14 +10,18 @@
  * 使い方: DefaultLayoutに`theme="night"`を渡した上で、ページの
  * 先頭(<ResearchSection>等の前)にこのコンポーネントを配置する。
  * `theme="night"`側がmain/footerの文字色を反転させ、この
- * コンポーネント側が実際の背景(色+光)を描画する、という役割分担。
+ * コンポーネント側が実際の背景色を描画する、という役割分担。
  *
  * 【Research Statementページ専用のグラデーション(2026-09-09)】
  * `gradient` propをtrueにすると、単色(--color-night)の代わりに
- * 縦方向の穏やかなグラデーション(--color-night-gradient-*)を描画し、
- * 光の粒もわずかに弱める。既定はfalseで、Home・/research・/about・
- * /contact・研究断面ページ等、他の呼び出し元の見た目・DOM構造は
- * 一切変更していない。
+ * 縦方向の穏やかなグラデーション(--color-night-gradient-*)を描画する。
+ * 既定はfalseで、Home・/research・/about・/contact・研究断面ページ等、
+ * 他の呼び出し元の見た目・DOM構造は一切変更していない。
+ *
+ * 【「ふと現れて消える光の粒」を削除(2026-09-10、Decision Log 0106)】
+ * プロジェクトオーナーの指示により、光の演出そのものを取りやめた。
+ * 名前・背景色の描画・gradient propは元々「背景」の役割として残る
+ * ため、コンポーネント名はそのまま。経緯はDecision Log 0106参照。
  * ------------------------------------------------------------
  */
 import styles from "./NightBackground.module.css";
@@ -31,12 +34,4 @@ interface Props {
 const { gradient = false } = Astro.props;
 ---
 
-<div class:list={[styles.background, { [styles.gradient]: gradient }]} aria-hidden="true">
-  <div class={styles.lights}>
-    <span class={styles.light}></span>
-    <span class={styles.light}></span>
-    <span class={styles.light}></span>
-    <span class={styles.light}></span>
-    <span class={styles.light}></span>
-  </div>
-</div>
+<div class:list={[styles.background, { [styles.gradient]: gradient }]} aria-hidden="true"></div>
