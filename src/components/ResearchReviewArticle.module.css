@@ -5,7 +5,7 @@
   font-size: var(--fs-lg);
   line-height: var(--lh-heading);
   font-weight: 500;
-  opacity: 0.7;
+  color: var(--color-ink-muted);
   margin: var(--space-3) 0 0;
 }
 
@@ -104,7 +104,7 @@
 
 .table th {
   font-weight: 500;
-  opacity: 0.7;
+  color: var(--color-ink-muted);
 }
 
 .row .table {

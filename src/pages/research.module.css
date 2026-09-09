@@ -9,7 +9,7 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 :global(#research-reviews) {
@@ -52,7 +52,7 @@
   flex-direction: column;
   font-size: var(--fs-base);
   line-height: var(--lh-heading);
-  opacity: 0.75;
+  color: var(--color-ink-muted);
 }
 
 .note p {

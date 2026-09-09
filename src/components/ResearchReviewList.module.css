@@ -32,7 +32,7 @@
 .entryMeta {
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 .entryTitle {
@@ -45,14 +45,14 @@
 .entrySubtitle {
   font-size: var(--fs-lg);
   line-height: var(--lh-heading);
-  opacity: 0.7;
+  color: var(--color-ink-muted);
 }
 
 .entryDescription {
   margin: var(--space-1) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
-  opacity: 0.7;
+  color: var(--color-ink-muted);
 }
 
 .entryReadMore {
@@ -62,6 +62,7 @@
   margin-top: var(--space-1);
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
 }
 
 .arrow {
@@ -92,12 +93,12 @@
 .number {
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 .plannedEntry {
   margin: 0;
   padding-block: var(--space-2);
   font-size: var(--fs-lg);
-  opacity: 0.55;
+  color: var(--color-ink-muted);
 }

@@ -9,7 +9,7 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 /* 【2カラム化(2026-09-04、Decision Log 0094)】導入文とフォームが
@@ -78,7 +78,7 @@
 }
 
 .required {
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 .input,
@@ -87,7 +87,10 @@
   font-family: var(--font-sans);
   font-size: var(--fs-base);
   color: var(--color-ink-on-surface);
-  background-color: var(--color-paper);
+  /* 2026-09-10のサイト全体配色変更(Decision Log 0104)で、地の背景
+     (--color-paper)と入力欄の区別がつくよう、--color-surface(白)を
+     背景にした。 */
+  background-color: var(--color-surface);
   border: 1px solid var(--color-accent-beige);
   border-radius: 2px;
   padding: var(--space-1) var(--space-2);
@@ -97,8 +100,11 @@
 .input:focus,
 .textarea:focus,
 .select:focus {
-  outline: none;
-  border-color: var(--color-accent-green);
+  /* キーボードフォーカス時に見分けやすいよう、枠線の色に加えて
+     outlineも表示する(2026-09-10、Decision Log 0104)。 */
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-blue);
 }
 
 .textarea {
@@ -117,7 +123,7 @@
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 .honeypot {
@@ -134,21 +140,28 @@
 }
 
 .submit {
+  /* 2026-09-10のサイト全体配色変更(Decision Log 0104)で、アクセントの
+     青を使った枠線ボタンに変更した(以前は--color-ink-on-surface)。
+     hoverはopacityでの減光ではなく塗りつぶし(色を反転)にして、
+     コントラスト比を保ったまま見分けやすくしている。 */
   align-self: flex-start;
   font-family: var(--font-sans);
   font-size: var(--fs-base);
-  color: var(--color-ink-on-surface);
-  background-color: var(--color-paper);
-  border: 1px solid var(--color-ink-on-surface);
+  color: var(--color-accent-blue);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-blue);
   border-radius: 2px;
   padding: var(--space-1) var(--space-3);
   cursor: pointer;
-  transition: opacity var(--transition-base);
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
 }
 
 .submit:hover,
 .submit:focus-visible {
-  opacity: 0.7;
+  background-color: var(--color-accent-blue);
+  color: var(--color-surface);
 }
 
 .submit:disabled {
@@ -162,7 +175,7 @@
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 .status {

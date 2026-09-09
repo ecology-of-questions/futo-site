@@ -1,7 +1,7 @@
 /**
  * NightBackground.module.css
  * ------------------------------------------------------------
- * NightBackground.astro専用スタイル。position: fixedの紺の背景と、
+ * NightBackground.astro専用スタイル。position: fixedの背景と、
  * ふと現れて消える光の粒を描画する。元はindex.module.css(Home専用)
  * にあった実装(2026-09-03、Decision Log 0059〜0062)を、他ページにも
  * 揃えるためコンポーネント化した際にそのまま移設した。
@@ -11,6 +11,17 @@
  * Decision Log 0023)が、プロジェクトオーナーの指示によりMobileにも
  * 同じ夜空背景を適用することになった。Desktop限定にしていた
  * `@media (min-width: 900px)`によるdisplay制御を撤去した。
+ *
+ * 【濃紺背景を廃止、ライトトーンに(2026-09-10、Decision Log 0104)】
+ * プロジェクトオーナーの指示により、背景色を--color-night(濃紺)から
+ * --color-paper(白に近い背景)に変更した。コンポーネント名・DOM構造・
+ * 光の粒のアニメーションはそのまま残している(「配色に限定」という
+ * 指示のため)。光の粒(rgba(247,243,234,…))は元々--color-paperに
+ * 近い色のため、新しい背景の上ではほとんど視認できなくなるが、
+ * これは意図的な変更ではなく配色更新の結果であり、機能自体は
+ * 削除していない。光の粒のrgba値自体も、旧--color-paper(247,243,234)
+ * から新--color-paper(250,250,247)に合わせて更新し、「背景と同化して
+ * ほとんど見えない」という元の設計意図を新しい配色でも保っている。
  * ------------------------------------------------------------
  */
 
@@ -24,14 +35,16 @@
      z-index:0の位置指定要素より手前に描画されるため、この背景を
      「本文より背面」にするには0ではなく負の値が必要 */
   z-index: -1;
-  background-color: var(--color-night);
+  background-color: var(--color-paper);
   pointer-events: none;
 }
 
-/* 【Research Statementページ専用(2026-09-09)】`gradient` prop指定時のみ
-   付与される。鮮やかさを出さず、上から下へごくわずかに斜めに(170deg)
-   明るさが変わる程度に留める(「グラデーションしている」と強く感じ
-   させないため、角度は垂直に近い170degのみ傾ける)。 */
+/* 【Research Statementエリア専用】`gradient` prop指定時のみ付与される。
+   鮮やかさを出さず、上から下へごくわずかに斜めに(170deg)明るさが
+   変わる程度に留める(「グラデーションしている」と強く感じさせない
+   ため、角度は垂直に近い170degのみ傾ける)。2026-09-10のサイト全体
+   配色変更で、グラデーションの色自体も濃紺系からごく淡いトーンに
+   作り直した(値はtokens.css参照)。 */
 .gradient {
   background: linear-gradient(
     170deg,
@@ -49,7 +62,7 @@
 .light {
   position: absolute;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(247, 243, 234, 0.9) 0%, rgba(247, 243, 234, 0) 70%);
+  background: radial-gradient(circle, rgba(250, 250, 247, 0.9) 0%, rgba(250, 250, 247, 0) 70%);
   opacity: 0;
   /* keyframe内のピーク不透明度をカスタムプロパティ化し、.gradient配下
      (Research Statementページ)だけ弱められるようにしている

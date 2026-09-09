@@ -28,12 +28,15 @@
 }
 
 .openPracticePanel {
-  /* 「一緒に試す」だけ、紺の背景に対してごく淡く明るい面を敷き、
+  /* 「一緒に試す」だけ、地の背景に対してごく淡く区別できる面を敷き、
      他セクションと区別できる「独立した区画」に見せる(2026-09-04、
-     Decision Log 0094)。新しいHEX値を決め打ちせず、既存の
-     --color-nightをcolor-mixでわずかに明るくした値を使う。カード的な
-     影・太い枠線・大きな角丸は使わず、静かなトーンを保つ。 */
-  background-color: color-mix(in srgb, var(--color-night) 100%, white 6%);
+     Decision Log 0094)。2026-09-10のサイト全体配色変更(Decision Log
+     0104)に伴い、濃紺背景を前提にしたcolor-mix(--color-night基準)
+     から、新しい地の色(--color-paper)をごくわずかに--color-inkで
+     暗くした値に作り直した。新しいHEX値を決め打ちせず、既存トークン
+     から算出する方針は維持している。カード的な影・太い枠線・大きな
+     角丸は使わず、静かなトーンを保つ。 */
+  background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-paper));
   border-radius: 4px;
   padding: var(--space-4);
 }

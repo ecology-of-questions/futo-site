@@ -4,6 +4,9 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.6;
+  /* 2026-09-10のサイト全体配色変更(Decision Log 0104)により、
+     opacity: 0.6(--color-inkを薄める方式)から、コントラスト比を
+     確保した固定色--color-ink-mutedに変更した。 */
+  color: var(--color-ink-muted);
   margin: 0;
 }
