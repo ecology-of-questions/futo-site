@@ -8,6 +8,11 @@
  * 現時点では仮値を置いている。Home_Hero_v1_spec 到着時、または
  * ChatGPT(Creative Director)からの正式な値が来た時点で必ず更新すること。
  * 実装者が独自に「見やすさ」判断で変更しないこと。
+ *
+ * 【サイト全体の配色をライトトーンに変更(2026-09-10、Decision Log
+ * 0104)】プロジェクトオーナーの指示により、それまで各ページで使って
+ * いた夜空(濃紺)背景+白文字を廃止し、白に近い温かみのある背景+
+ * 濃いチャコールの文字に統一した。詳細はDecision Log 0104参照。
  * ------------------------------------------------------------
  */
 
@@ -16,27 +21,47 @@
    * Color
    * Design Spec 10: Paper(生成り) / Ink(柔らかい黒) / Accent(淡い緑・ベージュ)
    * ----------------------------- */
-  --color-paper: #f7f3ea;      /* 仮値: 生成り */
-  --color-ink: #2b2a26;         /* 仮値: 柔らかい黒(純黒 #000 は使わない) */
-  --color-accent-green: #a9b79c; /* 仮値: 淡い緑 */
-  --color-accent-beige: #d8cbb0; /* 仮値: ベージュ */
+  --color-paper: #fafaf7; /* 基本背景(2026-09-10、プロジェクトオーナー
+    指定)。旧#f7f3ea(生成り)から、より白に近い落ち着いたトーンに
+    更新した。ベージュ・黄色寄りに偏りすぎないよう、彩度を抑えた
+    温かみのある白。長文を読んでも疲れにくくすることが目的。 */
+  --color-ink: #303432; /* 本文の文字色(2026-09-10更新)。旧#2b2a26から、
+    読みやすい濃いチャコールに変更。純黒は使わない方針は維持。 */
+  --color-ink-muted: #606663; /* 補足文・meta情報・eyebrowラベル等の
+    「控えめな文字」専用(2026-09-10新設、プロジェクトオーナー指定)。
+    従来はopacityで--color-inkを薄めていたが、地の色(--color-paper)
+    に対して薄すぎるとWCAG AAのコントラスト比(4.5:1)を割り込むため、
+    固定色に切り替えた。--color-paperとのコントラスト比は約5.6:1。 */
+  --color-accent-green: #a9b79c; /* 仮値: 淡い緑。2026-09-10の配色更新で
+    実質使用箇所がなくなったが、値はそのまま残している。 */
+  --color-accent-beige: #d9deda; /* 区切り線用(2026-09-10、プロジェクト
+    オーナー指定の値に更新)。旧#d8cbb0(ベージュ)から控えめなグレーに
+    変更。トークン名は歴史的経緯で「beige」のままだが、用途は区切り線
+    (border)のみ。 */
+  --color-accent-blue: #365f78; /* リンク・アクセント用の落ち着いた青
+    (2026-09-10新設、プロジェクトオーナー指定)。--color-paperとの
+    コントラスト比は約6.6:1。 */
+  --color-surface: #ffffff; /* フォーム入力欄など、地の背景(--color-paper)
+    より一段明るくして輪郭を分かりやすくしたいUI要素用(2026-09-10
+    新設)。 */
   --color-night: #354c7d; /* Home背景「夜空」用の群青(2026-09-03、
-    Decision Log 0062)。プロジェクトオーナー指定のHEX値#4c6cb3
-    (Decision Log 0061)と同じ色相・彩度を保ったまま、明度のみを
-    下げて黒寄りにした。--color-paper(#f7f3ea)とのコントラスト比は
-    約7.6:1で、WCAG AAA(7:1)を満たす。詳細はDecision Log 0062参照。 */
-  --color-night-gradient-top: #183153; /* Research Statementページ専用の
-    背景グラデーション(2026-09-09、プロジェクトオーナー指定)。上部。
-    NightBackground.astroの`gradient`prop経由でのみ使用し、
-    --color-nightを使う他ページには影響しない。 */
-  --color-night-gradient-mid: #355273; /* 同上、中央。 */
-  --color-night-gradient-bottom: #5c708a; /* 同上、下部。 */
-  --color-ink-on-surface: #2b2a26; /* --color-inkと同じ値の固定版
-    (2026-09-03、Decision Log 0076)。--color-inkは夜空テーマの
-    main/footer配下(Desktop幅)でglobal.cssにより--color-paperへ
-    反転する(global.css参照)。フォーム入力欄のように、ページテーマに
-    関わらず常に--color-paperの地の上にテキストを乗せるUI要素は、
-    この反転の影響を受けない固定色としてこちらを参照する。 */
+    Decision Log 0062)。2026-09-10のサイト全体配色変更(Decision Log
+    0104)により、ページ背景としては使われなくなった(NightBackground
+    は--color-paperを使うよう変更済み)。値は履歴として残している。 */
+  --color-night-gradient-top: var(--color-paper); /* Research Statement
+    エリア専用の背景グラデーション、上部(2026-09-09導入時は#183153
+    等の濃紺だったが、2026-09-10のサイト全体配色変更でごく淡い
+    グラデーションに作り直した。新しいHEX値を決め打ちせず、既存の
+    --color-paper/--color-inkから算出している)。 */
+  --color-night-gradient-mid: color-mix(in srgb, var(--color-paper) 97%, var(--color-ink) 3%); /* 同上、中央。 */
+  --color-night-gradient-bottom: color-mix(in srgb, var(--color-paper) 93%, var(--color-ink) 7%); /* 同上、下部。 */
+  --color-ink-on-surface: #303432; /* --color-inkと同じ値の固定版
+    (2026-09-03、Decision Log 0076)。導入当初は夜空テーマでの文字色
+    反転(global.css)の影響を受けない固定色として使い分けていたが、
+    2026-09-10にその反転ロジック自体を廃止したため、現在は
+    --color-inkと常に同じ値になる。フォーム入力欄など「常に
+    --color-paper系の地の上にテキストを乗せる」箇所の参照先として
+    引き続き使う。 */
 
   /* -----------------------------
    * Typography
