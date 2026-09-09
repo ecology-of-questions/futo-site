@@ -25,6 +25,12 @@
     (Decision Log 0061)と同じ色相・彩度を保ったまま、明度のみを
     下げて黒寄りにした。--color-paper(#f7f3ea)とのコントラスト比は
     約7.6:1で、WCAG AAA(7:1)を満たす。詳細はDecision Log 0062参照。 */
+  --color-night-gradient-top: #183153; /* Research Statementページ専用の
+    背景グラデーション(2026-09-09、プロジェクトオーナー指定)。上部。
+    NightBackground.astroの`gradient`prop経由でのみ使用し、
+    --color-nightを使う他ページには影響しない。 */
+  --color-night-gradient-mid: #355273; /* 同上、中央。 */
+  --color-night-gradient-bottom: #5c708a; /* 同上、下部。 */
   --color-ink-on-surface: #2b2a26; /* --color-inkと同じ値の固定版
     (2026-09-03、Decision Log 0076)。--color-inkは夜空テーマの
     main/footer配下(Desktop幅)でglobal.cssにより--color-paperへ
