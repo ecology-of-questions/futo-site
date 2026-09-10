@@ -165,3 +165,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0107](./0107-favicon-crushed-fix.md) | favicon(タブアイコン)が潰れて見える不具合を、余白付き正方形キャンバスへの修正で解消する |
 | [0108](./0108-nav-label-and-copy-tweaks.md) | ナビゲーションラベルとResearch Statement本文の文言を3件修正する |
 | [0109](./0109-remove-research-card-consolidate-branches.md) | トップページの「Research｜問いの生態系」カードを削除し、保留中の文章整理作業を統合する |
+| [0110](./0110-ogp-image-light-tone.md) | OGP画像をライトトーンの配色に作り直す |
