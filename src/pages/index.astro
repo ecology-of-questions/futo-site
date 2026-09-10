@@ -27,17 +27,25 @@
  * - Research Statementセクション: 全文(6段落)ではなく、冒頭2文の
  *   要約+「Research Statementを読む →」に変更。全文は独立ページ
  *   `/research-statement`として復活させた(2026-09-09、Decision Log
- *   0102で一度廃止していたもの)。見出し末尾の句点「。」も復活させた
- *   (2026-09-10、Decision Log 0108で一度削除していたもの)。
- * - 「いま、取り組んでいること」: 「Research｜問いの生態系」カードを
- *   復活させ(2026-09-10、Decision Log 0109で一度削除していたもの)、
- *   「研究断面」と2カラムで並べる構成にした。
+ *   0102で一度廃止していたもの)。
  * - 「研究の本棚」を新設。本の仮カード3件+一覧ページ`/bookshelf`。
  * - 「一緒に試す」: 本文を1文に短縮。独立区画としての背景面
  *   (Decision Log 0094)は撤去し、他の平場セクションと同じ扱いに
  *   戻した。
  * - 「研究便り」(メルマガ購読フォーム)・「研究を支える」(支援ページ
  *   への導線)を新設し、1つの背景面にまとめて配置した。
+ * - 「いま、取り組んでいること」の見出し直前等、3セクションに細い
+ *   上罫線を追加した。
+ *
+ * 【一部の変更を差し戻し(2026-09-10、Decision Log 0112)】上記の
+ * 再設計案では、見出し末尾の句点「。」を復活させ(Decision Log 0108
+ * で削除)、「Research｜問いの生態系」カードを復活させ(Decision Log
+ * 0109で削除)、Headerの「ふ、とについて」表記への差し戻しも指示に
+ * 含まれていた。プロジェクトオーナーから「(直近の変更である)
+ * Decision Log 0108/0109の状態が正しい」との指摘を受け、この3点のみ
+ * 元に戻した: 見出しは句点なし「気づいたら、そこに問いがある」の
+ * まま、「問いの生態系」カードは表示せず「研究断面」1件のまま、
+ * Headerは「公開研究室ふ、と」のまま。詳細はDecision Log 0112参照。
  *
  * 以下、この変更より前の変遷(Hero統合・夜空背景・文章整理等)は、
  * このファイルのgit履歴および各Decision Logを参照。
@@ -57,11 +65,6 @@ import type { BookEntry } from "@/types/bookshelf";
 import { contactFormEndpoint } from "@/config/site";
 
 const currentWorkItems: CurrentWorkItem[] = [
-  {
-    label: "Research",
-    title: "問いの生態系",
-    body: ["観察し、記録し、つくり、試す。"],
-  },
   {
     label: "Research Review",
     title: "研究断面",
@@ -107,7 +110,7 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
 
   <ResearchStatement
     title="Research Statement"
-    heading="気づいたら、そこに問いがある。"
+    heading="気づいたら、そこに問いがある"
     headingLevel="h1"
     paragraphs={[
       [
