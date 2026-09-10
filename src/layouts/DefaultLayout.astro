@@ -34,6 +34,16 @@
  * 更新後も古い表示のまま残る可能性がある。`?v=2`というクエリ文字列を
  * 付け、URLそのものを変えることで再取得を促す。次に中身を変更する際は
  * この番号をインクリメントすること。
+ *
+ * 【OGP画像をライトトーンに差し替え・キャッシュ対策(2026-09-10、
+ * Decision Log 0110)】2026-09-10のサイト全体配色変更(Decision Log
+ * 0104)後もOGP画像(default.png)が旧配色(濃紺背景+白文字+光の粒)の
+ * ままになっており、URLシェア時のプレビューだけ配色が古いという指摘を
+ * 受けた。画像を新配色(--color-paper背景+--color-ink文字)で作り直し、
+ * favicon同様`?v=2`を付けてキャッシュ対策とした。X(Twitter)・
+ * Facebook・LINE・Slack等はOGP画像をURL単位でキャッシュするため、
+ * ファイル名(URL)を変えないと更新後もプラットフォーム側のキャッシュ
+ * には古い画像が残り続ける。
  * ------------------------------------------------------------
  */
 import "@styles/global.css";
@@ -60,7 +70,7 @@ const {
   theme = "default",
 } = Astro.props;
 
-const ogImageUrl = new URL("/images/ogp/default.png", Astro.site);
+const ogImageUrl = new URL("/images/ogp/default.png?v=2", Astro.site);
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 /** URLシェア時に表示される見出し。ページごとの`title`とは切り離し、全ページ共通で固定する。 */
 const sharedTitle = "公開研究室ふ、と";
