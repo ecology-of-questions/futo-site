@@ -159,3 +159,6 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0101](./0101-research-statement-full-rewrite.md) | Research Statement本文の全面書き換え、章構成を廃止する(→ 0094の項目2を一部上書き) |
 | [0102](./0102-home-research-statement-merge.md) | HeroとResearch Statementを統合し、専用ページを廃止して背景をグラデーション化する |
 | [0103](./0103-sitewide-copy-cleanup.md) | Research Statement以外のページの文章整理(重複削除・具体化) |
+| [0104](./0104-light-tone-color-scheme.md) | サイト全体配色をライトトーンに変更し、夜空背景を廃止する |
+| [0105](./0105-ambient-lights-restore-visibility.md) | カーソル追従の光・ふと現れる光を、ライトトーンでも見えるようにする(→ 上書き済み、0106) |
+| [0106](./0106-ambient-lights-removed.md) | カーソル追従の光・ふと現れる光の演出を撤去する |

@@ -1,16 +1,28 @@
 /**
  * NightBackground.module.css
  * ------------------------------------------------------------
- * NightBackground.astro専用スタイル。position: fixedの紺の背景と、
- * ふと現れて消える光の粒を描画する。元はindex.module.css(Home専用)
- * にあった実装(2026-09-03、Decision Log 0059〜0062)を、他ページにも
- * 揃えるためコンポーネント化した際にそのまま移設した。
+ * NightBackground.astro専用スタイル。position: fixedの背景を描画する。
+ * 元はindex.module.css(Home専用)にあった実装(2026-09-03、Decision
+ * Log 0059〜0062)を、他ページにも揃えるためコンポーネント化した際に
+ * そのまま移設した。
  *
  * 【Mobileにも適用(2026-09-04、Decision Log 0085)】当初はDesktop幅
  * (900px以上)限定だった(Mobileは別途Hero内蔵の透かし表現、
  * Decision Log 0023)が、プロジェクトオーナーの指示によりMobileにも
- * 同じ夜空背景を適用することになった。Desktop限定にしていた
+ * 同じ背景を適用することになった。Desktop限定にしていた
  * `@media (min-width: 900px)`によるdisplay制御を撤去した。
+ *
+ * 【濃紺背景を廃止、ライトトーンに(2026-09-10、Decision Log 0104)】
+ * プロジェクトオーナーの指示により、背景色を--color-night(濃紺)から
+ * --color-paper(白に近い背景)に変更した。
+ *
+ * 【「ふと現れて消える光の粒」を削除(2026-09-10、Decision Log 0106)】
+ * ライトトーン化に伴い光の粒の色をcolor-mix()で作り直したが
+ * (Decision Log 0105)、プロジェクトオーナーから「光なくていい」
+ * との指示を受け、光の演出自体を撤去することになった。`.lights`/
+ * `.light`要素・`lightPulse`アニメーションを削除し、position: fixed
+ * の単色(または`.gradient`指定時はグラデーション)背景のみを描画する
+ * コンポーネントに戻した。経緯はDecision Log 0106参照。
  * ------------------------------------------------------------
  */
 
@@ -24,14 +36,16 @@
      z-index:0の位置指定要素より手前に描画されるため、この背景を
      「本文より背面」にするには0ではなく負の値が必要 */
   z-index: -1;
-  background-color: var(--color-night);
+  background-color: var(--color-paper);
   pointer-events: none;
 }
 
-/* 【Research Statementページ専用(2026-09-09)】`gradient` prop指定時のみ
-   付与される。鮮やかさを出さず、上から下へごくわずかに斜めに(170deg)
-   明るさが変わる程度に留める(「グラデーションしている」と強く感じ
-   させないため、角度は垂直に近い170degのみ傾ける)。 */
+/* 【Research Statementエリア専用】`gradient` prop指定時のみ付与される。
+   鮮やかさを出さず、上から下へごくわずかに斜めに(170deg)明るさが
+   変わる程度に留める(「グラデーションしている」と強く感じさせない
+   ため、角度は垂直に近い170degのみ傾ける)。2026-09-10のサイト全体
+   配色変更で、グラデーションの色自体も濃紺系からごく淡いトーンに
+   作り直した(値はtokens.css参照)。 */
 .gradient {
   background: linear-gradient(
     170deg,
@@ -39,90 +53,4 @@
     var(--color-night-gradient-mid) 50%,
     var(--color-night-gradient-bottom) 100%
   );
-}
-
-.lights {
-  position: absolute;
-  inset: 0;
-}
-
-.light {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(247, 243, 234, 0.9) 0%, rgba(247, 243, 234, 0) 70%);
-  opacity: 0;
-  /* keyframe内のピーク不透明度をカスタムプロパティ化し、.gradient配下
-     (Research Statementページ)だけ弱められるようにしている
-     (2026-09-09)。既定値は変更前と同じ0.85。 */
-  --light-peak-opacity: 0.85;
-  animation-name: lightPulse;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  /* prefers-reduced-motion: reduceの場合、global.cssの指定により
-     animation-durationが0.01ms・iteration-countが1に強制されるため、
-     光は一瞬でこのkeyframeの終端(opacity: 0)に落ち着き、点滅しない */
-}
-
-/* Research Statementページの背景グラデーションに対して、光を今より
-   少し弱め、背景より目立たないようにする(2026-09-09)。 */
-.gradient .light {
-  --light-peak-opacity: 0.55;
-}
-
-/* 「ふと複数の光がじんわりと現れる。そしていつの間にか消える」という
-   イメージのため、durationを長め(9〜13秒)にし、animation-delayを
-   負の値にして各光の開始位相をずらしている(同時に光らない) */
-.light:nth-child(1) {
-  top: 18%;
-  left: 22%;
-  width: 5rem;
-  height: 5rem;
-  animation-duration: 11s;
-  animation-delay: -2s;
-}
-
-.light:nth-child(2) {
-  top: 62%;
-  left: 68%;
-  width: 3.5rem;
-  height: 3.5rem;
-  animation-duration: 9s;
-  animation-delay: -6s;
-}
-
-.light:nth-child(3) {
-  top: 40%;
-  left: 80%;
-  width: 6rem;
-  height: 6rem;
-  animation-duration: 13s;
-  animation-delay: -9s;
-}
-
-.light:nth-child(4) {
-  top: 78%;
-  left: 30%;
-  width: 4rem;
-  height: 4rem;
-  animation-duration: 10s;
-  animation-delay: -4s;
-}
-
-.light:nth-child(5) {
-  top: 10%;
-  left: 58%;
-  width: 3rem;
-  height: 3rem;
-  animation-duration: 12s;
-  animation-delay: -1s;
-}
-
-@keyframes lightPulse {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  50% {
-    opacity: var(--light-peak-opacity);
-  }
 }

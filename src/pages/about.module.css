@@ -22,7 +22,7 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 .pageTitle {
@@ -87,7 +87,7 @@
   /* ResearchReviewListの番号表示と同じ、小さく淡いMeta扱い。 */
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  opacity: 0.6;
+  color: var(--color-ink-muted);
 }
 
 .subheading {
@@ -97,7 +97,7 @@
   font-size: var(--fs-lg);
   line-height: var(--lh-heading);
   font-weight: 500;
-  opacity: 0.75;
+  color: var(--color-ink-muted);
 }
 
 .body {

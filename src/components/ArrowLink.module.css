@@ -1,16 +1,21 @@
 .link {
+  /* 2026-09-10のサイト全体配色変更(Decision Log 0104)により、
+     アクセントの青を明示的に指定した(以前はcurrentColorで周囲の
+     文字色を継承していた)。hoverはopacityでの減光ではなく下線の
+     色そのままを保つことで、新しい背景色でもコントラスト比を
+     保つ。 */
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  color: var(--color-accent-blue);
   text-decoration: none;
   border-bottom: 1px solid currentColor;
   padding-bottom: 2px;
-  transition: opacity var(--transition-base);
 }
 
 .link:hover,
 .link:focus-visible {
-  opacity: 0.6;
+  text-decoration: underline;
 }
 
 .arrow {

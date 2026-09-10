@@ -37,15 +37,20 @@
 }
 
 .navLink {
+  /* 2026-09-10のサイト全体配色変更(Decision Log 0104)により、
+     --color-night(濃紺)から--color-accent-blue(アクセントの青)に
+     変更した。以前はopacity:0.7で基本状態を控えめにしていたが、
+     新しい背景(--color-paper)との組み合わせではopacity 0.7だと
+     コントラスト比がWCAG AA(4.5:1)を割り込むため、基本状態は
+     不透明度100%の地の色のまま、hover/focusは下線で示す方式に
+     変更した。 */
   text-decoration: none;
-  color: var(--color-night);
-  opacity: 0.7;
-  transition: opacity var(--transition-base);
+  color: var(--color-accent-blue);
 }
 
 .navLink:hover,
 .navLink:focus-visible {
-  opacity: 1;
+  text-decoration: underline;
 }
 
 .menuToggle {
@@ -61,7 +66,7 @@
   background: none;
   border: none;
   padding: var(--space-1);
-  color: var(--color-night);
+  color: var(--color-accent-blue);
   cursor: pointer;
   transition: opacity var(--transition-base);
 }

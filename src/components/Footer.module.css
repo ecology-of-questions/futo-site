@@ -29,20 +29,23 @@
 }
 
 .link {
+  /* 2026-09-10のサイト全体配色変更(Decision Log 0104)により、
+     Headerのナビゲーションリンクと揃えてアクセントの青にした
+     (以前は--color-ink、opacity 0.7)。基本状態を不透明度100%の
+     地の色にし、hover/focusは下線で示す(コントラスト比を保つため、
+     opacityでの減光はしない)。 */
   text-decoration: none;
-  color: var(--color-ink);
-  opacity: 0.7;
-  transition: opacity var(--transition-base);
+  color: var(--color-accent-blue);
 }
 
 .link:hover,
 .link:focus-visible {
-  opacity: 1;
+  text-decoration: underline;
 }
 
 .copyright {
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  opacity: 0.5;
+  color: var(--color-ink-muted);
 }
