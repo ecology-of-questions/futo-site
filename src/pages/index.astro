@@ -169,6 +169,16 @@
  * カード一覧へ。各カードの本文、「一緒に試す」の本文も短く具体的な
  * 言い回しに差し替えた。Research Statement本文・見出しは変更して
  * いない。
+ *
+ * 【「Research｜問いの生態系」カードを削除(2026-09-10、Decision Log
+ * 0109)】プロジェクトオーナーの指示により、currentWorkItemsから
+ * 「Research」ラベルの項目(見出し「問いの生態系」)を削除した。
+ * Research Statementで研究内容を既に十分説明しているため、直後の
+ * セクションで「問いの生態系」を独立して再説明すると内容が重複する
+ * という理由。「いま、取り組んでいること」は「研究断面」「一緒に
+ * 試す」の2本柱になった。「問いの生態系」という名称・概念自体は
+ * 削除しておらず、Aboutページ・研究断面01の本文には引き続き残って
+ * いる。Research Statement本文・見出しは今回変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -182,11 +192,6 @@ import styles from "./index.module.css";
 import type { CurrentWorkItem } from "@/types/currentWork";
 
 const currentWorkItems: CurrentWorkItem[] = [
-  {
-    label: "Research",
-    title: "問いの生態系",
-    body: ["「ふと」気づく、その前後には何が起きているのか。言葉や知覚、記憶について読みながら、日々の観察や記録と行き来して考えています。"],
-  },
   {
     label: "Research Review",
     title: "研究断面",

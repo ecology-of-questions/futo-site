@@ -45,6 +45,10 @@
   line-height: var(--lh-heading);
   font-weight: 500;
   margin: 0;
+  /* 説明文(.note)が長くなった際、flexの縮小対象がh1側に回り、
+     「研究断面」が意図せず改行(語の途中で折り返し)してしまう
+     ことがあったため、見出し側は縮まないようにした(2026-09-10)。 */
+  flex-shrink: 0;
 }
 
 .note {
