@@ -166,4 +166,5 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0108](./0108-nav-label-and-copy-tweaks.md) | ナビゲーションラベルとResearch Statement本文の文言を3件修正する |
 | [0109](./0109-remove-research-card-consolidate-branches.md) | トップページの「Research｜問いの生態系」カードを削除し、保留中の文章整理作業を統合する |
 | [0110](./0110-ogp-image-light-tone.md) | OGP画像をライトトーンの配色に作り直す |
-| [0111](./0111-top-page-editorial-redesign.md) | トップページを、白背景・余白の多い編集的な構成に再設計する(Parking Lot解禁を含む) |
+| [0111](./0111-top-page-editorial-redesign.md) | トップページを、白背景・余白の多い編集的な構成に再設計する(Parking Lot解禁を含む)(→ 一部上書き済み、0112) |
+| [0112](./0112-redesign-partial-revert.md) | トップページ再設計のうち3点を、直近の決定(0108/0109)に差し戻す |
