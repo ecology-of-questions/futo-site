@@ -1,0 +1,97 @@
+/**
+ * BookshelfList.module.css
+ * ------------------------------------------------------------
+ * 「研究の本棚」の本カード。Desktop幅で3カラム、Mobile幅で
+ * 縦1カラムに積む(ResearchReviewList等と同じレスポンシブパターン)。
+ *
+ * 仮カバー(.cover)は、実際の書影画像の代わりに、tokens.cssの
+ * 既存トークンをcolor-mixで組み合わせた抽象色面にした。新しいHEX値を
+ * 決め打ちせず、既存トークンから算出する方針(Decision Log 0094等)を
+ * 踏襲している。影・太い枠線・大きな角丸は使わず、静かなトーンを
+ * 保つ(カードの装飾は最小限のborder-radiusのみ)。
+ * ------------------------------------------------------------
+ */
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 700px) {
+  .grid {
+    flex-direction: row;
+    margin-top: var(--space-5);
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (min-width: 700px) {
+  .card {
+    flex: 1;
+  }
+}
+
+.cover {
+  display: flex;
+  align-items: flex-end;
+  aspect-ratio: 3 / 4;
+  padding: var(--space-3);
+  border-radius: 2px;
+}
+
+/* 3色は、既存トークン(--color-accent-beige/--color-accent-green/
+   --color-accent-blue)をそれぞれ--color-inkとcolor-mixし、彩度を
+   抑えた「本の背表紙」のような落ち着いた色面にしたもの。 */
+.cover[data-tone="warm"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
+  );
+}
+
+.cover[data-tone="moss"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
+  );
+}
+
+.cover[data-tone="sky"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
+  );
+}
+
+.coverTitle {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+  color: var(--color-ink);
+}
+
+.label {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+}
+
+.description {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}

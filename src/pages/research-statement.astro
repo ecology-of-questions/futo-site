@@ -1,0 +1,57 @@
+---
+/**
+ * research-statement.astro (Research Statement 全文)
+ * ------------------------------------------------------------
+ * 役割: Research Statementの全文を掲載する独立ページ。
+ *
+ * 【経緯】2026-09-09、専用ページを廃止しHomeに全文を統合した
+ * (Decision Log 0102)。その後2026-09-10、トップページを編集的な
+ * 構成に再設計するにあたり、Homeには短い要約のみを掲載し、全文は
+ * 再びこの独立ページに戻すことになった(Decision Log 0111)。
+ * astro.config.mjsにあった`/research-statement` →
+ * `/#research-statement`のリダイレクト設定も、このページの復活に
+ * 伴い削除した。
+ *
+ * ResearchStatementコンポーネント自体は「文章を受け取る器」のまま
+ * 変更していない(Decision Log 0008・0013)。Home(要約)とこのページ
+ * (全文)は、同じコンポーネントにpropsとして異なるparagraphsを
+ * 渡しているだけである。全文の内容は、Decision Log 0102時点で
+ * Homeに統合されていたものと同一(その後の文言修正、Decision Log
+ * 0108の「そうやって、」追加・見出し句点の扱いも反映済み)。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchStatement from "@components/ResearchStatement.astro";
+import NightBackground from "@components/NightBackground.astro";
+---
+
+<DefaultLayout title="Research Statement ｜ ふ、と" description="公開研究室「ふ、と」のResearch Statement全文。" theme="night">
+  <NightBackground />
+  <ResearchStatement
+    title="Research Statement"
+    heading="気づいたら、そこに問いがある。"
+    headingLevel="h1"
+    paragraphs={[
+      [
+        "いつも歩く道で、ある日ふと、ずっとそこにあったはずの建物の存在に気づく。",
+      ],
+      [
+        "本を読んでいて、ひとつの言葉から、ずっと前の出来事を思い出す。",
+      ],
+      [
+        "なぜ、ある瞬間に、それまで気づかなかったものが立ち現れ、そこから問いはどのように生まれるのだろうか。",
+      ],
+      [
+        "公開研究室「ふ、と」では、人と世界のあいだで問いが生まれ、育っていく過程を探っています。",
+      ],
+      [
+        "そうした瞬間をじっくり観察し、記録してみたり、誰かと対話してみたり、ときにはその瞬間を捉えるためのツールをつくってみたりする。",
+      ],
+      [
+        "そうやって、ああでもない、こうでもないと試しながら、すぐには答えの出ない、その豊かな過程をまるごとひらいていきます。",
+      ],
+    ]}
+    linkLabel="研究断面を見る"
+    linkHref="/research"
+  />
+</DefaultLayout>

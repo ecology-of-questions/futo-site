@@ -19,13 +19,9 @@ export default defineConfig({
     format: "directory",
   },
 
-  // 【/research-statement/ の統合(2026-09-09)】専用ページを廃止し、
-  // 内容をトップページのResearch Statementセクションに統合した
-  // ことに伴い、既存URLが404にならないよう、トップページの
-  // 該当セクションへリダイレクトする。output: "static"のため、
-  // Astroが静的なmeta refreshページを生成する(Cloudflare固有の
-  // _redirects等には依存しない、ポータブルな方式)。
-  redirects: {
-    "/research-statement": "/#research-statement",
-  },
+  // 【/research-statement/ のリダイレクト削除(2026-09-10)】
+  // 2026-09-09に専用ページを廃止しHomeへ統合した際に設定した
+  // リダイレクト(Decision Log 0102)。2026-09-10のトップページ
+  // 再設計で専用ページを復活させたため(Decision Log 0111)、
+  // このリダイレクト設定自体が不要になり削除した。
 });

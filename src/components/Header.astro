@@ -39,6 +39,13 @@
  * (aria-expanded="true")ではCSSのみでアイコンを×形に変形させる
  * (JS側の追加実装は不要。既存のaria-expanded切り替えロジックを
  * そのままCSSセレクタで利用)。
+ *
+ * 【トップページ再設計に伴うナビゲーション変更(2026-09-10、Decision
+ * Log 0111)】新設した「研究の本棚」への導線として「本棚」を追加。
+ * 「お問い合わせ」はヘッダーから外し(Homeの複数セクションから
+ * お問い合わせへの導線があるため)、「公開研究室ふ、と」(2026-09-10、
+ * Decision Log 0108)は「ふ、とについて」に戻した。ナビゲーションは
+ * 研究断面/本棚/ふ、とについての3項目になった。
  * ------------------------------------------------------------
  */
 import styles from "./Header.module.css";
@@ -69,8 +76,8 @@ import styles from "./Header.module.css";
 
     <nav id="site-nav" class={styles.nav} aria-label="サイト内ナビゲーション" data-nav>
       <a class={styles.navLink} href="/research">研究断面</a>
-      <a class={styles.navLink} href="/about">公開研究室ふ、と</a>
-      <a class={styles.navLink} href="/contact">お問い合わせ</a>
+      <a class={styles.navLink} href="/bookshelf">本棚</a>
+      <a class={styles.navLink} href="/about">ふ、とについて</a>
     </nav>
   </div>
 </header>

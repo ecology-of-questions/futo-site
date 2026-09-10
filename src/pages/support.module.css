@@ -1,0 +1,36 @@
+/* about.module.css・research.module.css等と同じ「Eyebrowをpに変更」
+   の考え方(Decision Log 0096)。 */
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.heading {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  max-width: 36rem;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.body p {
+  margin: 0;
+}
+
+.link {
+  margin-top: var(--space-3);
+}

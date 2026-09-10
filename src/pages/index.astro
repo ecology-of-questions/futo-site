@@ -8,177 +8,39 @@
  *
  * Research Statementは、Design Spec 7・8による仮コンテンツ→v0.1
  * (First Draft)を経て、2026-08-07に正式版へ差し替えた(Decision Log
- * 0016)。2026-09-09までは冒頭抜粋のみをHomeに掲載し、全文は独立
- * ページ`/research-statement`に掲載していたが、専用ページを廃止し、
- * 全文をHomeに統合した(詳細は下記参照)。
+ * 0016)。過去の変遷(全文掲載/抜粋掲載の切り替え)は複数回の
+ * Decision Logにまたがっているため、直近の構成のみ以下に記す。
  *
- * 以下の順で残りのセクションを追加していく(Design Spec 4: Home Structure)。
+ * 【トップページ再設計(2026-09-10、Decision Log 0111)】プロジェクト
+ * オーナーから、「白ベースで余白の多い編集的なトップページ」への
+ * 再設計指示(添付の理想イメージ・詳細な文案・デザインルール付き)を
+ * 受けた。実装前に「変更対象ファイル・現在の構成・変更後の構成案・
+ * 各セクションの変更前後の文章・新設セクション」の一覧を提示し、
+ * 新設3セクション(研究の本棚・研究便り・研究を支える)がCLAUDE.mdの
+ * Parking Lot(β公開まで新機能を増やさない方針)に抵触することを
+ * 明示したうえで、プロジェクトオーナーに確認した。プロジェクトオーナー
+ * は「3セクションとも今回実装する」と回答し、Parking Lotの方針転換を
+ * 明示的に決定した(詳細はDecision Log 0111、CLAUDE.md/PROJECT.mdの
+ * Parking Lot節参照)。
  *
- * 1. Research Statement(統合後、全文) ← 実装済み
- * 2. 今、取り組んでいること              ← β公開では後回し可(優先度: README参照)
- * 3. 研究断面
- * 4. 研究便り
- * 5. Footer (DefaultLayout側で共通配置)
+ * 変更内容:
+ * - Research Statementセクション: 全文(6段落)ではなく、冒頭2文の
+ *   要約+「Research Statementを読む →」に変更。全文は独立ページ
+ *   `/research-statement`として復活させた(2026-09-09、Decision Log
+ *   0102で一度廃止していたもの)。見出し末尾の句点「。」も復活させた
+ *   (2026-09-10、Decision Log 0108で一度削除していたもの)。
+ * - 「いま、取り組んでいること」: 「Research｜問いの生態系」カードを
+ *   復活させ(2026-09-10、Decision Log 0109で一度削除していたもの)、
+ *   「研究断面」と2カラムで並べる構成にした。
+ * - 「研究の本棚」を新設。本の仮カード3件+一覧ページ`/bookshelf`。
+ * - 「一緒に試す」: 本文を1文に短縮。独立区画としての背景面
+ *   (Decision Log 0094)は撤去し、他の平場セクションと同じ扱いに
+ *   戻した。
+ * - 「研究便り」(メルマガ購読フォーム)・「研究を支える」(支援ページ
+ *   への導線)を新設し、1つの背景面にまとめて配置した。
  *
- * β公開の優先順位(README「現在の方針: β公開優先」)では、
- * Home以降 About → Research(プレースホルダー) の順に進める。
- *
- * 【Desktop背景(2026-08-15、Decision Log 0024)】
- * 渦のアートワーク(VisualFragment)は、以前はHero内の右カラムに
- * 限定されていたが、Desktop幅ではHome全体(Hero〜Research Statement)
- * を貫くposition: fixed背景に変更した。HeroがDOM上の最初のセクション
- * であることに変わりはないため、Design Spec 4のHome Structure
- * (Hero → Research Statement → Footer)の順序・構成そのものは
- * 変更していない。あくまで「そのHero相当のビジュアルを、ページ全体の
- * 視覚的トーンとして拡張した」という位置づけ。Mobileでは変更せず、
- * Hero内蔵の透かし(Decision Log 0023)のまま。
- *
- * 【Desktop背景「夜空」化(2026-09-03、Decision Log 0059)】
- * プロジェクトオーナーの発案により、上記のDesktop背景を生成りの
- * 透かしから「夜空」に変更し、ふと現れて消える光の粒を追加した。
- * DefaultLayoutにtheme="night"を渡し、Desktop幅でmain/footer配下の
- * 文字色を反転させている(global.css参照)。Mobileでは変更なし。
- *
- * 【Desktop背景から画像を撤去(2026-09-03、Decision Log 0060)】
- * プロジェクトオーナーの指示により、上記「夜空」背景から渦の
- * アートワーク(VisualFragment)を外し、紺の背景と光の粒のみに
- * した。.background側での直接利用がなくなったためVisualFragmentの
- * importは削除したが、Hero側(Mobileの透かし表現、Decision Log
- * 0023)がvisualSrc propとして引き続き参照するため、heroVisualSrc
- * 自体は残している。
- *
- * 【他ページへの展開に伴うコンポーネント化(2026-09-03、Decision Log
- * 0063)】この「夜空」背景(紺の背景色+光の粒)を/research・/about・
- * /contactにも揃える指示を受け、NightBackground.astroとして切り出
- * した。以前ここに直接書いていた.background/.lights divは
- * <NightBackground />に置き換えている。
- *
- * 【「いま、取り組んでいること」文言改訂(2026-09-03、Decision Log
- * 0074)】プロジェクトオーナーの指示により、導入文・「問いの生態系」
- * ・「研究断面」の説明文を差し替えた。「研究断面」の説明文は2段落に
- * なったため、CurrentWorkItem.bodyの型をstringからstring[]に変更
- * した(CurrentWorkList.astro側も合わせて更新)。「Fieldnote（仮称）」
- * 項目の文言は今回の指示に含まれていないため変更していない。
- *
- * 【「Fieldnote（仮称）」項目の削除(2026-09-03、Decision Log 0077)】
- * プロジェクトオーナーの指示により、「Fieldnote（仮称）」への言及を
- * 全ページから削除することになったため、currentWorkItemsから
- * 「Practice」項目(上記0074時点では変更せず残していたもの)を
- * まるごと削除した。/fieldnote(Fieldnote Reading最小プロトタイプ、
- * Decision Log 0066)自体は今回の対象外で、引き続き公開している。
- *
- * 【カーソル追従の光(2026-09-03、Decision Log 0078)】プロジェクト
- * オーナーの提案により、カーソル位置の背景がじんわり光る演出
- * (CursorGlow)を試験的に追加した。まずHomeページのみに限定して
- * 試す(他ページへの展開は未定)。
- *
- * 【文言・改行の調整(2026-09-04、Decision Log 0080)】プロジェクト
- * オーナーの指示により、以下を変更した。
- * - 「研究断面」項目の説明文(1段落目)を「「ふと」という現象に
- *   関連してそのとき気になっていることを記録しています。」に差し替え
- * - Research Statement抜粋の一節を「自分との関わり方だけが少し
- *   変わる」から「世界と自分との関わり方が少し変わる」に修正
- *   (全文ページ`research-statement.astro`の同じ一節も合わせて修正)
- * - 「いま、取り組んでいること」導入文に、「観察しています。」の
- *   直後で改行(`<br />`)を1箇所追加
- *
- * 【夜空背景をMobileにも適用(2026-09-04、Decision Log 0085)】
- * プロジェクトオーナーの指示により、上記0059・0063でDesktop幅
- * (900px以上)限定にしていた<NightBackground />・文字色反転を
- * Mobileにも広げた。この時点ではHero内蔵の透かし(Decision Log
- * 0023)はそのまま残り、紺の背景の上に重ねて表示されていた。
- *
- * 【Hero内蔵の透かし画像を撤去(2026-09-04、Decision Log 0086)】
- * プロジェクトオーナーから「トップページの古い右側の画像はPC版同様
- * 削除して」との指示を受け、Mobile限定で残っていたHero内蔵の透かし
- * (渦のアートワーク、Decision Log 0023)を撤去した。Desktopは
- * Decision Log 0060で既に画像なしになっていたため、これで
- * Desktop・Mobileともに渦のアートワーク画像を一切使わない構成に
- * 揃った。heroVisualSrc・Hero側のvisualSrc/visualAlt propは不要に
- * なったため削除した(詳細はHero.astro参照)。
- *
- * 【「一緒に試す」(OPEN PRACTICE)セクション追加(2026-09-04、Decision
- * Log 0091)】プロジェクトオーナーの指示により、「いま、取り組んで
- * いること」の後・Footerの前に新セクションを追加した。「音の道」等の
- * 具体的な実践を使って、気づきや問いが立ち現れる状況を一緒につくり
- * 観察する活動への入口を示す。正式な参加者募集やサービス提供には
- * 見せず、関心が重なる人とまず対話するための入口という位置づけ。
- * 将来Practiceページ(音の道 等)が増えた際にリンクを追加しやすいよう、
- * openPracticeLinks配列としてリンクを持たせている。あわせてHero本文
- * 末尾の一文を「ふ、と は、そんな時間を届ける研究室です。」から
- * 「「ふ、と」は、そんな営みをひらいていく公開研究室です。」に修正した。
- *
- * 【Hero本文の短縮・OPEN PRACTICEの背景差別化(2026-09-04、Decision
- * Log 0094)】ChatGPT/Creative Directorから、Heroの4行がすぐ下の
- * Research Statement抜粋と内容が重なっているという指摘を受け、
- * プロジェクトオーナー確認のうえ2行に短縮した(文言はChatGPT提案を
- * 採用)。あわせて、「一緒に試す」セクションのみ、紺の背景に対して
- * ごく淡く明るい面(--color-nightをcolor-mixでわずかに明るくした
- * もの。新しいHEX値を決め打ちせず、既存トークンから算出している)を
- * 敷き、他のセクションと区別できる「独立した区画」として見せる
- * ようにした(プロジェクトオーナーの指示により、他セクションへの
- * 背景差別化は今回は見送り)。
- *
- * 【Research Statement抜粋の強制改行を解除(2026-09-05)】1段落目
- * (「いつもの道を歩いていたら〜」)が、「家が、」の直後で強制的に
- * 改行される2行に分かれていた。Research Statement全文ページ
- * (research-statement.astro)の同段落は既に1つの文字列(自然な
- * 折返しのみ)になっており、サイト全体の「自然な折返しに任せる」
- * 方針(Decision Log 0026)にも合わせ、こちらも1つの文字列に統合
- * した。文章そのもの(語順・言葉遣い)は変更していない。
- *
- * 【HeroとResearch Statementを統合、専用ページを廃止(2026-09-09、
- * Decision Log 0102)】プロジェクトオーナーの指示により、以下を実施。
- * - Heroの見出し「気づいたら、そこに問いがある」と、Research
- *   Statementセクションの同じ見出しが重複していたため、Heroを廃止し、
- *   Research Statementセクション1つに統合した。HeroにあったHome専用の
- *   短い本文(「日常に生まれる小さな気づきを観察し、問いが育つ過程を
- *   ひらく研究室です。」)は削除。見出しは新しい文言「気づいたら、
- *   そこに問いがある。」(句点付き)に差し替え、Heroの見出しが担って
- *   いたページのh1の役割もこのセクションのheadingLevel="h1"が引き継ぐ。
- * - 専用ページ`/research-statement`を廃止し、全文をHomeのこの
- *   セクションにそのまま掲載した(paragraphsを8段落フルに拡張)。
- *   末尾の「Research Statement 全文を読む」リンクは行き先がなくなった
- *   ため削除。
- * - `/research-statement`への既存アクセスが404にならないよう、
- *   astro.config.mjsの`redirects`で`/#research-statement`へ
- *   リダイレクトするようにした(Cloudflare固有機能は使わない、
- *   Astro標準のポータブルな仕組み)。
- * - 背景は<NightBackground gradient />にして、単色から縦方向の
- *   穏やかなグラデーションに変更した(詳細はNightBackground.astro
- *   参照)。Homeはページ全体で1つの共有fixed背景のため、「いま、
- *   取り組んでいること」「一緒に試す」を含むページ全体に適用される
- *   (これら2セクション自体の文言・構造・独自の背景色(OPEN PRACTICEの
- *   淡い面)は変更していない)。
- * - Hero.astro/Hero.module.css自体は削除せず残している(現時点で
- *   呼び出し元がなくなっただけ)。
- *
- * 【本文を短縮(2026-09-09)】プロジェクトオーナーから新しい文章一式を
- * 受け取り、本文を差し替えた。「探していたわけでも、考えていたわけでも
- * ない。それでも、何かがふと立ち現れる。」「私たちは、そんな瞬間に
- * 「ふと」という言葉を使います。」の2段落を削除し、「公開研究室
- * 「ふ、と」では〜」の段落を短く言い換えた(「日常のなかに現れる
- * 「ふと」という現象を手がかりに」「どのように」を削除)。見出し
- * 「気づいたら、そこに問いがある。」は変更していない。
- *
- * 【サイト全体の文章整理(2026-09-09、Decision Log 0103)】プロジェクト
- * オーナーの指示により、Research Statementで既に説明済みの内容
- * (「ふと」「問い」「公開研究室」とは何か)を、このページの直後の
- * セクションで再説明しないよう整理した。「いま、取り組んでいること」
- * の導入文(Research Statementとほぼ同内容)を削除し、見出し直後に
- * カード一覧へ。各カードの本文、「一緒に試す」の本文も短く具体的な
- * 言い回しに差し替えた。Research Statement本文・見出しは変更して
- * いない。
- *
- * 【「Research｜問いの生態系」カードを削除(2026-09-10、Decision Log
- * 0109)】プロジェクトオーナーの指示により、currentWorkItemsから
- * 「Research」ラベルの項目(見出し「問いの生態系」)を削除した。
- * Research Statementで研究内容を既に十分説明しているため、直後の
- * セクションで「問いの生態系」を独立して再説明すると内容が重複する
- * という理由。「いま、取り組んでいること」は「研究断面」「一緒に
- * 試す」の2本柱になった。「問いの生態系」という名称・概念自体は
- * 削除しておらず、Aboutページ・研究断面01の本文には引き続き残って
- * いる。Research Statement本文・見出しは今回変更していない。
+ * 以下、この変更より前の変遷(Hero統合・夜空背景・文章整理等)は、
+ * このファイルのgit履歴および各Decision Logを参照。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -187,20 +49,46 @@ import ResearchSection from "@components/ResearchSection.astro";
 import sectionTitleStyles from "@components/SectionTitle.module.css";
 import ArrowLink from "@components/ArrowLink.astro";
 import CurrentWorkList from "@components/CurrentWorkList.astro";
+import BookshelfList from "@components/BookshelfList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./index.module.css";
 import type { CurrentWorkItem } from "@/types/currentWork";
+import type { BookEntry } from "@/types/bookshelf";
+import { contactFormEndpoint } from "@/config/site";
 
 const currentWorkItems: CurrentWorkItem[] = [
   {
+    label: "Research",
+    title: "問いの生態系",
+    body: ["観察し、記録し、つくり、試す。"],
+  },
+  {
     label: "Research Review",
     title: "研究断面",
-    body: [
-      "研究の途中で考えたことを、その時点の断面として残しています。",
-      "結論になる前の考えも、あとから変わっていくことも含めて記録します。",
-    ],
-    linkLabel: "研究断面を見る",
+    body: ["そのとき考えていることを、途中からひらく。"],
+    linkLabel: "研究断面を読む",
     linkHref: "/research",
+  },
+];
+
+const bookshelfBooks: BookEntry[] = [
+  {
+    title: "記録と表現",
+    label: "読んでいる",
+    description: "記録に残る、意図しなかったもの。",
+    tone: "warm",
+  },
+  {
+    title: "歩くこと",
+    label: "積読",
+    description: "同じ道を歩くことで見えてくること。",
+    tone: "moss",
+  },
+  {
+    title: "知覚と世界",
+    label: "気になる",
+    description: "気づく前に、何が起きているのか。",
+    tone: "sky",
   },
 ];
 
@@ -219,51 +107,135 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
 
   <ResearchStatement
     title="Research Statement"
-    heading="気づいたら、そこに問いがある"
+    heading="気づいたら、そこに問いがある。"
     headingLevel="h1"
     paragraphs={[
       [
         "いつも歩く道で、ある日ふと、ずっとそこにあったはずの建物の存在に気づく。",
       ],
       [
-        "本を読んでいて、ひとつの言葉から、ずっと前の出来事を思い出す。",
-      ],
-      [
-        "なぜ、ある瞬間に、それまで気づかなかったものが立ち現れ、そこから問いはどのように生まれるのだろうか。",
-      ],
-      [
-        "公開研究室「ふ、と」では、人と世界のあいだで問いが生まれ、育っていく過程を探っています。",
-      ],
-      [
-        "そうした瞬間をじっくり観察し、記録してみたり、誰かと対話してみたり、ときにはその瞬間を捉えるためのツールをつくってみたりする。",
-      ],
-      [
-        "そうやって、ああでもない、こうでもないと試しながら、すぐには答えの出ない、その豊かな過程をまるごとひらいていきます。",
+        "人と世界のあいだで問いが生まれ、育っていく過程を探っています。",
       ],
     ]}
+    linkLabel="Research Statementを読む"
+    linkHref="/research-statement"
   />
 
   <ResearchSection ariaLabel="いま、取り組んでいること" id="current-work">
-    <h2 class={styles.currentWorkHeading}>いま、取り組んでいること</h2>
+    <h2 class={`${styles.currentWorkHeading} ${styles.sectionRule}`}>いま、取り組んでいること</h2>
     <CurrentWorkList items={currentWorkItems} />
   </ResearchSection>
 
+  <ResearchSection ariaLabel="研究の本棚" id="bookshelf">
+    <h2 class={`${styles.bookshelfHeading} ${styles.sectionRule}`}>研究の本棚</h2>
+    <p class={styles.bookshelfIntro}>読んでいる本、これから読みたい本。</p>
+    <BookshelfList books={bookshelfBooks} />
+    <div class={styles.bookshelfLink}>
+      <ArrowLink href="/bookshelf" label="本棚を見る" />
+    </div>
+  </ResearchSection>
+
   <ResearchSection ariaLabel="一緒に試す" id="open-practice">
-    <div class={styles.openPracticePanel}>
-      <p class={sectionTitleStyles.title}>OPEN PRACTICE</p>
-      <h2 class={styles.openPracticeHeading}>一緒に試す</h2>
-      <div class={styles.openPracticeBody}>
-        <p>読んだり考えたりするだけでなく、ときには誰かと一緒に試してみます。</p>
-        <p>
-          歩く。音を聴く。身近なものを眺めてみる。いつもなら通り過ぎてしまうものに、少し時間をかけてみる。
-        </p>
-        <p>
-          そんな小さな実践を準備しています。研究や制作の経験は問いません。気になる方がいたら、まずはお話しできたらうれしいです。
-        </p>
+    <h2 class={`${styles.openPracticeHeading} ${styles.sectionRule}`}>一緒に試す</h2>
+    <p class={styles.openPracticeBody}>
+      音や場所、歩くことを手がかりに、小さな実践を準備しています。
+    </p>
+    <div class={styles.openPracticeLinks}>
+      {openPracticeLinks.map((link) => <ArrowLink href={link.href} label={link.label} />)}
+    </div>
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="研究便り・研究を支える" id="newsletter-support">
+    <div class={styles.panel}>
+      <div class={styles.panelSection}>
+        <p class={sectionTitleStyles.title}>NEWSLETTER</p>
+        <h2 class={styles.panelHeading}>研究便り</h2>
+        <p class={styles.panelBody}>研究の更新や、最近気になっていることをメールでお届けします。</p>
+        <form
+          class={styles.newsletterForm}
+          method="POST"
+          action={contactFormEndpoint}
+          data-newsletter-form
+        >
+          <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <input type="hidden" name="_subject" value="ふ、と 研究便り 登録希望" />
+          <label class="sr-only" for="newsletter-email">メールアドレス</label>
+          <input
+            class={styles.newsletterInput}
+            type="email"
+            id="newsletter-email"
+            name="email"
+            placeholder="メールアドレス"
+            autocomplete="email"
+            required
+          />
+          <button class={styles.newsletterSubmit} type="submit">登録する</button>
+        </form>
+        <p class={styles.newsletterStatus} data-newsletter-status role="status" aria-live="polite"></p>
       </div>
-      <div class={styles.openPracticeLinks}>
-        {openPracticeLinks.map((link) => <ArrowLink href={link.href} label={link.label} />)}
+
+      <div class={styles.panelSection}>
+        <p class={sectionTitleStyles.title}>SUPPORT</p>
+        <h2 class={styles.panelHeading}>研究を支える</h2>
+        <p class={styles.panelBody}>
+          本を読み、観察し、記録する。この研究を続けるための支援を受け付けています。
+        </p>
+        <div class={styles.bookshelfLink}>
+          <ArrowLink href="/support" label="継続支援・単発の支援について" />
+        </div>
       </div>
     </div>
   </ResearchSection>
 </DefaultLayout>
+
+<style>
+  /* Tailwind等を導入していないため、視覚的に隠しつつスクリーン
+     リーダーには読ませる定番の.sr-onlyパターンをこの1箇所のためだけに
+     インラインで定義している(メール欄のラベルを視覚的には
+     placeholderに譲り、アクセシビリティ用のラベルとして残すため)。 */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-newsletter-form]");
+  const status = document.querySelector<HTMLElement>("[data-newsletter-status]");
+
+  if (form && status) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      submitButton?.setAttribute("disabled", "true");
+      status.textContent = "送信中...";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        });
+
+        if (response.ok) {
+          status.textContent = "登録しました。ありがとうございます。";
+          form.reset();
+        } else {
+          status.textContent = "登録に失敗しました。時間をおいて再度お試しください。";
+        }
+      } catch {
+        status.textContent = "登録に失敗しました。通信環境をご確認のうえ再度お試しください。";
+      } finally {
+        submitButton?.removeAttribute("disabled");
+      }
+    });
+  }
+</script>
