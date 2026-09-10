@@ -1,0 +1,53 @@
+---
+/**
+ * bookshelf.astro (研究の本棚)
+ * ------------------------------------------------------------
+ * 役割: 「研究の本棚」の一覧ページ。トップページ(index.astro)の
+ * 「研究の本棚」セクションの「本棚を見る →」リンク先(2026-09-10、
+ * トップページ再設計、Decision Log 0111)。
+ *
+ * /researchページ(研究断面一覧)と同じ構成(Eyebrow+h1+説明文+一覧)
+ * を踏襲している。現時点ではHomeと同じ3冊のみを掲載しており、今後
+ * 増えた際にこのページの一覧に追加していく想定(研究断面と同じ運用)。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchSection from "@components/ResearchSection.astro";
+import BookshelfList from "@components/BookshelfList.astro";
+import NightBackground from "@components/NightBackground.astro";
+import styles from "./bookshelf.module.css";
+import type { BookEntry } from "@/types/bookshelf";
+
+const books: BookEntry[] = [
+  {
+    title: "記録と表現",
+    label: "読んでいる",
+    description: "記録に残る、意図しなかったもの。",
+    tone: "warm",
+  },
+  {
+    title: "歩くこと",
+    label: "積読",
+    description: "同じ道を歩くことで見えてくること。",
+    tone: "moss",
+  },
+  {
+    title: "知覚と世界",
+    label: "気になる",
+    description: "気づく前に、何が起きているのか。",
+    tone: "sky",
+  },
+];
+---
+
+<DefaultLayout title="研究の本棚 ｜ ふ、と" description="公開研究室「ふ、と」で読んでいる本、これから読みたい本。" theme="night">
+  <NightBackground />
+  <ResearchSection ariaLabel="Bookshelf">
+    <p class={styles.eyebrow}>BOOKSHELF</p>
+    <h1 class={styles.heading}>研究の本棚</h1>
+    <div class={styles.note}>
+      <p>読んでいる本、これから読みたい本。</p>
+    </div>
+    <BookshelfList books={books} />
+  </ResearchSection>
+</DefaultLayout>

@@ -1,0 +1,30 @@
+/* research.module.css・about.module.css等と同じ「Eyebrowをpに変更」
+   の考え方(Decision Log 0096)。見出し要素ではないプレーンな<p>にし、
+   ページの最初の見出し(h1)の前にh2相当の見た目のラベルを置く。 */
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.heading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: var(--space-2) 0 0;
+}
+
+.note {
+  margin-top: var(--space-2);
+  font-size: var(--fs-base);
+  line-height: var(--lh-heading);
+  color: var(--color-ink-muted);
+}
+
+.note p {
+  margin: 0;
+}

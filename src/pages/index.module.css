@@ -8,8 +8,25 @@
  * Decision Log 0059/0060)、/research・/about・/contactにも
  * 揃える指示を受けてNightBackground.astroへ切り出した
  * (2026-09-03、Decision Log 0063)。
+ *
+ * 【トップページ再設計(2026-09-10、Decision Log 0111)】プロジェクト
+ * オーナーの指示により、「いま、取り組んでいること」「研究の本棚」
+ * 「一緒に試す」の3セクション見出しに細い上罫線(.sectionRule)を
+ * 追加した。「一緒に試す」は、これまで独立区画として淡い背景面
+ * (.openPracticePanel)を敷いていたが、他の平場のセクションと同じ
+ * 扱いに戻し、代わりに新設した「研究便り」「研究を支える」の2つを
+ * まとめて1つの背景面(.panel)に収める構成にした。
  * ------------------------------------------------------------
  */
+
+/* 「いま、取り組んでいること」「研究の本棚」「一緒に試す」の見出し
+   直前に置く、細い横罫線。ResearchSectionが各セクションに
+   padding-block: space-6を持たせているため、セクション内の最初の
+   要素として配置するだけで上部の余白と揃う。 */
+.sectionRule {
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-5);
+}
 
 .currentWorkHeading {
   /* 「いま、取り組んでいること」セクションの見出し(2026-08-17、
@@ -18,33 +35,27 @@
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  margin: var(--space-3) 0 0;
+  margin: 0;
 }
 
-.currentWorkIntro {
-  margin: var(--space-3) 0 0;
+.bookshelfHeading {
+  /* 「研究の本棚」セクションの見出し(2026-09-10新設)。他の
+     セクション見出しと揃え、fs-xlの控えめな見出しサイズにする。 */
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0;
+}
+
+.bookshelfIntro {
+  margin: var(--space-2) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+  color: var(--color-ink-muted);
 }
 
-.openPracticePanel {
-  /* 「一緒に試す」だけ、地の背景に対してごく淡く区別できる面を敷き、
-     他セクションと区別できる「独立した区画」に見せる(2026-09-04、
-     Decision Log 0094)。2026-09-10のサイト全体配色変更(Decision Log
-     0104)に伴い、濃紺背景を前提にしたcolor-mix(--color-night基準)
-     から、新しい地の色(--color-paper)をごくわずかに--color-inkで
-     暗くした値に作り直した。新しいHEX値を決め打ちせず、既存トークン
-     から算出する方針は維持している。カード的な影・太い枠線・大きな
-     角丸は使わず、静かなトーンを保つ。 */
-  background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-paper));
-  border-radius: 4px;
-  padding: var(--space-4);
-}
-
-@media (min-width: 600px) {
-  .openPracticePanel {
-    padding: var(--space-5);
-  }
+.bookshelfLink {
+  margin-top: var(--space-4);
 }
 
 .openPracticeHeading {
@@ -53,24 +64,136 @@
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  margin: var(--space-3) 0 0;
+  margin: 0;
 }
 
 .openPracticeBody {
-  /* 「一緒に試す」セクションの本文(2026-09-04、Decision Log 0091)。
-     複数段落をSectionTitle/見出しと同じ余白の考え方で並べる。 */
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
+  margin: var(--space-2) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
 
-.openPracticeBody p {
+.openPracticeLinks {
+  margin-top: var(--space-3);
+}
+
+/* 「研究便り」「研究を支える」をまとめて収める背景面(2026-09-10
+   新設)。以前「一緒に試す」に使っていた.openPracticePanelと同じ
+   考え方(地の背景に対してごく淡く区別できる面、Decision Log 0094・
+   0104)をそのまま踏襲している。カード的な影・太い枠線・大きな
+   角丸は使わず、静かなトーンを保つ。 */
+.panel {
+  background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-paper));
+  border-radius: 4px;
+  padding: var(--space-4);
+}
+
+@media (min-width: 600px) {
+  .panel {
+    padding: var(--space-5);
+  }
+}
+
+.panelSection + .panelSection {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.panelHeading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
   margin: 0;
 }
 
-.openPracticeLinks {
+.panelBody {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.panelBody p {
+  margin: 0;
+}
+
+/* 「研究便り」のメール登録フォーム(2026-09-10新設)。Contactページの
+   input/送信ボタンと見た目を揃える(contact.module.cssの.input/.submit
+   と同じトークンを使用)が、フォームがこの1ページに閉じているため、
+   スタイル自体は重複定義している(共通化するほどの再利用箇所がまだ
+   ないため)。 */
+.newsletterForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   margin-top: var(--space-3);
+  max-width: 28rem;
+}
+
+@media (min-width: 480px) {
+  .newsletterForm {
+    flex-direction: row;
+  }
+}
+
+.newsletterInput {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-ink-on-surface);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  transition: border-color var(--transition-base);
+}
+
+.newsletterInput:focus {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-blue);
+}
+
+.newsletterSubmit {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-accent-blue);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-blue);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.newsletterSubmit:hover,
+.newsletterSubmit:focus-visible {
+  background-color: var(--color-accent-blue);
+  color: var(--color-surface);
+}
+
+.newsletterSubmit:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.newsletterStatus {
+  margin: var(--space-2) 0 0;
+  min-height: 1.2em;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.honeypot {
+  /* Formspreeのハニーポット規約(name="_gotcha")。contact.module.css
+     の.honeypotと同じ考え方(Decision Log 0076)。 */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
