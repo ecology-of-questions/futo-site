@@ -160,6 +160,25 @@
  * 「ふ、と」では〜」の段落を短く言い換えた(「日常のなかに現れる
  * 「ふと」という現象を手がかりに」「どのように」を削除)。見出し
  * 「気づいたら、そこに問いがある。」は変更していない。
+ *
+ * 【サイト全体の文章整理(2026-09-09、Decision Log 0103)】プロジェクト
+ * オーナーの指示により、Research Statementで既に説明済みの内容
+ * (「ふと」「問い」「公開研究室」とは何か)を、このページの直後の
+ * セクションで再説明しないよう整理した。「いま、取り組んでいること」
+ * の導入文(Research Statementとほぼ同内容)を削除し、見出し直後に
+ * カード一覧へ。各カードの本文、「一緒に試す」の本文も短く具体的な
+ * 言い回しに差し替えた。Research Statement本文・見出しは変更して
+ * いない。
+ *
+ * 【「Research｜問いの生態系」カードを削除(2026-09-10、Decision Log
+ * 0109)】プロジェクトオーナーの指示により、currentWorkItemsから
+ * 「Research」ラベルの項目(見出し「問いの生態系」)を削除した。
+ * Research Statementで研究内容を既に十分説明しているため、直後の
+ * セクションで「問いの生態系」を独立して再説明すると内容が重複する
+ * という理由。「いま、取り組んでいること」は「研究断面」「一緒に
+ * 試す」の2本柱になった。「問いの生態系」という名称・概念自体は
+ * 削除しておらず、Aboutページ・研究断面01の本文には引き続き残って
+ * いる。Research Statement本文・見出しは今回変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -174,16 +193,11 @@ import type { CurrentWorkItem } from "@/types/currentWork";
 
 const currentWorkItems: CurrentWorkItem[] = [
   {
-    label: "Research",
-    title: "問いの生態系",
-    body: ["「ふと」という、人と世界との関係が変化する瞬間を観察し、その先で問いがどのように育っていくのかを探っています。"],
-  },
-  {
     label: "Research Review",
     title: "研究断面",
     body: [
-      "「ふと」という現象に関連してそのとき気になっていることを記録しています。",
-      "論文のような、検証結果や結論ではなく、後々変わりうるかもしれない考えも大切にしていきます。",
+      "研究の途中で考えたことを、その時点の断面として残しています。",
+      "結論になる前の考えも、あとから変わっていくことも含めて記録します。",
     ],
     linkLabel: "研究断面を見る",
     linkHref: "/research",
@@ -205,7 +219,7 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
 
   <ResearchStatement
     title="Research Statement"
-    heading="気づいたら、そこに問いがある。"
+    heading="気づいたら、そこに問いがある"
     headingLevel="h1"
     paragraphs={[
       [
@@ -224,17 +238,13 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
         "そうした瞬間をじっくり観察し、記録してみたり、誰かと対話してみたり、ときにはその瞬間を捉えるためのツールをつくってみたりする。",
       ],
       [
-        "ああでもない、こうでもないと試しながら、すぐには答えの出ない、その豊かな過程をまるごとひらいていきます。",
+        "そうやって、ああでもない、こうでもないと試しながら、すぐには答えの出ない、その豊かな過程をまるごとひらいていきます。",
       ],
     ]}
   />
 
   <ResearchSection ariaLabel="いま、取り組んでいること" id="current-work">
     <h2 class={styles.currentWorkHeading}>いま、取り組んでいること</h2>
-    <p class={styles.currentWorkIntro}>
-      公開研究室「ふ、と」では、「ふと」という瞬間を手がかりに、問いがどのように立ち上がり、育っていくのかを観察しています。<br />
-      リサーチ、記録、つくることを往復しながら、研究の過程をひらいていきます。
-    </p>
     <CurrentWorkList items={currentWorkItems} />
   </ResearchSection>
 
@@ -243,13 +253,13 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
       <p class={sectionTitleStyles.title}>OPEN PRACTICE</p>
       <h2 class={styles.openPracticeHeading}>一緒に試す</h2>
       <div class={styles.openPracticeBody}>
+        <p>読んだり考えたりするだけでなく、ときには誰かと一緒に試してみます。</p>
         <p>
-          「ふ、と」では、日常のなかで何かが気になり、まだ言葉にならない感覚が問いへと育っていく過程を、観察、記録、対話、制作を通して探っています。
+          歩く。音を聴く。身近なものを眺めてみる。いつもなら通り過ぎてしまうものに、少し時間をかけてみる。
         </p>
         <p>
-          現在、音や場所、歩くこと、身近なものなどを手がかりに、気づきが生まれる瞬間を一緒に観察する、小さな実践を準備しています。
+          そんな小さな実践を準備しています。研究や制作の経験は問いません。気になる方がいたら、まずはお話しできたらうれしいです。
         </p>
-        <p>研究や制作の経験にかかわらず、関心の重なる方と、まずはお話しできたらと思います。</p>
       </div>
       <div class={styles.openPracticeLinks}>
         {openPracticeLinks.map((link) => <ArrowLink href={link.href} label={link.label} />)}

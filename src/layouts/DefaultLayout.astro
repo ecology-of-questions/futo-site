@@ -27,6 +27,13 @@
  * 添えられる「サイト名」(og:site_name)が、従来「公開研究室 ふ、と」
  * (半角スペースあり)と、og:titleの表記(「公開研究室ふ、と」)と
  * 微妙にずれていたため、こちらも`sharedTitle`を参照するよう統一した。
+ *
+ * 【favicon修正・キャッシュ対策(2026-09-10)】favicon.svg/favicon.icoの
+ * 描画内容を修正した際、ファイル名を変えていないためブラウザの
+ * favicon専用キャッシュ(通常のページキャッシュより長く保持される)が
+ * 更新後も古い表示のまま残る可能性がある。`?v=2`というクエリ文字列を
+ * 付け、URLそのものを変えることで再取得を促す。次に中身を変更する際は
+ * この番号をインクリメントすること。
  * ------------------------------------------------------------
  */
 import "@styles/global.css";
@@ -66,8 +73,8 @@ const sharedTitle = "公開研究室ふ、と";
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <title>{title}</title>
-    <link rel="icon" type="image/svg+xml" href="/images/logo/favicon.svg" />
-    <link rel="alternate icon" href="/images/logo/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/images/logo/favicon.svg?v=2" />
+    <link rel="alternate icon" href="/images/logo/favicon.ico?v=2" />
     <link rel="canonical" href={canonicalUrl} />
 
     <meta property="og:type" content="website" />

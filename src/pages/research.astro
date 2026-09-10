@@ -80,6 +80,12 @@
  * ページの最初の見出しがh1になるようにした(<SectionTitle>
  * コンポーネント自体は変更していない。他ページでの使用箇所は
  * このタスクの対象外)。
+ *
+ * 【文章整理(2026-09-09、Decision Log 0103)】プロジェクトオーナーの
+ * 指示により、ページ冒頭の説明文(「観察し、記録し、対話し、つくり」の
+ * 列挙が他ページと重複していた)と、研究断面01・1.5の紹介文を、より
+ * 短く具体的な文章に差し替えた。記事本文(01.astro・1-5.astro)との
+ * 内容の齟齬がないことを確認済み。記事本文自体は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -98,7 +104,7 @@ const publishedReviews: PublishedReviewEntry[] = [
     title: "『ふと』という日本語",
     subtitle: "身体、知覚、記憶、思考を横断する言葉",
     description:
-      "身体の動きを表していた「ふと」は、なぜ記憶や思考を表す言葉になったのか。辞書、古典文学、日本語研究を手がかりに、その意味の変遷をたどる。",
+      "「ふと」は、もともと身体の動きを表す言葉だった。そこから、なぜ記憶や思考を表す言葉になったのか。辞書や古典、日本語研究をたどります。",
     updatedLabel: "2026.08.15 更新",
     href: "/research/reviews/01",
   },
@@ -107,7 +113,7 @@ const publishedReviews: PublishedReviewEntry[] = [
     title: "なぜ私たちは、ある瞬間に「ふと」気づくのか",
     subtitle: "その手前にある経験と時間",
     description:
-      "「ふと」気づく一瞬の手前には、どのような時間が折り重なっているのか。環世界論、文化的アフォーダンス、言語心理学、実践研究を手がかりに検討する。",
+      "「ふと」気づく一瞬だけを見ても、その理由はわからない。その手前には、どんな経験や時間が重なっているのか。いくつかの研究を行き来しながら考えます。",
     updatedLabel: "2026.09.03 更新",
     href: "/research/reviews/1-5",
   },
@@ -126,7 +132,7 @@ const plannedReviews: PlannedReviewEntry[] = [
     <div class={styles.headingRow}>
       <h1 class={styles.heading}>研究断面</h1>
       <div class={styles.note}>
-        <p>観察し、記録し、対話し、つくり、また観察する。その過程を残していくための研究ノート。</p>
+        <p>研究の途中で考えたことを、その時点の断面として残しています。読んだこと、観察したこと、まだ考えきれていないことも含めた研究ノートです。</p>
       </div>
     </div>
     <ResearchReviewList published={publishedReviews} planned={plannedReviews} />

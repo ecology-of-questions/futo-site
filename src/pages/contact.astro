@@ -57,6 +57,12 @@
  * 具体例の列挙と「一緒に」を削除し、「気づきや問いが生まれる過程を
  * 観察する実践にも取り組んでいく予定です。関心の重なることが
  * ありましたら、お知らせください。」に短縮した。
+ *
+ * 【文章整理(2026-09-09、Decision Log 0103)】プロジェクトオーナーの
+ * 指示により、冒頭を「ふ、ととは何か」の再説明を含まない、具体的な
+ * 問い合わせ内容の例示に差し替えた。お問い合わせ内容欄の補足文も
+ * 短縮した。フィールドラベル・選択肢・送信ボタン・送信結果メッセージ・
+ * 送信処理・プライバシー注記は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -75,10 +81,10 @@ import { contactFormEndpoint } from "@/config/site";
     <div class={styles.intro}>
     <h1 class={styles.heading}>お問い合わせ</h1>
     <div class={styles.body}>
-      <p>「ふ、と」の研究や活動に関するお問い合わせを受け付けています。</p>
       <p>
-        気づきや問いが生まれる過程を観察する実践にも取り組んでいく予定です。関心の重なることがありましたら、お知らせください。
+        「ふ、と」について聞いてみたいこと、一緒に試してみたいこと、取材や協働のご相談などがあれば、こちらからお送りください。
       </p>
+      <p>まだ具体的に決まっていないことでも構いません。</p>
     </div>
     </div>
 
@@ -110,7 +116,7 @@ import { contactFormEndpoint } from "@/config/site";
       <div class={styles.field}>
         <label class={styles.label} for="contact-message">お問い合わせ内容 <span class={styles.required}>必須</span></label>
         <p class={styles.hint}>
-          ご関心のあることや、「ふ、と」と一緒に試してみたいことなどを、決まっている範囲でお書きください。
+          ご関心のあることや、話してみたいことをお書きください。
         </p>
         <textarea class={styles.textarea} id="contact-message" name="message" rows="8" required></textarea>
       </div>
