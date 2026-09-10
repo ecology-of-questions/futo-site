@@ -162,3 +162,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0104](./0104-light-tone-color-scheme.md) | サイト全体配色をライトトーンに変更し、夜空背景を廃止する |
 | [0105](./0105-ambient-lights-restore-visibility.md) | カーソル追従の光・ふと現れる光を、ライトトーンでも見えるようにする(→ 上書き済み、0106) |
 | [0106](./0106-ambient-lights-removed.md) | カーソル追従の光・ふと現れる光の演出を撤去する |
+| [0108](./0108-nav-label-and-copy-tweaks.md) | ナビゲーションラベルとResearch Statement本文の文言を3件修正する |
