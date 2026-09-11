@@ -12,6 +12,12 @@
  * した。新設した「持ち寄られたもの」一覧用(.contributionList等)・
  * フォームの公開可否チェックボックス用(.checkboxField等、
  * BookshelfFullList.module.cssと同じパターン)を追加した。
+ *
+ * 【Hero・まとめの仮画像プレースホルダーを削除(2026-09-11)】
+ * 実在の写真素材がまだない間の仮の色面として置いていた.heroPanel・
+ * .closingPanelを削除した。2カラム分割用だった.hero/.heroText/
+ * .closing/.closingTextも、単一カラムになったため合わせて削除した
+ * (中身のあるクラスのみ残す)。
  * ------------------------------------------------------------
  */
 
@@ -51,24 +57,6 @@
 /* -----------------------------
  * Hero
  * ----------------------------- */
-.hero {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-@media (min-width: 800px) {
-  .hero {
-    flex-direction: row;
-    align-items: stretch;
-    gap: var(--space-5);
-  }
-}
-
-.heroText {
-  flex: 1;
-}
-
 .eyebrow {
   margin: 0;
   font-family: var(--font-sans);
@@ -98,26 +86,6 @@
 
 .body p:last-child {
   margin-bottom: 0;
-}
-
-/* 実在の写真素材がまだないため、書影の仮カバーと同じ考え方で
-   color-mixによる抽象色面のみを置いている(文言は重ねない。将来
-   実際の写真に差し替える想定のプレースホルダー)。 */
-.heroPanel {
-  min-height: 12rem;
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-beige) 70%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-blue) 25%, var(--color-paper)) 100%
-  );
-  border-radius: 4px;
-}
-
-@media (min-width: 800px) {
-  .heroPanel {
-    flex: 1;
-    min-height: 0;
-  }
 }
 
 /* -----------------------------
@@ -306,42 +274,6 @@
 /* -----------------------------
  * ともに、続けていくために(まとめ)
  * ----------------------------- */
-.closing {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: var(--space-4);
-}
-
-@media (min-width: 800px) {
-  .closing {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--space-5);
-  }
-
-  .closingText {
-    flex: 1;
-  }
-}
-
-.closingPanel {
-  min-height: 8rem;
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-green) 40%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-beige) 70%, var(--color-paper)) 100%
-  );
-  border-radius: 4px;
-}
-
-@media (min-width: 800px) {
-  .closingPanel {
-    flex: 1;
-    min-height: 12rem;
-    align-self: stretch;
-  }
-}
-
 .closingTagline {
   margin: var(--space-4) 0 0;
   font-size: var(--fs-sm);

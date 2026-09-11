@@ -62,6 +62,17 @@
  * (`/bookshelf`)から「本をプレゼントする→」(共通のAmazonほしい物
  * リスト、`amazonWishlistUrl`、外部リンク)に変更した。featured本の
  * プレビュー表示(`BookshelfList`)自体は変更していない。
+ *
+ * 【Hero・まとめの仮画像プレースホルダーを削除(2026-09-11)】
+ * 実在の写真素材がまだないため色面のみを置いていた`.heroPanel`・
+ * `.closingPanel`(いずれも`aria-hidden="true"`、装飾以外の情報を
+ * 持たない仮のプレースホルダー)を、プロジェクトオーナーの指示により
+ * 削除した。中身のない色面を残すより、テキストを1カラムで見せる方が
+ * 静かで誠実だと判断した。これに伴い、2カラム分割用だった`.hero`/
+ * `.heroText`/`.closing`/`.closingText`のラッパーも撤去し、他の
+ * セクションと同じ「見出し+本文を`ResearchSection`直下に並べる」
+ * 構造に揃えた。将来実際の写真素材が用意された場合は、改めて画像を
+ * 追加する形で対応する。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -90,22 +101,17 @@ const visibleContributions = contributions.filter((c) => c.visible);
   <NightBackground />
 
   <ResearchSection ariaLabel="Participate" id="participate-hero">
-    <div class={styles.hero}>
-      <div class={styles.heroText}>
-        <p class={styles.eyebrow}>PARTICIPATE</p>
-        <h1 class={styles.heading}>持ち寄る</h1>
-        <div class={styles.body}>
-          <p>「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。</p>
-          <p>
-            本や記事、人、場所、知識、経験。
-            <br />
-            何が新しい「ふと」のきっかけになるかは、まだわかりません。
-            <br />
-            ここでは、そんなものを持ち寄ることができます。
-          </p>
-        </div>
-      </div>
-      <div class={styles.heroPanel} aria-hidden="true"></div>
+    <p class={styles.eyebrow}>PARTICIPATE</p>
+    <h1 class={styles.heading}>持ち寄る</h1>
+    <div class={styles.body}>
+      <p>「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。</p>
+      <p>
+        本や記事、人、場所、知識、経験。
+        <br />
+        何が新しい「ふと」のきっかけになるかは、まだわかりません。
+        <br />
+        ここでは、そんなものを持ち寄ることができます。
+      </p>
     </div>
   </ResearchSection>
 
@@ -208,28 +214,23 @@ const visibleContributions = contributions.filter((c) => c.visible);
   </ResearchSection>
 
   <ResearchSection ariaLabel="ともに、続けていくために" id="closing">
-    <div class={styles.closing}>
-      <div class={styles.closingPanel} aria-hidden="true" />
-      <div class={styles.closingText}>
-        <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ともに、続けていくために</h2>
-        <div class={styles.sectionBody}>
-          <p>持ち寄られたものから、誰かと話したり、一緒に何かを試したりすることがあります。</p>
-          <p>
-            これからも、気になることや感じたことを、
-            <br />
-            気軽にお知らせください。
-          </p>
-        </div>
-        <div class={styles.link}>
-          <ArrowLink href="/contact" label="お問い合わせ" />
-        </div>
-        <p class={styles.closingTagline}>
-          それぞれのふとが、
-          <br />
-          研究をひらいていく。
-        </p>
-      </div>
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ともに、続けていくために</h2>
+    <div class={styles.sectionBody}>
+      <p>持ち寄られたものから、誰かと話したり、一緒に何かを試したりすることがあります。</p>
+      <p>
+        これからも、気になることや感じたことを、
+        <br />
+        気軽にお知らせください。
+      </p>
     </div>
+    <div class={styles.link}>
+      <ArrowLink href="/contact" label="お問い合わせ" />
+    </div>
+    <p class={styles.closingTagline}>
+      それぞれのふとが、
+      <br />
+      研究をひらいていく。
+    </p>
   </ResearchSection>
 </DefaultLayout>
 
