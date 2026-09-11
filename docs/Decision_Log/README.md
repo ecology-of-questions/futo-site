@@ -184,3 +184,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0127](./0127-research-reviews-section-latest-two.md) | トップページ「いま考えていること」を「研究断面」に改称し、最新2件(番号・タイトル・要約・読むリンク)を表示。「研究断面をすべて見る→」で/researchへ誘導 |
 | [0128](./0128-participate-page-restructure.md) | /participateを「何かを持ち寄る」(統合フォーム+公開可否チェック)・「持ち寄られたもの」(承認済み投稿の一覧、手動掲載MVP)・「本をプレゼントする」の3セクションに再編し、参加メニュー乱立を解消 |
 | [0129](./0129-gift-teaser-add-wishlist-books.md) | 「本をプレゼントする」teaserに、実際に贈れる(giftEnabled: true)「読みたい」本3冊もfeaturedとして追加(3→6冊)。Desktop幅も横スクロール方式に統一し崩れを防止 |
+| [0130](./0130-gift-flow-amazon-wishlist.md) | 本を贈る導線をAmazonほしい物リストに一本化。/bookshelfの「この本を贈る」展開パネルを撤去し「この本をプレゼントする→」の単純な外部リンクに、/participateのCTAも同URLに変更 |
