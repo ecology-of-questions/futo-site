@@ -8,7 +8,11 @@
   (title/label/description/tone)は、2026-09-11に`/bookshelf`への
   一本化(Decision Log 0117)に伴い、拡張版の`BookEntry`
   (status/owned/giftEnabled/conversationEnabled等)に統合された。
-  「研究の本棚」という機能・Home上の役割自体は変更なし)
+  「研究の本棚」という機能・Home上の役割自体は変更なし。
+  → 0120。このDecision Logで新設したHome「研究を支える」パネル・
+  `/support`ページは、2026-09-11に「関わる」への一本化(Decision Log
+  0120)に伴い、パネルは「関わる」に差し替え、`/support`は
+  `/participate`へのリダイレクトになった)
 
 ## Decision
 
