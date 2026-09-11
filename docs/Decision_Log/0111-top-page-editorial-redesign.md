@@ -3,7 +3,12 @@
 - 日付: 2026-09-10
 - 状態: 一部上書き済み(→ 0112。見出しの句点復活・「問いの生態系」
   カード復活・Headerラベル「ふ、とについて」への差し戻しの3点のみ、
-  Decision Log 0108・0109の状態に戻された。他の変更点はそのまま)
+  Decision Log 0108・0109の状態に戻された。他の変更点はそのまま。
+  → 0117。このDecision Logで新設した簡易な`BookEntry`
+  (title/label/description/tone)は、2026-09-11に`/bookshelf`への
+  一本化(Decision Log 0117)に伴い、拡張版の`BookEntry`
+  (status/owned/giftEnabled/conversationEnabled等)に統合された。
+  「研究の本棚」という機能・Home上の役割自体は変更なし)
 
 ## Decision
 

@@ -2,37 +2,47 @@
 /**
  * BookshelfList.astro
  * ------------------------------------------------------------
- * 役割: 「研究の本棚」セクション(2026-09-10のトップページ再設計で
- * 新設)の本カード一覧。実在の書影画像はまだ用意していないため、
- * 各本の`tone`から抽象的な仮カバー(color-mixによる単色〜ごく淡い
- * グラデーション)を生成する(Decision Log 0111)。将来実際の書影
- * 画像を用意する際は、`.cover`をimg要素に差し替える想定で、
- * DOM構造・カード自体のレイアウトはそのまま使えるようにしてある。
+ * 役割: 「研究の本棚」の圧縮表示(カードのみ、アクションなし)。
+ * Home「研究の本棚」プレビュー(index.astro)と、`/participate`の
+ * 「本から関わる」teaserの両方で共用する。フィルター・話したい・
+ * 贈る・関連リンク等のアクションは持たない、本体ページ
+ * (`/bookshelf`、BookshelfFullList.astro)への案内役に徹する
+ * (2026-09-11、Decision Log 0117)。
+ *
+ * 実際の書影画像がまだない本は、tokens.cssの既存トークンを
+ * color-mixで組み合わせた抽象色面(仮カバー)で代用する。本ごとに
+ * `tone`を固定できる(未指定の場合は並び順から機械的に割り当てる)。
  *
  * Desktop幅では3カラム、Mobile幅では縦1カラムに積む
- * (ResearchReviewListやCurrentWorkListと同じ、既存のレスポンシブ
- * パターンを踏襲)。
+ * (ResearchReviewList等と同じレスポンシブパターン)。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfList.module.css";
-import type { BookEntry } from "@/types/bookshelf";
+import { bookStatusLabels, type BookEntry } from "@/types/bookshelf";
 
 interface Props {
   books: BookEntry[];
 }
 
 const { books } = Astro.props;
+
+const tones = ["warm", "moss", "sky"] as const;
+const toneForIndex = (i: number) => tones[i % tones.length];
 ---
 
 <div class={styles.grid}>
   {
-    books.map((book) => (
+    books.map((book, i) => (
       <div class={styles.card}>
-        <div class={styles.cover} data-tone={book.tone}>
-          <h3 class={styles.coverTitle}>{book.title}</h3>
+        <div class={styles.cover} data-tone={book.tone ?? toneForIndex(i)}>
+          {book.image ? (
+            <img class={styles.coverImage} src={book.image} alt={book.title} loading="lazy" />
+          ) : (
+            <h3 class={styles.coverTitle}>{book.title}</h3>
+          )}
         </div>
-        <p class={styles.label}>{book.label}</p>
-        <p class={styles.description}>{book.description}</p>
+        <p class={styles.label}>{bookStatusLabels[book.status]}</p>
+        {book.reason && <p class={styles.description}>{book.reason}</p>}
       </div>
     ))
   }
