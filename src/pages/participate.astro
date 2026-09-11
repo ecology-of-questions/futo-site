@@ -194,6 +194,9 @@ const visibleContributions = contributions.filter((c) => c.visible);
       <p class={styles.privacyNote}>
         チェックの有無にかかわらず、お名前やメールアドレスをサイト上で公開することはありません。内容を確認のうえ、運営がサイトに掲載します。
       </p>
+      <p class={styles.privacyNote}>
+        送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
+      </p>
 
       <button class={styles.submit} type="submit">持ち寄る <span aria-hidden="true">→</span></button>
       <p class={styles.status} data-contribution-status role="status" aria-live="polite"></p>

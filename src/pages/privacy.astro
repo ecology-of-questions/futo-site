@@ -1,0 +1,148 @@
+---
+/**
+ * privacy.astro (個人情報の取り扱い)
+ * ------------------------------------------------------------
+ * 役割: 個人情報の取り扱いページ。公開前チェック(Decision Log 0134)で
+ * 「Formspree経由で個人情報を収集しているのに、その取り扱いを説明する
+ * ページがない」ことが判明したことを受け、プロジェクトオーナーから
+ * 新設の指示を受けた(2026-09-11、Decision Log 0135)。
+ *
+ * 本文はプロジェクトオーナーから渡された文言をそのまま使用している
+ * (「勝手に長い法務文章へ書き換えない」という明示の指示のため)。
+ * レイアウトはabout.astro(ページヘッダー+番号つきセクション)の
+ * パターンをそのまま流用した。
+ *
+ * 【「外部サービスの利用」セクションについて】お問い合わせ・「持ち寄る」・
+ * 研究便り登録の3フォームすべてがsrc/config/site.tsの
+ * `contactFormEndpoint`(Formspree)を参照していることをコードで確認
+ * したうえで書いている。研究便り専用の別サービス(Mailchimp等)は
+ * 使っていない。Analytics/Cookieの利用も、リポジトリ内を検索して
+ * 該当コードが無いことを確認済みのため、このページには記載していない
+ * (「利用していない場合は不要な記述を追加しない」という指示に沿う)。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchSection from "@components/ResearchSection.astro";
+import NightBackground from "@components/NightBackground.astro";
+import styles from "./privacy.module.css";
+---
+
+<DefaultLayout
+  title="個人情報の取り扱い ｜ ふ、と"
+  description="公開研究室「ふ、と」における個人情報の取り扱いについて。"
+  theme="night"
+>
+  <NightBackground />
+  <ResearchSection ariaLabel="Privacy">
+    <div class={styles.pageHeader}>
+      <p class={styles.eyebrow}>PRIVACY</p>
+      <h1 class={styles.pageTitle}>個人情報の取り扱い</h1>
+      <p class={styles.lead}>
+        公開研究室「ふ、と」では、お問い合わせや「持ち寄る」フォーム、研究便りへの登録などを通じて、お名前、メールアドレス、送信いただいた内容などの情報を取得することがあります。
+      </p>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>01</span>
+        <h2 class={styles.subheading}>取得する情報</h2>
+      </div>
+      <div class={styles.body}>
+        <p>「ふ、と」では、以下の情報を取得することがあります。</p>
+        <ul class={styles.list}>
+          <li>お名前</li>
+          <li>メールアドレス</li>
+          <li>お問い合わせ内容</li>
+          <li>「持ち寄る」フォームから送信された内容</li>
+          <li>研究便りの登録に必要な情報</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>02</span>
+        <h2 class={styles.subheading}>利用目的</h2>
+      </div>
+      <div class={styles.body}>
+        <p>取得した情報は、以下の目的で利用します。</p>
+        <ul class={styles.list}>
+          <li>お問い合わせへの返信</li>
+          <li>持ち寄っていただいた内容についての確認や連絡</li>
+          <li>研究便りの配信</li>
+          <li>「ふ、と」の活動や研究に関する必要な連絡</li>
+        </ul>
+        <p>取得した情報を、これらの目的以外に利用する場合は、あらかじめ本人の同意を得ます。</p>
+      </div>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>03</span>
+        <h2 class={styles.subheading}>「持ち寄る」で送信された内容の公開について</h2>
+      </div>
+      <div class={styles.body}>
+        <p>「持ち寄る」フォームでは、送信した内容をサイト上で共有してよいかを選ぶことができます。</p>
+        <p>公開を選択した場合でも、お名前、メールアドレス、その他の連絡先は公開しません。</p>
+        <p>公開する場合は、送信いただいた本、記事、人、場所、知識、経験などに関する内容を「ふ、と」で確認したうえで掲載します。</p>
+        <p>公開を選択していない内容を、サイト上で公開することはありません。</p>
+      </div>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>04</span>
+        <h2 class={styles.subheading}>外部サービスの利用</h2>
+      </div>
+      <div class={styles.body}>
+        <p>お問い合わせや「持ち寄る」フォームの送信には、Formspree を利用しています。</p>
+        <p>フォームから送信された情報は、フォームの処理・送信のために Formspree のサービスを経由します。</p>
+        <p>研究便りの登録フォームも、同じ Formspree を経由して送信されます。研究便りの配信のために、これ以外の外部のメール配信サービスは利用していません。</p>
+      </div>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>05</span>
+        <h2 class={styles.subheading}>第三者への提供</h2>
+      </div>
+      <div class={styles.body}>
+        <p>取得した個人情報は、法令に基づく場合を除き、本人の同意なく第三者に提供しません。</p>
+        <p>ただし、フォーム送信やメール配信など、「ふ、と」の運営に必要な外部サービスを利用する場合があります。</p>
+      </div>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>06</span>
+        <h2 class={styles.subheading}>情報の管理</h2>
+      </div>
+      <div class={styles.body}>
+        <p>取得した個人情報は、利用目的に必要な範囲で取り扱い、適切に管理します。</p>
+        <p>不要になった情報は、必要に応じて削除します。</p>
+      </div>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>07</span>
+        <h2 class={styles.subheading}>確認・訂正・削除について</h2>
+      </div>
+      <div class={styles.body}>
+        <p>ご自身の個人情報について、確認、訂正、削除などを希望される場合は、お問い合わせフォームからご連絡ください。</p>
+      </div>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>08</span>
+        <h2 class={styles.subheading}>このページの変更について</h2>
+      </div>
+      <div class={styles.body}>
+        <p>利用するサービスや「ふ、と」の活動内容の変更に応じて、このページの内容を更新することがあります。</p>
+      </div>
+    </div>
+
+    <p class={styles.establishedDate}>制定日：2026年9月11日</p>
+  </ResearchSection>
+</DefaultLayout>

@@ -124,7 +124,9 @@ import { contactFormEndpoint } from "@/config/site";
       <p class={styles.hint} data-contact-response-note>通常3営業日以内を目安に返信します。</p>
       <button class={styles.submit} type="submit">送信する</button>
 
-      <p class={styles.privacyNote}>ご入力いただいた情報は、お問い合わせへの対応のためにのみ使用します。</p>
+      <p class={styles.privacyNote}>
+        送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
+      </p>
 
       <p class={styles.status} data-contact-status role="status" aria-live="polite"></p>
     </form>

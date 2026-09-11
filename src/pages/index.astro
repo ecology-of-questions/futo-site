@@ -195,6 +195,9 @@ const currentWorkItems: CurrentWorkItem[] = latestReviews.map((review) => ({
           />
           <button class={styles.newsletterSubmit} type="submit">登録する</button>
         </form>
+        <p class={styles.privacyNote}>
+          送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
+        </p>
         <p class={styles.newsletterStatus} data-newsletter-status role="status" aria-live="polite"></p>
       </div>
     </div>

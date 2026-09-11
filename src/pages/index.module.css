@@ -177,6 +177,21 @@
   color: var(--color-ink-muted);
 }
 
+/* 【2026-09-11、/privacyへのリンクを含む注記を追加(Decision Log
+   0135)】contact.module.css/participate.module.cssの.privacyNote/
+   .privacyLinkと同じ見た目。 */
+.privacyNote {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.privacyLink {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
+}
+
 .honeypot {
   /* Formspreeのハニーポット規約(name="_gotcha")。contact.module.css
      の.honeypotと同じ考え方(Decision Log 0076)。 */

@@ -171,11 +171,19 @@
 
 .privacyNote {
   /* 送信ボタン下の個人情報の取り扱いに関する注記(2026-09-04、
-     Decision Log 0091)。.hintと同じ控えめなスタイル。 */
+     Decision Log 0091)。.hintと同じ控えめなスタイル。
+     【2026-09-11、/privacyへのリンクを含む文言に変更(Decision Log
+     0135)】文言自体は「個人情報の取り扱いに基づいて管理します。」に
+     変更し、その一部を.privacyLinkでリンクにした。 */
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
+}
+
+.privacyLink {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
 }
 
 .status {

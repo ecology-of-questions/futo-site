@@ -224,6 +224,16 @@
   color: var(--color-ink-muted);
 }
 
+/* 【2026-09-11、/privacyへのリンクを含む注記を追加(Decision Log
+   0135)】既存の.privacyNote(お名前・メールアドレスは公開しない旨)は
+   そのまま残し、その下に「個人情報の取り扱いに基づいて管理します」の
+   注記を1文追加した。リンク色はFooter/ArrowLinkと同じ
+   --color-accent-blue。 */
+.privacyLink {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
+}
+
 /* -----------------------------
  * 持ち寄られたもの(2026-09-11、Decision Log 0128)。
  * カード化せず、細い罫線区切りの静かな一覧にする(index.module.cssの
