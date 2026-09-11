@@ -56,6 +56,12 @@
  * Formspreeエンドポイント・honeypot等のスパム対策は既存のものを
  * そのまま再利用しており、新しいバックエンドやアカウント機能は
  * 追加していない。詳細はDecision Log 0128参照。
+ *
+ * 【「本をプレゼントする」をAmazonほしい物リストに一本化
+ * (2026-09-11、Decision Log 0130)】CTAを「研究の本棚を見る→」
+ * (`/bookshelf`)から「本をプレゼントする→」(共通のAmazonほしい物
+ * リスト、`amazonWishlistUrl`、外部リンク)に変更した。featured本の
+ * プレビュー表示(`BookshelfList`)自体は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -67,7 +73,7 @@ import styles from "./participate.module.css";
 import { books } from "@/data/bookshelf";
 import { contributions } from "@/data/contributions";
 import { contributionTypeLabels } from "@/types/contributions";
-import { contactFormEndpoint } from "@/config/site";
+import { contactFormEndpoint, amazonWishlistUrl } from "@/config/site";
 
 /** 「本をプレゼントする」に表示するfeatured本(Decision Log 0117)。 */
 const featuredBooks = books.filter((book) => book.featured);
@@ -193,11 +199,11 @@ const visibleContributions = contributions.filter((c) => c.visible);
     <p class={styles.sectionBody}>
       研究の本棚には、これから読みたい本も置いています。
       <br />
-      そのなかから、プレゼントしたいと思う本があれば贈ることができます。
+      そのなかから、プレゼントしたい本があればAmazonから贈ることができます。
     </p>
     <BookshelfList books={featuredBooks} />
     <div class={styles.link}>
-      <ArrowLink href="/bookshelf" label="研究の本棚を見る" />
+      <ArrowLink href={amazonWishlistUrl} label="本をプレゼントする" external />
     </div>
   </ResearchSection>
 

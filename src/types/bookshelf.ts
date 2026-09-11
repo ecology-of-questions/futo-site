@@ -53,9 +53,14 @@ export interface BookEntry {
   /** 「ふ、と」がこの本を所有しているか */
   owned: boolean;
   /**
-   * 「この本を贈る」導線を表示してよいか。ownedやstatusとは独立して
-   * 判断する。現時点のMVP(Decision Log 0119)では、実際の贈り方は
-   * 「手元にある本を贈る」(/contactへの導線)のみ。
+   * 「この本はプレゼントを受け付けている」ことを示すフラグ。owned や
+   * status とは独立して判断する。trueの場合、`/bookshelf`本体
+   * (BookshelfFullList.astro)の該当行に、共通のAmazonほしい物リスト
+   * (`amazonWishlistUrl`)への「この本をプレゼントする→」リンクが
+   * 表示される(2026-09-11、Decision Log 0130。以前は`/contact`経由で
+   * 「手元にある本を贈る」を申し出るMVPだったが、Amazonほしい物
+   * リストへの直接リンクに一本化した)。BookshelfList.astro
+   * (`/participate`圧縮表示)は装飾のみでこのフラグを参照しない。
    */
   giftEnabled: boolean;
   /** 「この本について話したい」を受け付けるか。giftEnabledとは独立して判断する */
@@ -75,8 +80,10 @@ export interface BookEntry {
   tone?: "warm" | "moss" | "sky";
   /**
    * 「新品で贈る」の遷移先。将来用のフィールドとして残しているが、
-   * 匿名配送・送付方法が未確定のため、現時点のUI(BookshelfFullList.astro)
-   * では参照していない(2026-09-11、Decision Log 0119)。
+   * 現時点のUI(BookshelfFullList.astro)では参照していない
+   * (2026-09-11、Decision Log 0119)。贈る導線自体をAmazonほしい物
+   * リストに一本化した後(Decision Log 0130)も、このフィールドは
+   * 無理に削除せず将来用として残している。
    */
   newBookUrl?: string;
   /**

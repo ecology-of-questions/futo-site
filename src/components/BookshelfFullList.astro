@@ -39,12 +39,15 @@
  * giftEnabled=trueの本のみ表示する。新品/古本の購入導線は、匿名配送・
  * 送付方法が未確定で実際の体験を成立させられないため、現時点のMVPでは
  * 表示しない(`newBookUrl`/`usedBookUrl`フィールド自体は将来用として
- * 型・データに残しているが、UIでは参照していない)。表示するのは
- * 「手元にある本を贈る」の1つのみで、見出し+短い説明文+矢印
- * テキストリンクという、ECサイトやwishlistのように見えない簡潔な
- * 見た目にしている(旧`.methods`のカード風UIから変更)。送付先住所は
- * 公開せず、お問い合わせ(既定: /contact)につなげる(Decision Log
- * 0113の設計を踏襲)。
+ * 型・データに残しているが、UIでは参照していない)。
+ *
+ * 【Amazonほしい物リストに一本化(2026-09-11、Decision Log 0130)】
+ * 「手元にある本を贈る」(お問い合わせ経由で譲り受ける)という導線を
+ * やめ、「この本をプレゼントする →」から共通のAmazonほしい物リスト
+ * (`amazonWishlistUrl`)へ外部リンクする、展開パネルなしのシンプルな
+ * 1行リンクに変更した。`giftEnabled`の意味は「この本はプレゼントを
+ * 受け付けている」として引き続き使う。本ごとの商品URLへは直接
+ * リンクしない(ほしい物リスト上にその本がない可能性があるため)。
  *
  * 選択の開閉・フィルターはフレームワークを使わずvanilla JSで実装
  * している(Header.astroのメニュー開閉と同じ方針)。
@@ -52,15 +55,13 @@
  */
 import styles from "./BookshelfFullList.module.css";
 import { bookStatusLabels, type BookStatus, type BookEntry } from "@/types/bookshelf";
-import { contactFormEndpoint } from "@/config/site";
+import { contactFormEndpoint, amazonWishlistUrl } from "@/config/site";
 
 interface Props {
   books: BookEntry[];
-  /** 「手元にある本を贈る」の遷移先。既定は/contact(送付先住所は公開しない) */
-  contactHref?: string;
 }
 
-const { books, contactHref = "/contact" } = Astro.props;
+const { books } = Astro.props;
 
 const tones = ["warm", "moss", "sky"] as const;
 const toneForIndex = (i: number) => tones[i % tones.length];
@@ -123,15 +124,9 @@ const filters: { value: "all" | BookStatus; label: string }[] = [
               </button>
             )}
             {book.giftEnabled && (
-              <button
-                type="button"
-                class={styles.actionTrigger}
-                data-toggle-trigger
-                aria-expanded="false"
-                aria-controls={`gift-panel-${book.id}`}
-              >
-                この本を贈る <span class={styles.actionArrow} aria-hidden="true">→</span>
-              </button>
+              <a class={styles.actionLink} href={amazonWishlistUrl} target="_blank" rel="noopener noreferrer">
+                この本をプレゼントする <span class={styles.actionArrow} aria-hidden="true">→</span>
+              </a>
             )}
             {book.relatedUrl && (
               <a class={styles.actionLink} href={book.relatedUrl}>
@@ -228,20 +223,6 @@ const filters: { value: "all" | BookStatus; label: string }[] = [
 
               <p class={styles.conversationStatus} data-conversation-status role="status" aria-live="polite" />
             </form>
-          </div>
-        )}
-
-        {book.giftEnabled && (
-          <div id={`gift-panel-${book.id}`} class={styles.giftPanel} data-gift-panel hidden>
-            <h3 class={styles.giftHeading}>この本を贈る</h3>
-            <p class={styles.giftIntro}>
-              この本をお持ちで、
-              <br />
-              譲ってもいいと思ったら。
-            </p>
-            <a class={styles.actionLink} href={contactHref}>
-              手元にある本を贈る <span class={styles.actionArrow} aria-hidden="true">→</span>
-            </a>
           </div>
         )}
       </li>

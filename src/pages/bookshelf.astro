@@ -27,6 +27,11 @@
  * プレビューはトップページから外れた。このページ自体・データ・
  * `/participate`との共有関係は変更していない。ヘッダー「本棚」からの
  * 導線は引き続きこのページへつながる。
+ *
+ * 【贈る導線をAmazonほしい物リストに一本化(2026-09-11、Decision Log
+ * 0130)】`BookshelfFullList.astro`側の変更に伴い、「手元にある本を
+ * 贈る」(お問い合わせ経由)を廃止したため、`contactHref` propを渡す
+ * 必要がなくなった。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -45,6 +50,6 @@ import { books } from "@/data/bookshelf";
     <div class={styles.note}>
       <p>読んでいる本、これから読みたい本。</p>
     </div>
-    <BookshelfFullList books={books} contactHref="/contact" />
+    <BookshelfFullList books={books} />
   </ResearchSection>
 </DefaultLayout>

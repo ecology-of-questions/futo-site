@@ -207,8 +207,7 @@
 /* -----------------------------
  * この本について話したい(展開パネル、Decision Log 0115のMVPを維持)
  * ----------------------------- */
-.conversationPanel,
-.giftPanel {
+.conversationPanel {
   margin-top: var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-accent-beige);
@@ -343,22 +342,7 @@
   white-space: pre-line;
 }
 
-/* -----------------------------
- * この本を贈る(展開パネル、MVP、2026-09-11、Decision Log 0119)
- * 新品/古本の購入導線は未確定のため表示せず、「手元にある本を贈る」
- * の1つのみを、見出し+短い説明文+矢印テキストリンクという簡潔な
- * 見た目で示す。.actionLink/.actionArrowを流用し、ECサイトの
- * ボタン群のようなカード風UI(旧.methods/.method)は使わない。
- * ----------------------------- */
-.giftHeading {
-  font-size: var(--fs-base);
-  font-weight: 500;
-  line-height: var(--lh-heading);
-  margin: 0;
-}
-
-.giftIntro {
-  margin: var(--space-2) 0 var(--space-3);
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-}
+/* 【この本を贈る→この本をプレゼントする(2026-09-11、Decision Log
+   0130)】展開パネル方式をやめ、.actionLink/.actionArrowをそのまま
+   使う1行の外部リンク(Amazonほしい物リスト)に変更したため、
+   専用の.giftHeading/.giftIntroは不要になり削除した。 */
