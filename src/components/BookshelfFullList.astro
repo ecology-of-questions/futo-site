@@ -36,10 +36,13 @@
  * 参加者一覧公開・自動マッチング等)は引き続き実装していない。
  *
  * 【この本を贈る】
- * giftEnabled=trueの本のみ、新品で贈る/古本で贈る/手元にある本を贈る
- * の3択を表示する。「手元にある本を贈る」は送付先住所を公開せず、
- * お問い合わせ(既定: /contact)につなげる(Decision Log 0113の設計を
- * 踏襲)。
+ * giftEnabled=trueの本のみ、贈り方を表示する。「新品で贈る」
+ * 「古本で贈る」は、それぞれ`newBookUrl`/`usedBookUrl`が設定されて
+ * いる場合のみ表示する(2026-09-11、Decision Log 0118)。購入先が
+ * 未確定の本(現時点の「読みたい」3冊)では、ダミーの"#"リンクを
+ * 出さず、選択肢自体を出さない実装にしている。「手元にある本を贈る」
+ * は常に表示し、送付先住所を公開せず、お問い合わせ(既定: /contact)
+ * につなげる(Decision Log 0113の設計を踏襲)。
  *
  * 選択の開閉・フィルターはフレームワークを使わずvanilla JSで実装
  * している(Header.astroのメニュー開閉と同じ方針)。
@@ -229,14 +232,18 @@ const filters: { value: "all" | BookStatus; label: string }[] = [
         {book.giftEnabled && (
           <div id={`gift-panel-${book.id}`} class={styles.giftPanel} data-gift-panel hidden>
             <div class={styles.methods}>
-              <a class={styles.method} href={book.newBookUrl ?? "#"}>
-                <span class={styles.methodLabel}>新品で贈る</span>
-                <span class={styles.methodDescription}>書店から直接届きます。</span>
-              </a>
-              <a class={styles.method} href={book.usedBookUrl ?? "#"}>
-                <span class={styles.methodLabel}>古本で贈る</span>
-                <span class={styles.methodDescription}>古本でも、もちろん嬉しいです。</span>
-              </a>
+              {book.newBookUrl && (
+                <a class={styles.method} href={book.newBookUrl}>
+                  <span class={styles.methodLabel}>新品で贈る</span>
+                  <span class={styles.methodDescription}>書店から直接届きます。</span>
+                </a>
+              )}
+              {book.usedBookUrl && (
+                <a class={styles.method} href={book.usedBookUrl}>
+                  <span class={styles.methodLabel}>古本で贈る</span>
+                  <span class={styles.methodDescription}>古本でも、もちろん嬉しいです。</span>
+                </a>
+              )}
               <a class={styles.method} href={contactHref}>
                 <span class={styles.methodLabel}>手元にある本を贈る</span>
                 <span class={styles.methodDescription}>すでにお持ちの本を譲っていただく。</span>
