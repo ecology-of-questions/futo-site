@@ -6,8 +6,8 @@
  * プロジェクトオーナーからの指示(添付イメージ・各セクションの構成案)
  * に基づき新規実装した(Decision Log 0113)。
  *
- * 構成: Hero → 気になるものを寄せる(フォーム) → 本を贈る/この本を
- * 贈る(GiftBookList) → 一緒に試す → 話す → 場所・知識・技術を貸す →
+ * 構成: Hero → 気になるものを寄せる(フォーム) → 研究の本棚
+ * (ParticipateBookshelf) → 一緒に試す → 話す → 場所・知識・技術を貸す →
  * ともに、続けていくために(まとめ)。
  *
  * 【2026-09-11、本文コピーを確定版に差し替え(Decision Log 0114)】
@@ -24,56 +24,33 @@
  * 必須項目は「URL / 名前」の1項目のみで、なぜ気になったか・お名前・
  * メールアドレスはすべて任意にした(プロジェクトオーナーの指示)。
  *
- * 「本を贈る」の3冊は、プロジェクトオーナーの指示によりtitle/author/
- * status/reason/image/newBookUrl/usedBookUrlの7項目を持つ構造にした
- * (src/types/participate.ts)。現時点の値はすべてデザイン確認用の
- * 仮データであり、実在の書籍情報として確定していない(値そのものに
- * 「(仮データ)」と明記している)。1冊ずつ配列の要素を丸ごと差し替える
- * だけで、実際に読みたい本の情報に更新できる。
+ * 【2026-09-11、「本を贈る」中心から「研究の本棚」中心へ再編
+ * (Decision Log 0116)】プロジェクトオーナーの指示により、「本を贈る」
+ * 3冊固定の構造を、「ふ、とが今何を読み、何をこれから読み、どこへ
+ * 関心を向けているのか」が見える「研究の本棚」に変更した。本データは
+ * `src/data/participateBooks.ts`に集約し(このページには置かない)、
+ * `ParticipateBookshelf`コンポーネントがフィルター付きのコンパクトな
+ * リストとして描画する。本の状態(status)・所有(owned)・贈れるか
+ * (giftEnabled)・話したいを受け付けるか(conversationEnabled)は
+ * すべて独立した項目で、旧「本を贈る」の仮データ3冊は、実データ
+ * (経験と教育/調査的感性術/想像の共同体)に置き換えて削除した。
  *
- * 「この本を贈る」の「手元にある本を贈る」は、送付先住所をサイト上に
- * 公開せず、お問い合わせ(/contact)につなげる設計にしている
- * (プロジェクトオーナーの指示)。
+ * 「この本について話したい」(2026-09-11追加、Decision Log 0115)の
+ * 仕組みはそのまま維持している。「この本を贈る」の「手元にある本を
+ * 贈る」は、送付先住所をサイト上に公開せず、お問い合わせ(/contact)
+ * につなげる設計も変更していない。詳細はParticipateBookshelf.astro・
+ * Decision Log 0116参照。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import ArrowLink from "@components/ArrowLink.astro";
-import GiftBookList from "@components/GiftBookList.astro";
+import ParticipateBookshelf from "@components/ParticipateBookshelf.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./participate.module.css";
-import type { GiftBookEntry, LendCategory } from "@/types/participate";
+import type { LendCategory } from "@/types/participate";
+import { participateBooks } from "@/data/participateBooks";
 import { contactFormEndpoint } from "@/config/site";
-
-/**
- * 「本を贈る」の候補。すべてデザイン確認用の仮データ(値に「(仮データ)」と
- * 明記している)。実在の書籍情報は未確定のため、実際に読みたい本が
- * 決まり次第、要素ごと差し替えること。newBookUrl/usedBookUrlも未設定
- * (GiftBookList.astro側で"#"扱いになる)。
- */
-const giftBooks: GiftBookEntry[] = [
-  {
-    id: "book-1",
-    title: "書籍タイトル1(仮データ)",
-    author: "著者名1(仮データ)",
-    status: "気になっている(仮データ)",
-    reason: "この本を選んだ理由も仮データです。実際に読みたい本の情報に差し替えてください。",
-  },
-  {
-    id: "book-2",
-    title: "書籍タイトル2(仮データ)",
-    author: "著者名2(仮データ)",
-    status: "気になっている(仮データ)",
-    reason: "この本を選んだ理由も仮データです。実際に読みたい本の情報に差し替えてください。",
-  },
-  {
-    id: "book-3",
-    title: "書籍タイトル3(仮データ)",
-    author: "著者名3(仮データ)",
-    status: "気になっている(仮データ)",
-    reason: "この本を選んだ理由も仮データです。実際に読みたい本の情報に差し替えてください。",
-  },
-];
 
 const lendCategories: LendCategory[] = [
   {
@@ -184,14 +161,23 @@ const lendIcons: Record<LendCategory["icon"], string> = {
     </form>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="本を贈る" id="gift-book">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本を贈る</h2>
-    <p class={styles.sectionBody}>
-      研究を続けていくうえで、本からは問いをいただきます。
-      <br />
-      今、気になっている本をご紹介します。
-    </p>
-    <GiftBookList books={giftBooks} contactHref="/contact" />
+  <ResearchSection ariaLabel="研究の本棚" id="research-bookshelf">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>研究の本棚</h2>
+    <div class={styles.sectionBody}>
+      <p>
+        いま読んでいる本、
+        <br />
+        これから読みたい本、
+        <br />
+        この研究を通ってきた本。
+      </p>
+      <p>
+        「ふ、と」の現在地を、
+        <br />
+        本を通して残しています。
+      </p>
+    </div>
+    <ParticipateBookshelf books={participateBooks} contactHref="/contact" />
   </ResearchSection>
 
   <ResearchSection ariaLabel="一緒に試す" id="try">
