@@ -177,3 +177,6 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0119](./0119-gift-ui-mvp-simplification.md) | 購入導線が未確定なため「新品で贈る」「古本で贈る」を撤去し、「この本を贈る」パネルを「手元にある本を贈る」1本のみのMVPに整理する |
 | [0120](./0120-support-to-participate.md) | Home・Footerの「研究を支える」導線を「関わる」に整理し、/supportは/participateへリダイレクトして廃止する |
 | [0121](./0121-book-photo-as-research-evidence.md) | 本の書影を単なる商品画像ではなく研究に入ってきた証拠として扱う撮影方針を記録する(所有本は実写真・未所蔵は仮カバー、コード変更なし) |
+| [0123](./0123-current-work-review-body-fix.md) | Home「いま、取り組んでいること」の「研究断面」本文を改訂する |
+| [0124](./0124-participate-panel-body-revision.md) | Home「関わる」パネルの本文を改訂する |
+| [0125](./0125-top-page-four-layer-reorganization.md) | トップページをResearch Statement→いま考えていること→持ち寄る→研究便りの4層構成に絞り、研究の本棚プレビュー・一緒に試すの独立セクションを削除。PARTICIPATEの日本語表記を「関わる」から「持ち寄る」に変更 |

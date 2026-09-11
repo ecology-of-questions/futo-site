@@ -62,6 +62,29 @@
  * 「関わる」(`/participate`へのリンク)に差し替えた。「研究便り」
  * パネルは変更していない。
  *
+ * 【トップページを4層構成に整理(2026-09-11、Decision Log 0125)】
+ * プロジェクトオーナーから、「初めて来た人が上から読むだけで、
+ * 何を研究している場所か/今何を考えているか/自分も持ち込める場所か
+ * が分かる」構成にする指示を受けた。トップページを「サイト内の
+ * 全機能を紹介する場所」にしないという方針のもと、以下の4セクション
+ * のみに絞った。
+ *
+ *   1. Research Statement(本文は変更なし)
+ *   2. いま考えていること(旧「いま、取り組んでいること」。
+ *      最新の研究断面1件のみを表示。データはsrc/data/
+ *      researchReviews.tsから取得し、二重管理しない)
+ *   3. 持ち寄る(旧「関わる」パネル。日本語表記を「持ち寄る」に
+ *      変更、本文も1文に短縮。具体的な参加方法は列挙せず
+ *      /participateへ委ねる)
+ *   4. 研究便り(変更なし)
+ *
+ * 「研究の本棚」プレビュー・「一緒に試す」の独立セクションは
+ * トップから削除した。どちらも機能・データ・独立ページ
+ * (/bookshelf、お問い合わせ導線)自体は変更していない。ナビゲーション
+ * からの入口(Header「本棚」等)もそのまま残している。
+ * 「持ち寄る」「研究便り」は、引き続き1つの背景面(.panel)にまとめ、
+ * 上記の順(持ち寄る→研究便り)に並べている。
+ *
  * 以下、この変更より前の変遷(Hero統合・夜空背景・文章整理等)は、
  * このファイルのgit履歴および各Decision Logを参照。
  * ------------------------------------------------------------
@@ -72,34 +95,27 @@ import ResearchSection from "@components/ResearchSection.astro";
 import sectionTitleStyles from "@components/SectionTitle.module.css";
 import ArrowLink from "@components/ArrowLink.astro";
 import CurrentWorkList from "@components/CurrentWorkList.astro";
-import BookshelfList from "@components/BookshelfList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./index.module.css";
 import type { CurrentWorkItem } from "@/types/currentWork";
-import { books } from "@/data/bookshelf";
+import { publishedReviews } from "@/data/researchReviews";
 import { contactFormEndpoint } from "@/config/site";
 
+/**
+ * 「いま考えていること」は、最新の研究断面1件のみを表示する
+ * (2026-09-11、Decision Log 0125)。publishedReviewsは公開順
+ * (古い→新しい)で並んでいるため、配列の末尾が最新記事になる。
+ */
+const latestReview = publishedReviews.at(-1)!;
 const currentWorkItems: CurrentWorkItem[] = [
   {
     label: "Research Review",
-    title: "研究断面",
-    body: ["そのとき考えていることを、途中からひらく。"],
-    linkLabel: "研究断面を読む",
-    linkHref: "/research",
+    title: latestReview.title,
+    body: [latestReview.description],
+    linkLabel: "読む",
+    linkHref: latestReview.href,
   },
 ];
-
-/** Home「研究の本棚」プレビューは、featured本のみを表示する(Decision Log 0117)。 */
-const featuredBooks = books.filter((book) => book.featured);
-
-/**
- * 「一緒に試す」(OPEN PRACTICE)セクションのリンク一覧(2026-09-04、
- * Decision Log 0091)。現時点ではお問い合わせへの導線1件のみだが、
- * 将来「音の道」等のPracticeページが増えた際に、この配列へ項目を
- * 追加するだけでリンクを増やせる構造にしている(currentWorkItemsと
- * 同じ考え方)。
- */
-const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
 ---
 
 <DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践" theme="night">
@@ -121,32 +137,24 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
     linkHref="/research-statement"
   />
 
-  <ResearchSection ariaLabel="いま、取り組んでいること" id="current-work">
-    <h2 class={`${styles.currentWorkHeading} ${styles.sectionRule}`}>いま、取り組んでいること</h2>
+  <ResearchSection ariaLabel="いま考えていること" id="current-work">
+    <h2 class={`${styles.currentWorkHeading} ${styles.sectionRule}`}>いま考えていること</h2>
     <CurrentWorkList items={currentWorkItems} />
   </ResearchSection>
 
-  <ResearchSection ariaLabel="研究の本棚" id="bookshelf">
-    <h2 class={`${styles.bookshelfHeading} ${styles.sectionRule}`}>研究の本棚</h2>
-    <p class={styles.bookshelfIntro}>読んでいる本、これから読みたい本。</p>
-    <BookshelfList books={featuredBooks} />
-    <div class={styles.bookshelfLink}>
-      <ArrowLink href="/bookshelf" label="本棚を見る" />
-    </div>
-  </ResearchSection>
-
-  <ResearchSection ariaLabel="一緒に試す" id="open-practice">
-    <h2 class={`${styles.openPracticeHeading} ${styles.sectionRule}`}>一緒に試す</h2>
-    <p class={styles.openPracticeBody}>
-      音や場所、歩くことを手がかりに、小さな実践を準備しています。
-    </p>
-    <div class={styles.openPracticeLinks}>
-      {openPracticeLinks.map((link) => <ArrowLink href={link.href} label={link.label} />)}
-    </div>
-  </ResearchSection>
-
-  <ResearchSection ariaLabel="研究便り・関わる" id="newsletter-participate">
+  <ResearchSection ariaLabel="持ち寄る・研究便り" id="participate-newsletter">
     <div class={styles.panel}>
+      <div class={styles.panelSection}>
+        <p class={sectionTitleStyles.title}>PARTICIPATE</p>
+        <h2 class={styles.panelHeading}>持ち寄る</h2>
+        <p class={styles.panelBody}>
+          「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。
+        </p>
+        <div class={styles.panelLink}>
+          <ArrowLink href="/participate" label="持ち寄る" />
+        </div>
+      </div>
+
       <div class={styles.panelSection}>
         <p class={sectionTitleStyles.title}>NEWSLETTER</p>
         <h2 class={styles.panelHeading}>研究便り</h2>
@@ -172,24 +180,6 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
           <button class={styles.newsletterSubmit} type="submit">登録する</button>
         </form>
         <p class={styles.newsletterStatus} data-newsletter-status role="status" aria-live="polite"></p>
-      </div>
-
-      <div class={styles.panelSection}>
-        <p class={sectionTitleStyles.title}>PARTICIPATE</p>
-        <h2 class={styles.panelHeading}>関わる</h2>
-        <div class={styles.panelBody}>
-          <p>
-            気になる本や情報を寄せる。
-            <br />
-            同じ本について話す。
-            <br />
-            一緒に試したり、場所や知識を持ち寄ったりする。
-          </p>
-          <p>いろいろなかたちで、この研究に関わることができます。</p>
-        </div>
-        <div class={styles.bookshelfLink}>
-          <ArrowLink href="/participate" label="関わる" />
-        </div>
       </div>
     </div>
   </ResearchSection>

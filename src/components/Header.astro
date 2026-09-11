@@ -56,6 +56,11 @@
  * (/participate)への導線として、「本棚」と「公開研究室ふ、と」の
  * 間に追加した。ナビゲーションは研究断面/本棚/関わる/公開研究室ふ、と
  * の4項目になった。
+ *
+ * 【「関わる」→「持ち寄る」に表記変更(2026-09-11、Decision Log
+ * 0125)】プロジェクトオーナーの指示により、PARTICIPATE
+ * (/participate、URLは変更なし)の日本語表記を「関わる」から
+ * 「持ち寄る」に変更した。ナビゲーション項目数・順序は変更していない。
  * ------------------------------------------------------------
  */
 import styles from "./Header.module.css";
@@ -87,7 +92,7 @@ import styles from "./Header.module.css";
     <nav id="site-nav" class={styles.nav} aria-label="サイト内ナビゲーション" data-nav>
       <a class={styles.navLink} href="/research">研究断面</a>
       <a class={styles.navLink} href="/bookshelf">本棚</a>
-      <a class={styles.navLink} href="/participate">関わる</a>
+      <a class={styles.navLink} href="/participate">持ち寄る</a>
       <a class={styles.navLink} href="/about">公開研究室ふ、と</a>
     </nav>
   </div>

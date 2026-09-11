@@ -16,21 +16,31 @@
  * (.openPracticePanel)を敷いていたが、他の平場のセクションと同じ
  * 扱いに戻し、代わりに新設した「研究便り」「研究を支える」の2つを
  * まとめて1つの背景面(.panel)に収める構成にした。
+ *
+ * 【トップページを4層構成に整理(2026-09-11、Decision Log 0125)】
+ * 「研究の本棚」プレビュー・「一緒に試す」の独立セクションをトップ
+ * から削除したため、それぞれ専用だった.bookshelfHeading/
+ * .bookshelfIntro/.openPracticeHeading/.openPracticeBody/
+ * .openPracticeLinksを削除した。「持ち寄る」の下に置くリンクの
+ * 余白は、旧.bookshelfLink(本棚プレビュー用)を.panelLinkに改名して
+ * 引き続き使っている(.panel内の2つのpanelSection共通で使う余白の
+ * ため)。
  * ------------------------------------------------------------
  */
 
-/* 「いま、取り組んでいること」「研究の本棚」「一緒に試す」の見出し
-   直前に置く、細い横罫線。ResearchSectionが各セクションに
-   padding-block: space-6を持たせているため、セクション内の最初の
-   要素として配置するだけで上部の余白と揃う。 */
+/* 「いま考えていること」の見出し直前に置く、細い横罫線。
+   ResearchSectionが各セクションにpadding-block: space-6を
+   持たせているため、セクション内の最初の要素として配置するだけで
+   上部の余白と揃う。 */
 .sectionRule {
   border-top: 1px solid var(--color-accent-beige);
   padding-top: var(--space-5);
 }
 
 .currentWorkHeading {
-  /* 「いま、取り組んでいること」セクションの見出し(2026-08-17、
-     Decision Log 0057)。ResearchStatementの.heading等と揃え、
+  /* 「いま、取り組んでいること」→「いま考えていること」セクションの
+     見出し(2026-08-17、Decision Log 0057。見出し文言は2026-09-11、
+     Decision Log 0125で改訂)。ResearchStatementの.heading等と揃え、
      fs-xlの控えめな見出しサイズにする。 */
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
@@ -38,50 +48,16 @@
   margin: 0;
 }
 
-.bookshelfHeading {
-  /* 「研究の本棚」セクションの見出し(2026-09-10新設)。他の
-     セクション見出しと揃え、fs-xlの控えめな見出しサイズにする。 */
-  font-size: var(--fs-xl);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: 0;
-}
-
-.bookshelfIntro {
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-  color: var(--color-ink-muted);
-}
-
-.bookshelfLink {
+.panelLink {
   margin-top: var(--space-4);
 }
 
-.openPracticeHeading {
-  /* 「一緒に試す」セクションの見出し(2026-09-04、Decision Log 0091)。
-     .currentWorkHeadingと同じfs-xlの控えめな見出しサイズ。 */
-  font-size: var(--fs-xl);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: 0;
-}
-
-.openPracticeBody {
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-}
-
-.openPracticeLinks {
-  margin-top: var(--space-3);
-}
-
-/* 「研究便り」「研究を支える」をまとめて収める背景面(2026-09-10
-   新設)。以前「一緒に試す」に使っていた.openPracticePanelと同じ
-   考え方(地の背景に対してごく淡く区別できる面、Decision Log 0094・
-   0104)をそのまま踏襲している。カード的な影・太い枠線・大きな
-   角丸は使わず、静かなトーンを保つ。 */
+/* 「持ち寄る」「研究便り」をまとめて収める背景面(2026-09-10新設、
+   2026-09-11に2つのpanelSectionの順序を持ち寄る→研究便りへ変更、
+   Decision Log 0125)。以前「一緒に試す」に使っていた
+   .openPracticePanelと同じ考え方(地の背景に対してごく淡く区別
+   できる面、Decision Log 0094・0104)をそのまま踏襲している。
+   カード的な影・太い枠線・大きな角丸は使わず、静かなトーンを保つ。 */
 .panel {
   background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-paper));
   border-radius: 4px;

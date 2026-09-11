@@ -1,12 +1,14 @@
 ---
 /**
- * participate.astro (関わる)
+ * participate.astro (持ち寄る)
  * ------------------------------------------------------------
- * 役割: 「ふ、と」に関わるための、いくつかの入口をまとめたページ。
+ * 役割: 「ふ、と」に持ち寄るための、いくつかの入口をまとめたページ。
  * プロジェクトオーナーからの指示(添付イメージ・各セクションの構成案)
- * に基づき新規実装した(Decision Log 0113)。
+ * に基づき新規実装した(Decision Log 0113)。日本語表記は当初「関わる」
+ * だったが、2026-09-11にサイト全体で「持ち寄る」に変更した(Decision
+ * Log 0125、URLは/participateのまま)。
  *
- * 構成: Hero → 気になるものを寄せる(フォーム) → 本から関わる
+ * 構成: Hero → 気になるものを寄せる(フォーム) → 本から参加する
  * (featured本のteaser) → 一緒に試す → 話す → 場所・知識・技術を貸す →
  * ともに、続けていくために(まとめ)。
  *
@@ -39,6 +41,19 @@
  * 「研究の本棚を見る →」で`/bookshelf`へ誘導する。本データは
  * `src/data/bookshelf.ts`に一元化した(Home・`/bookshelf`と共有、
  * このページ専用のデータは持たない)。
+ *
+ * 【トップページ再設計に伴う改訂(2026-09-11、Decision Log 0125)】
+ * PARTICIPATEの日本語表記を「関わる」から「持ち寄る」に変更した
+ * (URLは/participateのまま)。Heroの冒頭説明も、「「ふ、と」は、
+ * ひとりで完結する研究ではありません。」から始まる4段落を、Homeの
+ * 「持ち寄る」パネルと同じ1文(「「ふ、と」では、自分とは異なる
+ * 他者や、これまで知らなかった世界との出会いを大切にしたいと
+ * 考えています。」)に差し替えた。「研究の途中」「途中から関わる」
+ * 等、何の途中か分かりにくい表現は使っていない。「本から関わる」
+ * セクションは、プロジェクトオーナー指定の見出しに合わせて「本から
+ * 参加する」に変更した(本文・featured本の表示は変更なし)。それ
+ * 以外の具体的な参加方法(気になるものを寄せる・一緒に試す・話す・
+ * 場所や知識を貸す)の見出し・本文は、この改訂では変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -51,7 +66,7 @@ import type { LendCategory } from "@/types/participate";
 import { books } from "@/data/bookshelf";
 import { contactFormEndpoint } from "@/config/site";
 
-/** 「本から関わる」teaserに表示するfeatured本(Decision Log 0117)。 */
+/** 「本から参加する」teaserに表示するfeatured本(Decision Log 0117)。 */
 const featuredBooks = books.filter((book) => book.featured);
 
 const lendCategories: LendCategory[] = [
@@ -90,8 +105,8 @@ const lendIcons: Record<LendCategory["icon"], string> = {
 ---
 
 <DefaultLayout
-  title="関わる ｜ ふ、と"
-  description="「ふ、と」に関わる、いくつかの方法。気になるものを寄せる、本を贈る、場所・知識・技術を貸す。"
+  title="持ち寄る ｜ ふ、と"
+  description="「ふ、と」に持ち寄る、いくつかの方法。気になるものを寄せる、本を贈る、場所・知識・技術を貸す。"
   theme="night"
 >
   <NightBackground />
@@ -100,18 +115,11 @@ const lendIcons: Record<LendCategory["icon"], string> = {
     <div class={styles.hero}>
       <div class={styles.heroText}>
         <p class={styles.eyebrow}>PARTICIPATE</p>
-        <h1 class={styles.heading}>関わる</h1>
+        <h1 class={styles.heading}>持ち寄る</h1>
         <div class={styles.body}>
-          <p>「ふ、と」は、ひとりで完結する研究ではありません。</p>
           <p>
-            誰かが教えてくれた本や記事。
-            <br />
-            日常でふと気になったこと。
-            <br />
-            ある場所での経験や、誰かとの会話。
+            「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。
           </p>
-          <p>そうしたものが加わることで、研究は少しずつ動いていきます。</p>
-          <p>あなたが気になったものも、ここに持ち込んでみてください。</p>
         </div>
       </div>
       <div class={styles.heroPanel} aria-hidden="true"></div>
@@ -163,8 +171,8 @@ const lendIcons: Record<LendCategory["icon"], string> = {
     </form>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="本から関わる" id="books">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本から関わる</h2>
+  <ResearchSection ariaLabel="本から参加する" id="books">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本から参加する</h2>
     <BookshelfList books={featuredBooks} />
     <div class={styles.link}>
       <ArrowLink href="/bookshelf" label="研究の本棚を見る" />
