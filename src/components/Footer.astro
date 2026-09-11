@@ -32,6 +32,11 @@
  * 取れる行動(支援する/問い合わせる)を示すクロージングのCTA」という
  * 役割の違いを持たせる、という位置づけに変更した。研究断面・本棚・
  * ふ、とについてへの導線はHeaderに委ね、Footerでは重複させない。
+ *
+ * 【「研究を支える」→「関わる」に置き換え(2026-09-11、Decision Log
+ * 0120)】支援ページ(`/support`)を独立ページとして育てない方針に
+ * 転換したため、遷移先を`/participate`に、ラベルを「関わる」に変更
+ * した。「クロージングのCTA」という役割自体は変更していない。
  * ------------------------------------------------------------
  */
 import styles from "./Footer.module.css";
@@ -42,7 +47,7 @@ import styles from "./Footer.module.css";
     <p class={styles.siteName}>公開研究室「ふ、と」</p>
 
     <nav class={styles.nav} aria-label="フッターナビゲーション">
-      <a class={styles.link} href="/support">研究を支える</a>
+      <a class={styles.link} href="/participate">関わる</a>
       <a class={styles.link} href="/contact">お問い合わせ</a>
     </nav>
 
