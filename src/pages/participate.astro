@@ -73,12 +73,30 @@
  * セクションと同じ「見出し+本文を`ResearchSection`直下に並べる」
  * 構造に揃えた。将来実際の写真素材が用意された場合は、改めて画像を
  * 追加する形で対応する。
+ *
+ * 【「本をプレゼントする」を本棚プレビューからプレゼント本のみの紹介に
+ * 変更(2026-09-11、Decision Log 0132)】このセクションは「研究の本棚
+ * 全体のプレビュー」ではなく「現在プレゼントを受け付けている本の紹介」
+ * であるべき、という指示を受けた。表示対象を`featured`(読書中3冊を
+ * 含む6冊)から`status === "wishlist" && giftEnabled && giftFeatured`
+ * (最大3冊)に変更し、小見出し「今、特に読みたい本」を追加した。本が
+ * 増えても`/participate`が本一覧ページ化しないよう、表示側でも
+ * `.slice(0, 3)`で3冊に制限している。全件は`/bookshelf`または
+ * Amazonほしい物リスト(下部の「Amazonのほしい物リストをすべて見る
+ * →」)に委ねる。
+ *
+ * 表示に使っていた`BookshelfList.astro`(表紙が画面の大半を占める
+ * 横スクロールUI)は、このセクション用としては「本棚そのものを見せる
+ * つもりはない」という今回の方針に合わなくなったため使用をやめ、
+ * 小さな書影+タイトル/著者/読みたい理由という、より控えめな一覧を
+ * このファイル内に直接実装した(このセクション専用のため、新規
+ * コンポーネントには切り出していない)。`BookshelfList.astro`は他に
+ * 利用箇所が無くなったため削除した(下記コンポーネント一覧参照)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import ArrowLink from "@components/ArrowLink.astro";
-import BookshelfList from "@components/BookshelfList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./participate.module.css";
 import { books } from "@/data/bookshelf";
@@ -86,8 +104,21 @@ import { contributions } from "@/data/contributions";
 import { contributionTypeLabels } from "@/types/contributions";
 import { contactFormEndpoint, amazonWishlistUrl } from "@/config/site";
 
-/** 「本をプレゼントする」に表示するfeatured本(Decision Log 0117)。 */
-const featuredBooks = books.filter((book) => book.featured);
+/**
+ * 「今、特に読みたい本」= プレゼント対象の本のみ、最大3冊まで表示する
+ * (2026-09-11、Decision Log 0132)。読書中・所有済みの本はここでは
+ * 見せない(その全体像は`/bookshelf`に任せる)。`status === "wishlist"`
+ * であることに加え、贈り付けを受け付けているか(`giftEnabled`)・
+ * このセクションで特に見せたいか(`giftFeatured`)の両方を満たす本の
+ * みを対象にする。表示件数は`giftFeatured`を付ける本の数に関わらず
+ * 最大3冊に制限する。
+ */
+const giftFeaturedBooks = books
+  .filter((book) => book.status === "wishlist" && book.giftEnabled && book.giftFeatured)
+  .slice(0, 3);
+
+const giftBookTones = ["warm", "moss", "sky"] as const;
+const giftBookToneForIndex = (i: number) => giftBookTones[i % giftBookTones.length];
 
 /** 公開承認済み(visible: true)の投稿のみ表示する(Decision Log 0128)。 */
 const visibleContributions = contributions.filter((c) => c.visible);
@@ -207,9 +238,27 @@ const visibleContributions = contributions.filter((c) => c.visible);
       <br />
       そのなかから、プレゼントしたい本があればAmazonから贈ることができます。
     </p>
-    <BookshelfList books={featuredBooks} />
+    <h3 class={styles.giftBooksHeading}>今、特に読みたい本</h3>
+    <div class={styles.giftBookList}>
+      {
+        giftFeaturedBooks.map((book, i) => (
+          <div class={styles.giftBookItem}>
+            <span class={styles.giftBookCover} data-tone={book.tone ?? giftBookToneForIndex(i)}>
+              {book.image && (
+                <img class={styles.giftBookCoverImage} src={book.image} alt={book.title} loading="lazy" />
+              )}
+            </span>
+            <div class={styles.giftBookInfo}>
+              <p class={styles.giftBookTitle}>{book.title}</p>
+              {book.author && <p class={styles.giftBookAuthor}>{book.author}</p>}
+              {book.reason && <p class={styles.giftBookReason}>{book.reason}</p>}
+            </div>
+          </div>
+        ))
+      }
+    </div>
     <div class={styles.link}>
-      <ArrowLink href={amazonWishlistUrl} label="本をプレゼントする" external />
+      <ArrowLink href={amazonWishlistUrl} label="Amazonのほしい物リストをすべて見る" external />
     </div>
   </ResearchSection>
 

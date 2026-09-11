@@ -18,6 +18,11 @@
  * .closingPanelを削除した。2カラム分割用だった.hero/.heroText/
  * .closing/.closingTextも、単一カラムになったため合わせて削除した
  * (中身のあるクラスのみ残す)。
+ *
+ * 【「本をプレゼントする」を控えめな一覧に変更(2026-09-11、Decision
+ * Log 0132)】旧BookshelfList.astroコンポーネント(表紙が画面の大半を
+ * 占める横スクロールUI)の利用をやめ、小さな書影+タイトル/著者/
+ * 読みたい理由の一覧(.giftBookList等)をこのファイルに直接追加した。
  * ------------------------------------------------------------
  */
 
@@ -267,6 +272,132 @@
 .contributionEmpty {
   margin: var(--space-4) 0 0;
   font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+}
+
+/* -----------------------------
+ * 本をプレゼントする → 今、特に読みたい本(2026-09-11、Decision Log
+ * 0132)。旧BookshelfList.astro(表紙が画面の大半を占める横スクロール
+ * UI)はこのセクションの「本棚そのものを見せるわけではない」という
+ * 位置づけに合わなくなったため使用をやめ、小さな書影+タイトル/著者/
+ * 読みたい理由という、.contributionList等と同じ「細い罫線区切りの
+ * 静かな一覧」に寄せた控えめな表示にした。最大3冊のみを扱う前提の
+ * ため、Desktop幅では3枚を横に並べ、その間を縦の罫線で区切る
+ * (index.module.cssの.currentWorkHeading周辺で使っている2カラムの
+ * 罫線パターンと同じ考え方を3カラムに拡張したもの)。Mobile幅は
+ * 縦積みのまま、横スクロールは使わない。
+ * ----------------------------- */
+.giftBooksHeading {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.giftBookList {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-3);
+}
+
+@media (min-width: 700px) {
+  .giftBookList {
+    flex-direction: row;
+  }
+}
+
+.giftBookItem {
+  display: flex;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.giftBookItem:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+@media (min-width: 700px) {
+  .giftBookItem {
+    flex: 1;
+    padding-block: 0;
+    padding-left: var(--space-4);
+    border-top: none;
+    border-left: 1px solid var(--color-accent-beige);
+  }
+
+  .giftBookItem:first-child {
+    padding-left: 0;
+    border-left: none;
+  }
+}
+
+/* 書影は「今、特に読みたい本」を判別できる程度の小さなサムネイル
+   にとどめ、本棚そのものの主役にはしない(BookshelfFullList.module.css
+   の.coverと同じcolor-mixトーンを、ずっと小さいサイズで流用)。 */
+.giftBookCover {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  width: 3.5rem;
+  aspect-ratio: 3 / 4;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.giftBookCoverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.giftBookCover[data-tone="warm"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
+  );
+}
+
+.giftBookCover[data-tone="moss"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
+  );
+}
+
+.giftBookCover[data-tone="sky"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
+  );
+}
+
+.giftBookInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.giftBookTitle {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+}
+
+.giftBookAuthor {
+  margin: 2px 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.giftBookReason {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
   line-height: var(--lh-body);
   color: var(--color-ink-muted);
 }

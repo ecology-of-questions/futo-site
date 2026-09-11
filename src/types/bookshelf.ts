@@ -1,11 +1,10 @@
 /**
  * bookshelf.ts
  * ------------------------------------------------------------
- * 「研究の本棚」が扱う唯一の本の型。Home「研究の本棚」プレビュー
- * (index.astro)・`/bookshelf`(本体ページ)・`/participate`の
- * 「本をプレゼントする」teaser(旧「本から関わる」、2026-09-11に
- * Decision Log 0128で改称)の3箇所が、この型と`src/data/bookshelf.ts`
- * の1つの配列を共有する。
+ * 「研究の本棚」が扱う唯一の本の型。`/bookshelf`(本体ページ、
+ * BookshelfFullList.astro)・`/participate`の「本をプレゼントする」
+ * (旧「本から関わる」、2026-09-11にDecision Log 0128で改称)の2箇所
+ * が、この型と`src/data/bookshelf.ts`の1つの配列を共有する。
  *
  * 【2026-09-11、「本を贈る」中心の`/participate`実装で拡張した型を統合
  * (Decision Log 0117)】もともとこのファイルは、2026-09-10のトップ
@@ -20,13 +19,22 @@
  * (enum、表示ラベルは`bookStatusLabels`で一元管理)/`reason`に統一し、
  * 旧`label`/`description`というプロパティ名は廃止した。
  *
- * `featured`は、Home・`/participate`の圧縮表示(BookshelfList.astro)に
- * 出す本を選ぶためのフラグ。`/bookshelf`本体(BookshelfFullList.astro)
- * は`featured`の値に関わらず全冊を表示する。
+ * 【`/participate`の選定基準を`giftFeatured`に変更(2026-09-11、
+ * Decision Log 0132)】`featured`は元々Home・`/participate`の圧縮
+ * 表示(BookshelfList.astro)に出す本を選ぶためのフラグだったが、
+ * Home側のプレビューはDecision Log 0125で廃止済み、`/participate`側も
+ * 「読書中の本ではなく、プレゼント対象のwishlist本だけを見せる」
+ * 方針に変わったため、`/participate`は`status`/`giftEnabled`/
+ * 新設の`giftFeatured`で選定するようにした。`BookshelfList.astro`は
+ * 用途がなくなったため削除した(Decision Log 0132)。`featured`は
+ * 将来のプレビュー用途のためフィールド自体は残している。
+ *
+ * `/bookshelf`本体(BookshelfFullList.astro)は`featured`/
+ * `giftFeatured`の値に関わらず全冊を表示する。
  *
  * 実在の書影画像はまだ用意していない本が多いため、`image`未設定時は
  * `tone`(color-mixで仮カバーを生成する手がかり)で代用する
- * (BookshelfList.astro/BookshelfFullList.astro参照)。
+ * (BookshelfFullList.astro参照)。
  * ------------------------------------------------------------
  */
 
@@ -59,16 +67,35 @@ export interface BookEntry {
    * (`amazonWishlistUrl`)への「この本をプレゼントする→」リンクが
    * 表示される(2026-09-11、Decision Log 0130。以前は`/contact`経由で
    * 「手元にある本を贈る」を申し出るMVPだったが、Amazonほしい物
-   * リストへの直接リンクに一本化した)。BookshelfList.astro
-   * (`/participate`圧縮表示)は装飾のみでこのフラグを参照しない。
+   * リストへの直接リンクに一本化した)。`/participate`側では
+   * `status === "wishlist"`・`giftFeatured`と組み合わせて選定基準の
+   * 1つとして使う(Decision Log 0132)。
    */
   giftEnabled: boolean;
   /** 「この本について話したい」を受け付けるか。giftEnabledとは独立して判断する */
   conversationEnabled: boolean;
   /** なぜこの本が気になっているか、一言。任意 */
   reason?: string;
-  /** Home・/participateの圧縮表示(BookshelfList.astro)に出すか */
+  /**
+   * サイト上の一般的な本棚プレビュー用フラグ(現時点でこのフラグを
+   * 参照するUIは無い。以前はHome・`/participate`の圧縮表示
+   * (BookshelfList.astro)に出す本の選定に使っていたが、Home側の
+   * プレビューはDecision Log 0125で廃止、`/participate`側も
+   * Decision Log 0132で`giftFeatured`による選定に切り替えたため、
+   * 現在は将来のプレビュー用途に備えて残しているだけの値である)。
+   * `giftFeatured`(「本をプレゼントする」用)とは役割が異なるため
+   * 混同しないこと。
+   */
   featured: boolean;
+  /**
+   * `/participate`の「本をプレゼントする」→「今、特に読みたい本」に
+   * 表示するかどうか(2026-09-11、Decision Log 0132)。`status ===
+   * "wishlist" && giftEnabled === true`の本の中から、特に見せたい本
+   * だけをtrueにする。表示側でも最大3冊に制限する(3冊を超えて
+   * trueを付けても、先頭3冊のみ表示される)。`featured`とは役割が
+   * 異なる、独立したフラグ。
+   */
+  giftFeatured?: boolean;
   /** 書影画像のパス。未設定の場合は仮カバー(tone、color-mix)を表示する */
   image?: string;
   /**

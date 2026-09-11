@@ -10,8 +10,7 @@
  * そのプレビュー自体を廃止した。
  *
  * 旧`src/data/participateBooks.ts`(Decision Log 0116)の内容を
- * そのまま引き継いでいる。`featured: true`の本が`/participate`の
- * 圧縮表示に出る。
+ * そのまま引き継いでいる。
  *
  * 著者等が現時点で不明な本は、コード上で推測して補わず、フィールド
  * 自体を省略している(例: 「調査的感性術」の著者。判明次第追加する)。
@@ -33,7 +32,20 @@
  * (「気になる本も追加して」)により、実際に贈れる「読みたい」3冊も
  * `featured: true`に変更した(既存の3冊は残したまま追加、置き換えでは
  * ない)。これにより、贈ることを主目的とするteaserに、実際に
- * `giftEnabled: true`の本が表示されるようになった。
+ * `giftEnabled: true`の本が表示されるようになった(→ 一部上書き済み、
+ * 0132)。
+ *
+ * 【`/participate`は`giftFeatured`で選定する形に変更(2026-09-11、
+ * Decision Log 0132)】0129の対応では、読書中3冊と読みたい3冊の
+ * 計6冊が`/participate`に並んで表示され、「読書中の本はここでは
+ * 見せない」「本が増えても本一覧ページにならないようにする」という
+ * 方針に合わなくなった。`/participate`側の選定基準を`featured`から
+ * `status === "wishlist" && giftEnabled && giftFeatured`に変更し、
+ * 現在wishlistにある3冊(マツタケ・生きていること・現代日本語に
+ * おける意図性副詞の意味研究)に`giftFeatured: true`を付けた。
+ * `featured`の値(読書中3冊・読みたい3冊すべてtrue)はそのまま残して
+ * いる(将来のプレビュー用途のため。現時点でこの値を参照するUIは
+ * 無い)。
  *
  * 将来、外部データソースからの追加・更新に発展する可能性があるが、
  * 今回はこの配列を直接編集する運用のみ実装する(Google Sheets連携等は
@@ -86,6 +98,7 @@ export const books: BookEntry[] = [
     conversationEnabled: true,
     reason: "人間だけではないものとの関係から、世界に気づく方法を考えてみたい。",
     featured: true,
+    giftFeatured: true,
     tone: "warm",
   },
   {
@@ -98,6 +111,7 @@ export const books: BookEntry[] = [
     conversationEnabled: true,
     reason: "観察することと、生きることはどうつながっているのか。",
     featured: true,
+    giftFeatured: true,
     tone: "moss",
   },
   {
@@ -110,6 +124,7 @@ export const books: BookEntry[] = [
     conversationEnabled: true,
     reason: "「ふと」ということばそのものを、もう少し深くたどってみたい。",
     featured: true,
+    giftFeatured: true,
     tone: "sky",
   },
 ];
