@@ -181,3 +181,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0124](./0124-participate-panel-body-revision.md) | Home「関わる」パネルの本文を改訂する |
 | [0125](./0125-top-page-four-layer-reorganization.md) | トップページをResearch Statement→いま考えていること→持ち寄る→研究便りの4層構成に絞り、研究の本棚プレビュー・一緒に試すの独立セクションを削除。PARTICIPATEの日本語表記を「関わる」から「持ち寄る」に変更 |
 | [0126](./0126-mobile-menu-close-on-scroll.md) | Mobileメニューを開いたままスクロールすると本文がメニューの下に隠れて空白に見える不具合を修正(スクロール時にメニューを自動で閉じる) |
+| [0127](./0127-research-reviews-section-latest-two.md) | トップページ「いま考えていること」を「研究断面」に改称し、最新2件(番号・タイトル・要約・読むリンク)を表示。「研究断面をすべて見る→」で/researchへ誘導 |
