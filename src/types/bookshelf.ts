@@ -2,9 +2,11 @@
  * bookshelf.ts
  * ------------------------------------------------------------
  * 「研究の本棚」が扱う唯一の本の型。`/bookshelf`(本体ページ、
- * BookshelfFullList.astro)・`/participate`の「本をプレゼントする」
- * (旧「本から関わる」、2026-09-11にDecision Log 0128で改称)の2箇所
- * が、この型と`src/data/bookshelf.ts`の1つの配列を共有する。
+ * BookshelfFullList.astro)が、この型と`src/data/bookshelf.ts`の
+ * 1つの配列を参照する。`/participate`側の「本をプレゼントする」
+ * (旧「本から関わる」、2026-09-11にDecision Log 0128で改称)は、
+ * Decision Log 0133でHP公開版から削除したため、現在この型を参照
+ * するのは`/bookshelf`のみ。
  *
  * 【2026-09-11、「本を贈る」中心の`/participate`実装で拡張した型を統合
  * (Decision Log 0117)】もともとこのファイルは、2026-09-10のトップ
@@ -35,6 +37,15 @@
  * 実在の書影画像はまだ用意していない本が多いため、`image`未設定時は
  * `tone`(color-mixで仮カバーを生成する手がかり)で代用する
  * (BookshelfFullList.astro参照)。
+ *
+ * 【HP公開版に向けて関連UIを保留(2026-09-11、Decision Log 0133)】
+ * `giftEnabled`(プレゼント導線)・`conversationEnabled`(「この本に
+ * ついて話したい」)・`giftFeatured`(「本をプレゼントする」の選定)
+ * は、対応するUI(BookshelfFullList.astroの展開パネル・`/participate`
+ * の「本をプレゼントする」セクション)をHP公開版から削除したことに
+ * 伴い、現時点でどのコンポーネントからも参照されなくなった。機能自体
+ * を永久に廃止する判断ではなく、公開後に改めて設計するための保留の
+ * ため、フィールド自体・データの値は削除していない。
  * ------------------------------------------------------------
  */
 
@@ -62,17 +73,20 @@ export interface BookEntry {
   owned: boolean;
   /**
    * 「この本はプレゼントを受け付けている」ことを示すフラグ。owned や
-   * status とは独立して判断する。trueの場合、`/bookshelf`本体
-   * (BookshelfFullList.astro)の該当行に、共通のAmazonほしい物リスト
-   * (`amazonWishlistUrl`)への「この本をプレゼントする→」リンクが
-   * 表示される(2026-09-11、Decision Log 0130。以前は`/contact`経由で
-   * 「手元にある本を贈る」を申し出るMVPだったが、Amazonほしい物
-   * リストへの直接リンクに一本化した)。`/participate`側では
-   * `status === "wishlist"`・`giftFeatured`と組み合わせて選定基準の
-   * 1つとして使う(Decision Log 0132)。
+   * status とは独立して判断する。以前は`/bookshelf`本体の該当行に
+   * Amazonほしい物リストへの「この本をプレゼントする→」リンクを
+   * 表示するために使っていたが(Decision Log 0130)、HP公開版では
+   * この導線自体を保留したため(Decision Log 0133)、現時点でこの
+   * フラグを参照するUIは無い。
    */
   giftEnabled: boolean;
-  /** 「この本について話したい」を受け付けるか。giftEnabledとは独立して判断する */
+  /**
+   * 「この本について話したい」を受け付けるか。giftEnabledとは独立して
+   * 判断する。以前は`/bookshelf`本体に展開式の対話フォームを表示する
+   * ために使っていたが(Decision Log 0115)、HP公開版ではこの導線自体
+   * を保留したため(Decision Log 0133)、現時点でこのフラグを参照する
+   * UIは無い。
+   */
   conversationEnabled: boolean;
   /** なぜこの本が気になっているか、一言。任意 */
   reason?: string;
@@ -88,12 +102,11 @@ export interface BookEntry {
    */
   featured: boolean;
   /**
-   * `/participate`の「本をプレゼントする」→「今、特に読みたい本」に
-   * 表示するかどうか(2026-09-11、Decision Log 0132)。`status ===
-   * "wishlist" && giftEnabled === true`の本の中から、特に見せたい本
-   * だけをtrueにする。表示側でも最大3冊に制限する(3冊を超えて
-   * trueを付けても、先頭3冊のみ表示される)。`featured`とは役割が
-   * 異なる、独立したフラグ。
+   * 以前は`/participate`の「本をプレゼントする」→「今、特に読みたい
+   * 本」に表示する本を選ぶためのフラグだった(2026-09-11、Decision
+   * Log 0132)。このセクション自体をHP公開版から削除したため
+   * (Decision Log 0133)、現時点でこのフラグを参照するUIは無い。
+   * `featured`とは役割が異なる、独立したフラグ。
    */
   giftFeatured?: boolean;
   /** 書影画像のパス。未設定の場合は仮カバー(tone、color-mix)を表示する */

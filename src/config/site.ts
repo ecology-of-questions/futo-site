@@ -21,12 +21,12 @@
  * (futoing@gmail.com)でFormspreeに登録し、実際のForm IDが発行された
  * ため、formspreeFormIdをプレースホルダーから実値に差し替えた。
  *
- * 【2026-09-11改訂(Decision Log 0130)】本を贈る導線をAmazonほしい物
- * リストに一本化するため、共通のwishlist URLを追加した。個別の本の
- * 商品URLへは直接リンクしない(ほしい物リスト上に該当の本がない
- * 場合があるため)方針のため、本ごとのURLではなく、この1つのURLを
- * `/bookshelf`・`/participate`の「本をプレゼントする」導線が共通で
- * 参照する。
+ * 【2026-09-11追加、同日削除(Decision Log 0130 → 0133)】本を贈る
+ * 導線をAmazonほしい物リストに一本化するため、共通のwishlist URL
+ * (`amazonWishlistUrl`)を一時追加していたが、HP公開を優先し本の
+ * プレゼント機能自体を公開UIから外したこと(Decision Log 0133)に伴い、
+ * 参照箇所が無くなったため削除した。本のプレゼント方法を再設計する
+ * 際は、改めてこのファイルに追加する想定。
  * ------------------------------------------------------------
  */
 
@@ -38,10 +38,3 @@ export const formspreeFormId = "mvkoqzov";
 
 /** Formspreeへの実際のPOST先URL。 */
 export const contactFormEndpoint = `https://formspree.io/f/${formspreeFormId}`;
-
-/**
- * 「ふ、と」のAmazonほしい物リスト。本を贈る導線(`/bookshelf`の
- * 「この本をプレゼントする」・`/participate`の「本をプレゼントする」)
- * が共通で参照する。本ごとの商品URLへは直接リンクしない。
- */
-export const amazonWishlistUrl = "https://www.amazon.jp/hz/wishlist/ls/25Z2CQP3JIP0J?ref_=wl_share";

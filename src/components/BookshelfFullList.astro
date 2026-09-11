@@ -12,8 +12,7 @@
  *
  * 【構造】
  * 各本は「小さな書影+タイトル/著者/状態ラベル/一言」の1行として
- * 並ぶ。本ごとに独立した展開パネル(話したい/贈る)を持つ方式で、
- * 各行のフォームはその本のid/titleをビルド時に直接埋め込んでいる。
+ * 並ぶ。
  *
  * 【フィルター】
  * すべて/読書中/これから読む/読みたい/読了の5ボタン(「贈って
@@ -21,41 +20,25 @@
  * ステータス自体は保持し、「すべて」でのみ表示される)。ライブラリは
  * 使わずvanilla JSでdata-status属性を見て行の表示/非表示を切り替える。
  *
- * 【本ごとのアクション】
- * conversationEnabled/giftEnabled/relatedUrlはそれぞれ独立した条件で
- * 表示する(所有しているか・贈れるかとは無関係に「話したい」を出せる)。
- * 複数表示される場合もボタン風の枠は使わず、矢印テキストリンクを縦に
- * 並べる静かな見た目にしている。
+ * 【「この本について話したい」「この本をプレゼントする」を公開版から
+ * 保留(2026-09-11、Decision Log 0133)】プロジェクトオーナーの指示
+ * により、HP公開を優先するため、共同読書・対話(Decision Log 0115)と
+ * Amazonほしい物リストへのプレゼント導線(Decision Log 0119・0130)を
+ * 公開UIから外した。機能自体を永久に廃止する判断ではなく、「読む道」
+ * 等の仕組みとあわせて公開後に改めて設計するための保留。
  *
- * 【この本について話したい(MVP)】
- * 2026-09-11に追加した仕組み(Decision Log 0115)をそのまま維持して
- * いる: Formspree(contactFormEndpoint)への送信、`_subject`/
- * `interest_type`/`book_id`/`book_title`のhidden送信、メール必須・
- * 他は任意、チェックボックス既定OFF、成功/失敗文言、
- * aria-expanded付きのインライン展開。SNS的な機能(フォロー・DM・
- * 参加者一覧公開・自動マッチング等)は引き続き実装していない。
+ * `conversationEnabled`/`giftEnabled`/`newBookUrl`/`usedBookUrl`は
+ * 将来また使う可能性があるフィールドのため、`BookEntry`型・
+ * `src/data/bookshelf.ts`からは削除していない(現時点でこのコンポーネント
+ * からは参照しない)。`relatedUrl`のみ、この本から生まれた記録への
+ * 導線として引き続き表示する。
  *
- * 【この本を贈る(MVP、2026-09-11、Decision Log 0119)】
- * giftEnabled=trueの本のみ表示する。新品/古本の購入導線は、匿名配送・
- * 送付方法が未確定で実際の体験を成立させられないため、現時点のMVPでは
- * 表示しない(`newBookUrl`/`usedBookUrl`フィールド自体は将来用として
- * 型・データに残しているが、UIでは参照していない)。
- *
- * 【Amazonほしい物リストに一本化(2026-09-11、Decision Log 0130)】
- * 「手元にある本を贈る」(お問い合わせ経由で譲り受ける)という導線を
- * やめ、「この本をプレゼントする →」から共通のAmazonほしい物リスト
- * (`amazonWishlistUrl`)へ外部リンクする、展開パネルなしのシンプルな
- * 1行リンクに変更した。`giftEnabled`の意味は「この本はプレゼントを
- * 受け付けている」として引き続き使う。本ごとの商品URLへは直接
- * リンクしない(ほしい物リスト上にその本がない可能性があるため)。
- *
- * 選択の開閉・フィルターはフレームワークを使わずvanilla JSで実装
- * している(Header.astroのメニュー開閉と同じ方針)。
+ * フィルターの開閉はフレームワークを使わずvanilla JSで実装している
+ * (Header.astroのメニュー開閉と同じ方針)。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfFullList.module.css";
 import { bookStatusLabels, type BookStatus, type BookEntry } from "@/types/bookshelf";
-import { contactFormEndpoint, amazonWishlistUrl } from "@/config/site";
 
 interface Props {
   books: BookEntry[];
@@ -110,119 +93,11 @@ const filters: { value: "all" | BookStatus; label: string }[] = [
           </div>
         </div>
 
-        {(book.conversationEnabled || book.giftEnabled || book.relatedUrl) && (
+        {book.relatedUrl && (
           <div class={styles.actions}>
-            {book.conversationEnabled && (
-              <button
-                type="button"
-                class={styles.actionTrigger}
-                data-toggle-trigger
-                aria-expanded="false"
-                aria-controls={`conversation-panel-${book.id}`}
-              >
-                この本について話したい <span class={styles.actionArrow} aria-hidden="true">→</span>
-              </button>
-            )}
-            {book.giftEnabled && (
-              <a class={styles.actionLink} href={amazonWishlistUrl} target="_blank" rel="noopener noreferrer">
-                この本をプレゼントする <span class={styles.actionArrow} aria-hidden="true">→</span>
-              </a>
-            )}
-            {book.relatedUrl && (
-              <a class={styles.actionLink} href={book.relatedUrl}>
-                この本から生まれた記録 <span class={styles.actionArrow} aria-hidden="true">→</span>
-              </a>
-            )}
-          </div>
-        )}
-
-        {book.conversationEnabled && (
-          <div id={`conversation-panel-${book.id}`} class={styles.conversationPanel} data-conversation-panel hidden>
-            <h3 class={styles.conversationHeading}>この本について話したい</h3>
-            <p class={styles.conversationIntro}>
-              この本について、
-              <br />
-              誰かと話してみたいと思ったら教えてください。
-            </p>
-            <p class={styles.conversationIntro}>
-              同じ本について話したい人が数人集まったら、
-              <br />
-              小さな読書会や対話の場をひらくことがあります。
-            </p>
-
-            <form class={styles.conversationForm} method="POST" action={contactFormEndpoint} data-conversation-form>
-              <input
-                type="text"
-                name="_gotcha"
-                class={styles.honeypot}
-                tabindex="-1"
-                autocomplete="off"
-                aria-hidden="true"
-              />
-              <input type="hidden" name="_subject" value="ふ、と 関わるページ 本について話したい" />
-              <input type="hidden" name="interest_type" value="book_conversation" />
-              <input type="hidden" name="book_id" value={book.id} />
-              <input type="hidden" name="book_title" value={book.title} />
-
-              <div class={styles.field}>
-                <label class={styles.label} for={`conversation-email-${book.id}`}
-                  >メールアドレス <span class={styles.required}>必須</span></label
-                >
-                <input
-                  class={styles.input}
-                  type="email"
-                  id={`conversation-email-${book.id}`}
-                  name="email"
-                  autocomplete="email"
-                  required
-                />
-              </div>
-
-              <div class={styles.field}>
-                <label class={styles.label} for={`conversation-name-${book.id}`}
-                  >お名前 <span class={styles.optional}>任意</span></label
-                >
-                <input
-                  class={styles.input}
-                  type="text"
-                  id={`conversation-name-${book.id}`}
-                  name="name"
-                  autocomplete="name"
-                />
-              </div>
-
-              <div class={styles.field}>
-                <label class={styles.label} for={`conversation-point-${book.id}`}
-                  >この本のどこが気になっていますか？ <span class={styles.optional}>任意</span></label
-                >
-                <textarea class={styles.textarea} id={`conversation-point-${book.id}`} name="point" rows="3" />
-              </div>
-
-              <div class={styles.checkboxField}>
-                <input
-                  class={styles.checkbox}
-                  type="checkbox"
-                  id={`conversation-notify-${book.id}`}
-                  name="notify"
-                  value="yes"
-                />
-                <label class={styles.checkboxLabel} for={`conversation-notify-${book.id}`}
-                  >読書会や対話の機会ができたら知らせてほしい</label
-                >
-              </div>
-
-              <button class={styles.conversationSubmit} type="submit"
-                >話してみたい <span aria-hidden="true">→</span></button
-              >
-
-              <p class={styles.conversationPrivacy}>
-                参加者のお名前やメールアドレスを
-                <br />
-                サイト上で公開することはありません。
-              </p>
-
-              <p class={styles.conversationStatus} data-conversation-status role="status" aria-live="polite" />
-            </form>
+            <a class={styles.actionLink} href={book.relatedUrl}>
+              この本から生まれた記録 <span class={styles.actionArrow} aria-hidden="true">→</span>
+            </a>
           </div>
         )}
       </li>
@@ -241,53 +116,6 @@ const filters: { value: "all" | BookStatus; label: string }[] = [
       rows.forEach((row) => {
         row.hidden = filter !== "all" && row.dataset.status !== filter;
       });
-    });
-  });
-
-  const toggles = document.querySelectorAll<HTMLButtonElement>("[data-toggle-trigger]");
-  toggles.forEach((trigger) => {
-    const targetId = trigger.getAttribute("aria-controls");
-    const panel = targetId ? document.getElementById(targetId) : null;
-    if (!panel) return;
-
-    trigger.addEventListener("click", () => {
-      const expanded = trigger.getAttribute("aria-expanded") === "true";
-      trigger.setAttribute("aria-expanded", expanded ? "false" : "true");
-      panel.hidden = expanded;
-    });
-  });
-
-  const conversationForms = document.querySelectorAll<HTMLFormElement>("[data-conversation-form]");
-  conversationForms.forEach((form) => {
-    const status = form.querySelector<HTMLElement>("[data-conversation-status]");
-    if (!status) return;
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-      submitButton?.setAttribute("disabled", "true");
-      status.textContent = "送信中...";
-
-      try {
-        const response = await fetch(form.action, {
-          method: "POST",
-          body: new FormData(form),
-          headers: { Accept: "application/json" },
-        });
-
-        if (response.ok) {
-          status.textContent =
-            "受け取りました。\n同じ本について話したい人が集まったら、\nご連絡することがあります。";
-          form.reset();
-        } else {
-          status.textContent = "送信に失敗しました。\n時間をおいて、もう一度お試しください。";
-        }
-      } catch {
-        status.textContent = "送信に失敗しました。\n時間をおいて、もう一度お試しください。";
-      } finally {
-        submitButton?.removeAttribute("disabled");
-      }
     });
   });
 </script>
