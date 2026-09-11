@@ -5,6 +5,13 @@
  * .sectionRule/.panel等と同じ考え方(細い罫線・淡いcolor-mix背景面)を
  * このページ用に複製している(既存ページと同様、ページごとに
  * styleを独立させる方針を踏襲)。
+ *
+ * 【ページ再構成に伴うスタイル整理(2026-09-11、Decision Log 0128)】
+ * 「場所・知識・技術を貸す」3カード用の.lendGrid/.lendCard/.lendIcon/
+ * .lendTitle/.lendDescriptionは、そのセクション自体の廃止に伴い削除
+ * した。新設した「持ち寄られたもの」一覧用(.contributionList等)・
+ * フォームの公開可否チェックボックス用(.checkboxField等、
+ * BookshelfFullList.module.cssと同じパターン)を追加した。
  * ------------------------------------------------------------
  */
 
@@ -208,65 +215,92 @@
 }
 
 /* -----------------------------
- * 場所・知識・技術を貸す
+ * 何かを持ち寄る(フォーム内チェックボックス)
+ * BookshelfFullList.module.cssの.checkboxField/.checkbox/
+ * .checkboxLabelと同じ考え方(2026-09-11、Decision Log 0128)。
  * ----------------------------- */
-.lendGrid {
+.checkboxField {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.checkbox {
+  margin-top: 3px;
+  accent-color: var(--color-accent-blue);
+}
+
+.checkboxLabel {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}
+
+.privacyNote {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+/* -----------------------------
+ * 持ち寄られたもの(2026-09-11、Decision Log 0128)。
+ * カード化せず、細い罫線区切りの静かな一覧にする(index.module.cssの
+ * .sectionRule・CurrentWorkList.module.cssの.label/.itemTitle/
+ * .itemBodyと同じ考え方)。件数が可変のため、Desktop幅でも常に縦積み
+ * のまま(index.astro「研究断面」の2カラムレイアウトとは異なり、
+ * 固定2件を前提にしていない)。
+ * ----------------------------- */
+.contributionList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
   margin-top: var(--space-4);
 }
 
-@media (min-width: 700px) {
-  .lendGrid {
-    flex-direction: row;
-    gap: var(--space-5);
-  }
-}
-
-.lendCard {
+.contributionItem {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  color: inherit;
-  text-decoration: none;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-accent-beige);
 }
 
-@media (min-width: 700px) {
-  .lendCard {
-    flex: 1;
-  }
+.contributionItem:first-child {
+  padding-top: 0;
+  border-top: none;
 }
 
-.lendIcon {
-  display: block;
-  width: 2rem;
-  height: 2rem;
-  color: var(--color-accent-blue);
+.contributionLabel {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
 }
 
-.lendIcon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.lendTitle {
+.contributionTitle {
   font-size: var(--fs-lg);
   line-height: var(--lh-heading);
   font-weight: 500;
   margin: 0;
 }
 
-.lendDescription {
+.contributionBody {
   margin: 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
-  color: var(--color-ink-muted);
 }
 
-.lendCard:hover .lendTitle,
-.lendCard:focus-visible .lendTitle {
-  text-decoration: underline;
+.contributionLink {
+  margin-top: var(--space-1);
+}
+
+.contributionEmpty {
+  margin: var(--space-4) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
 }
 
 /* -----------------------------

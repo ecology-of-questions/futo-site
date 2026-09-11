@@ -2,29 +2,16 @@
 /**
  * participate.astro (持ち寄る)
  * ------------------------------------------------------------
- * 役割: 「ふ、と」に持ち寄るための、いくつかの入口をまとめたページ。
+ * 役割: 「ふ、と」に持ち寄るための入口をまとめたページ。
  * プロジェクトオーナーからの指示(添付イメージ・各セクションの構成案)
  * に基づき新規実装した(Decision Log 0113)。日本語表記は当初「関わる」
  * だったが、2026-09-11にサイト全体で「持ち寄る」に変更した(Decision
  * Log 0125、URLは/participateのまま)。
  *
- * 構成: Hero → 気になるものを寄せる(フォーム) → 本から参加する
- * (featured本のteaser) → 一緒に試す → 話す → 場所・知識・技術を貸す →
- * ともに、続けていくために(まとめ)。
- *
  * 【2026-09-11、本文コピーを確定版に差し替え(Decision Log 0114)】
  * 実装確認後にセッションのコンテキスト要約を挟んだ影響で、いったん
  * 本文を推測で再構成していたが、プロジェクトオーナーから確定済みの
- * 全文言の提示を受け、このコミットで一字一句差し替えた。改行位置は
- * 意図されたリズムのため、<br />でそのまま保持している
- * (ResearchStatement.astroの「改行位置はコピーの意図そのものなので
- * 変更しない」という既存方針と同じ考え方)。
- *
- * 「気になるものを寄せる」は、Contactページと同じFormspreeエンドポイント
- * (contactFormEndpoint、Decision Log 0076)を流用し、隠しフィールド
- * `_subject`に「関わるページ」であることを明記した件名を入れている。
- * 必須項目は「URL / 名前」の1項目のみで、なぜ気になったか・お名前・
- * メールアドレスはすべて任意にした(プロジェクトオーナーの指示)。
+ * 全文言の提示を受け、このコミットで一字一句差し替えた。
  *
  * 【2026-09-11、「本を贈る」中心から「研究の本棚」中心へ再編
  * (Decision Log 0116)】プロジェクトオーナーの指示により、「本を贈る」
@@ -32,28 +19,43 @@
  * 関心を向けているのか」が見える「研究の本棚」に変更した。
  *
  * 【2026-09-11、本棚UIを/bookshelfに一本化(Decision Log 0117)】
- * 0116の実装により、フィルター・話したい・贈る機能付きの本棚UIが
- * `/participate`と`/bookshelf`の2箇所に分裂したため、プロジェクト
- * オーナーの指示で`/bookshelf`を「研究の本棚」の正式な本体ページと
- * 位置づけ、フル機能はそちらに集約した。このページでは「本から
- * 関わる」という短いセクションのみを残し、featured本(2〜3冊)を
- * `BookshelfList.astro`(装飾のみ、アクションなし)で表示し、
- * 「研究の本棚を見る →」で`/bookshelf`へ誘導する。本データは
+ * フィルター・話したい・贈る機能付きの本棚UIが`/participate`と
+ * `/bookshelf`の2箇所に分裂したため、`/bookshelf`を「研究の本棚」の
+ * 正式な本体ページと位置づけ、フル機能はそちらに集約した。本データは
  * `src/data/bookshelf.ts`に一元化した(Home・`/bookshelf`と共有、
  * このページ専用のデータは持たない)。
  *
  * 【トップページ再設計に伴う改訂(2026-09-11、Decision Log 0125)】
  * PARTICIPATEの日本語表記を「関わる」から「持ち寄る」に変更した
- * (URLは/participateのまま)。Heroの冒頭説明も、「「ふ、と」は、
- * ひとりで完結する研究ではありません。」から始まる4段落を、Homeの
- * 「持ち寄る」パネルと同じ1文(「「ふ、と」では、自分とは異なる
- * 他者や、これまで知らなかった世界との出会いを大切にしたいと
- * 考えています。」)に差し替えた。「研究の途中」「途中から関わる」
- * 等、何の途中か分かりにくい表現は使っていない。「本から関わる」
- * セクションは、プロジェクトオーナー指定の見出しに合わせて「本から
- * 参加する」に変更した(本文・featured本の表示は変更なし)。それ
- * 以外の具体的な参加方法(気になるものを寄せる・一緒に試す・話す・
- * 場所や知識を貸す)の見出し・本文は、この改訂では変更していない。
+ * (URLは/participateのまま)。
+ *
+ * 【ページ全体を再構成(2026-09-11、Decision Log 0128)】プロジェクト
+ * オーナーから、「参加方法をたくさん並べるページ」ではなく「さまざま
+ * な人が持っているものを『ふ、と』に持ち寄り、公開できるものは他の
+ * 人とも共有されていく場所」への再構成指示を受けた。
+ *
+ * 旧構成(Hero → 気になるものを寄せる → 本から参加する → 一緒に試す →
+ * 話す → 場所・知識・技術を貸す → まとめ)を、以下に整理した。
+ *
+ *   1. Hero(スタンス表明+「持ち寄る」の考え方の短い説明)
+ *   2. 何かを持ち寄る(旧「気になるものを寄せる」フォームを拡張。
+ *      旧「場所・知識・技術を貸す」3カードの内容も、別カテゴリに
+ *      分けず、この1つの入口に統合した。公開可否チェックボックスを
+ *      追加)
+ *   3. 持ち寄られたもの(新設。公開承認済みの投稿を
+ *      `src/data/contributions.ts`から表示する。Formspreeからの自動
+ *      取得・自動公開はしない、運営が手動でdataに追加するMVP)
+ *   4. 本をプレゼントする(旧「本から参加する」を改称。featured本の
+ *      表示・`/bookshelf`への導線は変更なし)
+ *   5. まとめ(旧「一緒に試す」「話す」の独立カードは廃止し、
+ *      「持ち寄られたものから話したり試したりすることがある」という
+ *      1文に圧縮してこのセクションに統合した)
+ *
+ * 「紹介」(本や人を知らせる)と「提供」(場所や知識を貸す)を別々の
+ * カテゴリに分けない、というのが今回の核心的な変更。データ構造・
+ * Formspreeエンドポイント・honeypot等のスパム対策は既存のものを
+ * そのまま再利用しており、新しいバックエンドやアカウント機能は
+ * 追加していない。詳細はDecision Log 0128参照。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -62,51 +64,21 @@ import ArrowLink from "@components/ArrowLink.astro";
 import BookshelfList from "@components/BookshelfList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./participate.module.css";
-import type { LendCategory } from "@/types/participate";
 import { books } from "@/data/bookshelf";
+import { contributions } from "@/data/contributions";
+import { contributionTypeLabels } from "@/types/contributions";
 import { contactFormEndpoint } from "@/config/site";
 
-/** 「本から参加する」teaserに表示するfeatured本(Decision Log 0117)。 */
+/** 「本をプレゼントする」に表示するfeatured本(Decision Log 0117)。 */
 const featuredBooks = books.filter((book) => book.featured);
 
-const lendCategories: LendCategory[] = [
-  {
-    icon: "place",
-    title: "場所を貸す",
-    description: "活動に使える場所やスペースがありましたら、\nぜひ教えてください。",
-    linkHref: "/contact",
-  },
-  {
-    icon: "info",
-    title: "情報を教える",
-    description: "資料や体験談、\n気になる取り組みなど、\n情報をお寄せください。",
-    linkHref: "/contact",
-  },
-  {
-    icon: "skill",
-    title: "知識・技術を貸す",
-    description: "専門的な知識やスキルをお持ちでしたら、\nぜひお力をお貸しください。",
-    linkHref: "/contact",
-  },
-];
-
-/**
- * 場所・知識・技術を貸すセクションの線画アイコン。外部アイコン
- * ライブラリは使わず、about.astroの循環図と同じ方針でインラインSVGを
- * 直接埋め込む(CLAUDE.md「UIライブラリを使わない」方針)。
- */
-const lendIcons: Record<LendCategory["icon"], string> = {
-  place:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.6 7-12.2A7 7 0 105 8.8C5 13.4 12 21 12 21z"/><circle cx="12" cy="8.8" r="2.5"/></svg>',
-  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>',
-  skill:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.6 2.6-2-2 2.6-2.6z"/></svg>',
-};
+/** 公開承認済み(visible: true)の投稿のみ表示する(Decision Log 0128)。 */
+const visibleContributions = contributions.filter((c) => c.visible);
 ---
 
 <DefaultLayout
   title="持ち寄る ｜ ふ、と"
-  description="「ふ、と」に持ち寄る、いくつかの方法。気になるものを寄せる、本を贈る、場所・知識・技術を貸す。"
+  description="「ふ、と」に持ち寄る、いくつかの方法。何かを持ち寄る、本をプレゼントする。"
   theme="night"
 >
   <NightBackground />
@@ -117,8 +89,13 @@ const lendIcons: Record<LendCategory["icon"], string> = {
         <p class={styles.eyebrow}>PARTICIPATE</p>
         <h1 class={styles.heading}>持ち寄る</h1>
         <div class={styles.body}>
+          <p>「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。</p>
           <p>
-            「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。
+            本や記事、人、場所、知識、経験。
+            <br />
+            何が新しい「ふと」のきっかけになるかは、まだわかりません。
+            <br />
+            ここでは、そんなものを持ち寄ることができます。
           </p>
         </div>
       </div>
@@ -126,115 +103,101 @@ const lendIcons: Record<LendCategory["icon"], string> = {
     </div>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="気になるものを寄せる" id="curiosity">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>気になるものを寄せる</h2>
+  <ResearchSection ariaLabel="何かを持ち寄る" id="contribute">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>何かを持ち寄る</h2>
     <p class={styles.sectionBody}>
-      本、記事、論文、人、場所、展覧会、ポッドキャスト、イベント、プロジェクトなど、
+      本や記事、人、場所、知識、経験など、「ふ、と」に届けたいものがあれば教えてください。
       <br />
-      研究のヒントになりそうなものを教えてください。
-      <br />
-      どんな小さなことでも構いません。
+      「これを知ってほしい」「これが使えるよ」でも構いません。
     </p>
 
-    <form class={styles.form} method="POST" action={contactFormEndpoint} data-curiosity-form>
+    <form class={styles.form} method="POST" action={contactFormEndpoint} data-contribution-form>
       <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <input type="hidden" name="_subject" value="ふ、と 関わるページ 気になるものを寄せる" />
+      <input type="hidden" name="_subject" value="ふ、と｜何かを持ち寄る" />
+      <input type="hidden" name="public_ok" value="no" data-contribution-public-ok-value />
 
       <div class={styles.field}>
-        <label class={styles.label} for="curiosity-target"
-          >URL / 名前 <span class={styles.required}>必須</span></label
+        <label class={styles.label} for="contribution-target"
+          >持ち寄りたいものの名前 / URL <span class={styles.required}>必須</span></label
         >
-        <input class={styles.input} type="text" id="curiosity-target" name="target" required />
+        <input class={styles.input} type="text" id="contribution-target" name="target" required />
       </div>
 
       <div class={styles.field}>
-        <label class={styles.label} for="curiosity-reason"
-          >なぜ気になったか <span class={styles.optional}>任意</span></label
+        <label class={styles.label} for="contribution-note"
+          >どんなものか、なぜ「ふ、と」に届けたいと思ったか <span class={styles.optional}>任意</span></label
         >
-        <textarea class={styles.textarea} id="curiosity-reason" name="reason" rows="4"></textarea>
+        <textarea class={styles.textarea} id="contribution-note" name="note" rows="4"></textarea>
       </div>
 
       <div class={styles.field}>
-        <label class={styles.label} for="curiosity-name">お名前 <span class={styles.optional}>任意</span></label>
-        <input class={styles.input} type="text" id="curiosity-name" name="name" autocomplete="name" />
+        <label class={styles.label} for="contribution-name">お名前 <span class={styles.optional}>任意</span></label>
+        <input class={styles.input} type="text" id="contribution-name" name="name" autocomplete="name" />
       </div>
 
       <div class={styles.field}>
-        <label class={styles.label} for="curiosity-email"
+        <label class={styles.label} for="contribution-email"
           >メールアドレス <span class={styles.optional}>任意</span></label
         >
-        <input class={styles.input} type="email" id="curiosity-email" name="email" autocomplete="email" />
+        <input class={styles.input} type="email" id="contribution-email" name="email" autocomplete="email" />
       </div>
 
-      <button class={styles.submit} type="submit">これ、気になるかも <span aria-hidden="true">→</span></button>
-      <p class={styles.status} data-curiosity-status role="status" aria-live="polite"></p>
+      <div class={styles.checkboxField}>
+        <input class={styles.checkbox} type="checkbox" id="contribution-public-ok" data-contribution-public-ok-checkbox />
+        <label class={styles.checkboxLabel} for="contribution-public-ok"
+          >この内容を、サイト上でみんなにも共有してよい</label
+        >
+      </div>
+      <p class={styles.privacyNote}>
+        チェックの有無にかかわらず、お名前やメールアドレスをサイト上で公開することはありません。内容を確認のうえ、運営がサイトに掲載します。
+      </p>
+
+      <button class={styles.submit} type="submit">持ち寄る <span aria-hidden="true">→</span></button>
+      <p class={styles.status} data-contribution-status role="status" aria-live="polite"></p>
     </form>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="本から参加する" id="books">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本から参加する</h2>
+  <ResearchSection ariaLabel="持ち寄られたもの" id="contributions">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>持ち寄られたもの</h2>
+    <p class={styles.sectionBody}>
+      ここに持ち寄られたもののうち、
+      <br />
+      公開してよいものを紹介しています。
+    </p>
+    {
+      visibleContributions.length > 0 ? (
+        <div class={styles.contributionList}>
+          {visibleContributions.map((item) => (
+            <div class={styles.contributionItem}>
+              <p class={styles.contributionLabel}>{contributionTypeLabels[item.type]}</p>
+              <h3 class={styles.contributionTitle}>{item.title}</h3>
+              {item.note && <p class={styles.contributionBody}>{item.note}</p>}
+              {item.url && (
+                <div class={styles.contributionLink}>
+                  <ArrowLink href={item.url} label="見る" external />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p class={styles.contributionEmpty}>
+          まだ紹介できるものがありません。届いたものから、少しずつここに加えていきます。
+        </p>
+      )
+    }
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="本をプレゼントする" id="gift-books">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本をプレゼントする</h2>
+    <p class={styles.sectionBody}>
+      研究の本棚には、これから読みたい本も置いています。
+      <br />
+      そのなかから、プレゼントしたいと思う本があれば贈ることができます。
+    </p>
     <BookshelfList books={featuredBooks} />
     <div class={styles.link}>
       <ArrowLink href="/bookshelf" label="研究の本棚を見る" />
-    </div>
-  </ResearchSection>
-
-  <ResearchSection ariaLabel="一緒に試す" id="try">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>一緒に試す</h2>
-    <div class={styles.sectionBody}>
-      <p>
-        音、場所、歩くこと、ものの見方など、
-        <br />
-        小さな実践を一緒に試してみませんか。
-      </p>
-      <p>
-        日常のなかでできることから、
-        <br />
-        ゆるやかに始めていきます。
-      </p>
-    </div>
-    <div class={styles.link}>
-      <ArrowLink href="/contact" label="一緒に試す" />
-    </div>
-  </ResearchSection>
-
-  <ResearchSection ariaLabel="話す" id="talk">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>話す</h2>
-    <div class={styles.sectionBody}>
-      <p>
-        今考えていること、気になっていること、
-        <br />
-        抱えている問いについて、
-        <br />
-        お話を聞かせてください。
-      </p>
-      <p>対話から、新しい視点が生まれるかもしれません。</p>
-    </div>
-    <div class={styles.link}>
-      <ArrowLink href="/contact" label="話してみる" />
-    </div>
-  </ResearchSection>
-
-  <ResearchSection ariaLabel="場所・知識・技術を貸す" id="lend">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>場所・知識・技術を貸す</h2>
-    <p class={styles.sectionBody}>研究を進めていく上で、場所や知識、技術などのサポートも歓迎しています。</p>
-    <div class={styles.lendGrid}>
-      {
-        lendCategories.map((category) => (
-          <a class={styles.lendCard} href={category.linkHref}>
-            <span class={styles.lendIcon} aria-hidden="true" set:html={lendIcons[category.icon]} />
-            <h3 class={styles.lendTitle}>{category.title}</h3>
-            <p class={styles.lendDescription}>
-              {category.description.split("\n").map((line, i) => (
-                <>
-                  {i > 0 && <br />}
-                  {line}
-                </>
-              ))}
-            </p>
-          </a>
-        ))
-      }
     </div>
   </ResearchSection>
 
@@ -244,12 +207,7 @@ const lendIcons: Record<LendCategory["icon"], string> = {
       <div class={styles.closingText}>
         <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ともに、続けていくために</h2>
         <div class={styles.sectionBody}>
-          <p>「ふ、と」は、特定の個人に閉じた研究ではありません。</p>
-          <p>
-            さまざまな方との関わりによって、
-            <br />
-            少しずつ育っていきます。
-          </p>
+          <p>持ち寄られたものから、誰かと話したり、一緒に何かを試したりすることがあります。</p>
           <p>
             これからも、気になることや感じたことを、
             <br />
@@ -270,12 +228,18 @@ const lendIcons: Record<LendCategory["icon"], string> = {
 </DefaultLayout>
 
 <script>
-  const form = document.querySelector<HTMLFormElement>("[data-curiosity-form]");
-  const status = document.querySelector<HTMLElement>("[data-curiosity-status]");
+  const form = document.querySelector<HTMLFormElement>("[data-contribution-form]");
+  const status = document.querySelector<HTMLElement>("[data-contribution-status]");
+  const publicOkCheckbox = document.querySelector<HTMLInputElement>("[data-contribution-public-ok-checkbox]");
+  const publicOkValue = document.querySelector<HTMLInputElement>("[data-contribution-public-ok-value]");
 
   if (form && status) {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+
+      if (publicOkCheckbox && publicOkValue) {
+        publicOkValue.value = publicOkCheckbox.checked ? "yes" : "no";
+      }
 
       const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
       submitButton?.setAttribute("disabled", "true");
