@@ -168,3 +168,12 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0110](./0110-ogp-image-light-tone.md) | OGP画像をライトトーンの配色に作り直す |
 | [0111](./0111-top-page-editorial-redesign.md) | トップページを、白背景・余白の多い編集的な構成に再設計する(Parking Lot解禁を含む)(→ 一部上書き済み、0112) |
 | [0112](./0112-redesign-partial-revert.md) | トップページ再設計のうち3点を、直近の決定(0108/0109)に差し戻す |
+| [0113](./0113-participate-page.md) | 「関わる」ページ(/participate)を新設する(→ 一部上書き済み、0114) |
+| [0114](./0114-participate-copy-and-data-fix.md) | 「関わる」ページの本文コピーを確定版に差し替え、GiftBookEntryのデータ構造(仮データ明記・贈り方のper-book化)を修正する |
+| [0115](./0115-book-conversation-mvp.md) | 「この本について話したい」を、本を起点に対話を始めるMVPとして追加する(SNS・DM・マッチング機能は実装しない) |
+| [0116](./0116-participate-bookshelf-restructure.md) | 「関わる」ページの本まわりを、「本を贈る」中心の3冊固定から、status/owned/giftEnabled/conversationEnabledを持つ「研究の本棚」中心の構造へ再編する(→ 一部上書き済み、0117) |
+| [0117](./0117-bookshelf-unification.md) | フィルター・話したい・贈る機能付きの本棚UIを/bookshelfに一本化し、本データ(BookEntry)をHome・/bookshelf・/participateで共有する唯一のソースに統合する |
+| [0118](./0118-wishlist-books-gift-enabled.md) | 「読みたい・未所蔵」の本を3冊追加し、「この本を贈る」導線を実データで初めて有効化する(→ 一部上書き済み、0119) |
+| [0119](./0119-gift-ui-mvp-simplification.md) | 購入導線が未確定なため「新品で贈る」「古本で贈る」を撤去し、「この本を贈る」パネルを「手元にある本を贈る」1本のみのMVPに整理する |
+| [0120](./0120-support-to-participate.md) | Home・Footerの「研究を支える」導線を「関わる」に整理し、/supportは/participateへリダイレクトして廃止する |
+| [0121](./0121-book-photo-as-research-evidence.md) | 本の書影を単なる商品画像ではなく研究に入ってきた証拠として扱う撮影方針を記録する(所有本は実写真・未所蔵は仮カバー、コード変更なし) |
