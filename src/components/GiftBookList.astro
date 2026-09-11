@@ -3,17 +3,18 @@
  * GiftBookList.astro
  * ------------------------------------------------------------
  * 役割: 「関わる」ページ(/participate)の「本を贈る」カード一覧と、
- * 選択に連動する「この本を贈る」詳細ボックスをまとめて担当する。
+ * 選択に連動する「この本を贈る」「この本について話したい」の詳細
+ * ボックスをまとめて担当する。
  *
  * 【2026-09-11、プロジェクトオーナーの指示により差し替え可能な構造に】
- * GiftBookEntryはtitle/author/status/reason/image/newBookUrl/
- * usedBookUrlの7項目を持つ(src/types/participate.ts参照)。現時点の
- * 値はすべてデザイン確認用の仮データで、実在の書籍情報として確定
- * させていない(値そのものに「(仮データ)」と明記している。
- * participate.astro参照)。書影画像(image)が未設定の本は、
- * 「研究の本棚」(BookshelfList.astro、Decision Log 0111)と同じ
- * color-mixの仮カバーを、並び順(index)からトーンを機械的に割り当てて
- * 表示する。データ自体に色の情報は持たせない。
+ * GiftBookEntryはid/title/author/status/reason/image/newBookUrl/
+ * usedBookUrl/conversationEnabledの項目を持つ(src/types/
+ * participate.ts参照)。現時点の値はすべてデザイン確認用の仮データで、
+ * 実在の書籍情報として確定させていない(値そのものに「(仮データ)」と
+ * 明記している。participate.astro参照)。書影画像(image)が未設定の
+ * 本は、「研究の本棚」(BookshelfList.astro、Decision Log 0111)と
+ * 同じcolor-mixの仮カバーを、並び順(index)からトーンを機械的に
+ * 割り当てて表示する。データ自体に色の情報は持たせない。
  *
  * 「この本を贈る」の贈り方3択のうち、「新品で贈る」「古本で贈る」は
  * 選択中の本のnewBookUrl/usedBookUrlに連動して遷移先が変わる
@@ -21,14 +22,28 @@
  * 導線で、送付先住所をサイト上に公開せず、お問い合わせ(既定: /contact)
  * へつなげる(プロジェクトオーナーの指示)。
  *
- * 選択の切り替えはフレームワークを使わずvanilla JSで実装している
- * (Header.astroのメニュー開閉と同じ方針)。カードは<button>とし、
- * aria-pressedで選択状態を伝える。JS未実行環境でも1冊目の内容が
- * 詳細ボックスに最初から表示されているため、情報は欠落しない。
+ * 【2026-09-11、「この本について話したい」MVP追加(Decision Log 0115)】
+ * 「本を起点に対話を始める」ための最小限の導線。SNS的な機能(フォロー・
+ * DM・参加者一覧公開・人数公開・自動マッチング等)は意図的に実装して
+ * いない。「贈る」とは独立したセクションとして、贈り方3択の下に薄い
+ * 罫線で区切って配置し、同じボタンにはまとめていない。トリガーは
+ * aria-expandedを持つ<button>で、押すとインラインでフォームが展開
+ * する(モーダルは使わない)。選択中の本のconversationEnabledが
+ * falseの場合はブロックごと非表示にする(未設定時はtrue扱い)。
+ * フォームはhiddenでbook_id/book_title/interest_typeを送信し、
+ * 選択中の本が変わるたびにJSでその値を更新する。既存の
+ * Formspreeエンドポイントを流用し、新しいバックエンド/DBは作らない。
+ *
+ * 選択の切り替え・展開の開閉はフレームワークを使わずvanilla JSで
+ * 実装している(Header.astroのメニュー開閉と同じ方針)。カードは
+ * <button>とし、aria-pressedで選択状態を伝える。JS未実行環境でも
+ * 1冊目の内容が詳細ボックスに最初から表示されているため、情報は
+ * 欠落しない(「話したい」フォームの展開のみJSに依存する)。
  * ------------------------------------------------------------
  */
 import styles from "./GiftBookList.module.css";
 import type { GiftBookEntry } from "@/types/participate";
+import { contactFormEndpoint } from "@/config/site";
 
 interface Props {
   books: GiftBookEntry[];
@@ -42,6 +57,7 @@ const tones = ["warm", "moss", "sky"] as const;
 const toneForIndex = (i: number) => tones[i % tones.length];
 
 const first = books[0];
+const firstConversationEnabled = first?.conversationEnabled !== false;
 ---
 
 <div class={styles.grid} data-gift-book-list>
@@ -52,12 +68,14 @@ const first = books[0];
         class={styles.card}
         data-gift-book-card
         aria-pressed={i === 0 ? "true" : "false"}
+        data-id={book.id}
         data-title={book.title}
         data-author={book.author}
         data-status={book.status}
         data-reason={book.reason}
         data-new-book-url={book.newBookUrl ?? "#"}
         data-used-book-url={book.usedBookUrl ?? "#"}
+        data-conversation-enabled={book.conversationEnabled === false ? "false" : "true"}
       >
         <span class={styles.cover} data-tone={toneForIndex(i)}>
           {book.image ? (
@@ -108,6 +126,83 @@ const first = books[0];
       <span class={styles.methodDescription}>すでにお持ちの本を譲っていただく。</span>
     </a>
   </div>
+
+  <div class={styles.conversationBlock} data-gift-conversation-block hidden={!firstConversationEnabled}>
+    <button
+      type="button"
+      class={styles.conversationTrigger}
+      data-gift-conversation-trigger
+      aria-expanded="false"
+      aria-controls="gift-conversation-panel"
+    >
+      この本について話したい <span class={styles.conversationTriggerArrow} aria-hidden="true">→</span>
+    </button>
+
+    <div id="gift-conversation-panel" class={styles.conversationPanel} data-gift-conversation-panel hidden>
+      <h3 class={styles.conversationHeading}>この本について話したい</h3>
+      <p class={styles.conversationIntro}>
+        この本について、
+        <br />
+        誰かと話してみたいと思ったら教えてください。
+      </p>
+      <p class={styles.conversationIntro}>
+        同じ本について話したい人が数人集まったら、
+        <br />
+        小さな読書会や対話の場をひらくことがあります。
+      </p>
+
+      <form class={styles.conversationForm} method="POST" action={contactFormEndpoint} data-conversation-form>
+        <input
+          type="text"
+          name="_gotcha"
+          class={styles.honeypot}
+          tabindex="-1"
+          autocomplete="off"
+          aria-hidden="true"
+        />
+        <input type="hidden" name="_subject" value="ふ、と 関わるページ 本について話したい" />
+        <input type="hidden" name="interest_type" value="book_conversation" />
+        <input type="hidden" name="book_id" value={first?.id} data-conversation-book-id />
+        <input type="hidden" name="book_title" value={first?.title} data-conversation-book-title />
+
+        <div class={styles.field}>
+          <label class={styles.label} for="conversation-email"
+            >メールアドレス <span class={styles.required}>必須</span></label
+          >
+          <input class={styles.input} type="email" id="conversation-email" name="email" autocomplete="email" required />
+        </div>
+
+        <div class={styles.field}>
+          <label class={styles.label} for="conversation-name">お名前 <span class={styles.optional}>任意</span></label>
+          <input class={styles.input} type="text" id="conversation-name" name="name" autocomplete="name" />
+        </div>
+
+        <div class={styles.field}>
+          <label class={styles.label} for="conversation-point"
+            >この本のどこが気になっていますか？ <span class={styles.optional}>任意</span></label
+          >
+          <textarea class={styles.textarea} id="conversation-point" name="point" rows="3"></textarea>
+        </div>
+
+        <div class={styles.checkboxField}>
+          <input class={styles.checkbox} type="checkbox" id="conversation-notify" name="notify" value="yes" />
+          <label class={styles.checkboxLabel} for="conversation-notify"
+            >読書会や対話の機会ができたら知らせてほしい</label
+          >
+        </div>
+
+        <button class={styles.conversationSubmit} type="submit">話してみたい <span aria-hidden="true">→</span></button>
+
+        <p class={styles.conversationPrivacy}>
+          参加者のお名前やメールアドレスを
+          <br />
+          サイト上で公開することはありません。
+        </p>
+
+        <p class={styles.conversationStatus} data-conversation-status role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -117,6 +212,12 @@ const first = books[0];
   const reasonEl = document.querySelector<HTMLElement>("[data-gift-book-detail-reason]");
   const newMethodEl = document.querySelector<HTMLAnchorElement>('[data-gift-method="new"]');
   const usedMethodEl = document.querySelector<HTMLAnchorElement>('[data-gift-method="used"]');
+
+  const conversationBlock = document.querySelector<HTMLElement>("[data-gift-conversation-block]");
+  const conversationTrigger = document.querySelector<HTMLButtonElement>("[data-gift-conversation-trigger]");
+  const conversationPanel = document.querySelector<HTMLElement>("[data-gift-conversation-panel]");
+  const conversationBookIdInput = document.querySelector<HTMLInputElement>("[data-conversation-book-id]");
+  const conversationBookTitleInput = document.querySelector<HTMLInputElement>("[data-conversation-book-title]");
 
   if (list && titleEl && authorEl && reasonEl && newMethodEl && usedMethodEl) {
     const cards = Array.from(list.querySelectorAll<HTMLButtonElement>("[data-gift-book-card]"));
@@ -132,6 +233,66 @@ const first = books[0];
       reasonEl.textContent = card.dataset.reason ?? "";
       newMethodEl.href = card.dataset.newBookUrl || "#";
       usedMethodEl.href = card.dataset.usedBookUrl || "#";
+
+      if (conversationBookIdInput) conversationBookIdInput.value = card.dataset.id ?? "";
+      if (conversationBookTitleInput) conversationBookTitleInput.value = card.dataset.title ?? "";
+
+      if (conversationBlock) {
+        const enabled = card.dataset.conversationEnabled !== "false";
+        conversationBlock.hidden = !enabled;
+        if (!enabled) {
+          conversationTrigger?.setAttribute("aria-expanded", "false");
+          if (conversationPanel) conversationPanel.hidden = true;
+        }
+      }
+    });
+  }
+
+  if (conversationTrigger && conversationPanel) {
+    conversationTrigger.addEventListener("click", () => {
+      const expanded = conversationTrigger.getAttribute("aria-expanded") === "true";
+      conversationTrigger.setAttribute("aria-expanded", expanded ? "false" : "true");
+      conversationPanel.hidden = expanded;
+    });
+  }
+
+  const conversationForm = document.querySelector<HTMLFormElement>("[data-conversation-form]");
+  const conversationStatus = document.querySelector<HTMLElement>("[data-conversation-status]");
+
+  if (conversationForm && conversationStatus) {
+    conversationForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const submitButton = conversationForm.querySelector<HTMLButtonElement>('button[type="submit"]');
+      submitButton?.setAttribute("disabled", "true");
+      conversationStatus.textContent = "送信中...";
+
+      try {
+        const response = await fetch(conversationForm.action, {
+          method: "POST",
+          body: new FormData(conversationForm),
+          headers: { Accept: "application/json" },
+        });
+
+        if (response.ok) {
+          conversationStatus.textContent =
+            "受け取りました。\n同じ本について話したい人が集まったら、\nご連絡することがあります。";
+          conversationForm.reset();
+          // form.reset()はhidden inputもdefaultValue(初期表示時の1冊目)に
+          // 戻してしまうため、現在選択中のカードの値に上書きし直す。
+          const selectedCard = list?.querySelector<HTMLButtonElement>('[data-gift-book-card][aria-pressed="true"]');
+          if (selectedCard) {
+            if (conversationBookIdInput) conversationBookIdInput.value = selectedCard.dataset.id ?? "";
+            if (conversationBookTitleInput) conversationBookTitleInput.value = selectedCard.dataset.title ?? "";
+          }
+        } else {
+          conversationStatus.textContent = "送信に失敗しました。\n時間をおいて、もう一度お試しください。";
+        }
+      } catch {
+        conversationStatus.textContent = "送信に失敗しました。\n時間をおいて、もう一度お試しください。";
+      } finally {
+        submitButton?.removeAttribute("disabled");
+      }
     });
   }
 </script>
