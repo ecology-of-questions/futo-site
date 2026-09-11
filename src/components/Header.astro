@@ -51,6 +51,11 @@
  * 「ふ、とについて」に戻す変更も含まれていたが、プロジェクトオーナー
  * から「Decision Log 0108の状態(公開研究室ふ、と)が正しい」との
  * 指摘を受け、ラベルは「公開研究室ふ、と」のまま据え置いた。
+ *
+ * 【「関わる」を追加(Decision Log参照)】新設した「関わる」ページ
+ * (/participate)への導線として、「本棚」と「公開研究室ふ、と」の
+ * 間に追加した。ナビゲーションは研究断面/本棚/関わる/公開研究室ふ、と
+ * の4項目になった。
  * ------------------------------------------------------------
  */
 import styles from "./Header.module.css";
@@ -82,6 +87,7 @@ import styles from "./Header.module.css";
     <nav id="site-nav" class={styles.nav} aria-label="サイト内ナビゲーション" data-nav>
       <a class={styles.navLink} href="/research">研究断面</a>
       <a class={styles.navLink} href="/bookshelf">本棚</a>
+      <a class={styles.navLink} href="/participate">関わる</a>
       <a class={styles.navLink} href="/about">公開研究室ふ、と</a>
     </nav>
   </div>

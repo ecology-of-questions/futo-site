@@ -1,0 +1,250 @@
+---
+/**
+ * participate.astro (関わる)
+ * ------------------------------------------------------------
+ * 役割: 「ふ、と」に関わるための、いくつかの入口をまとめたページ。
+ * プロジェクトオーナーからの指示(添付イメージ・各セクションの構成案)
+ * に基づき新規実装した。Header/Footerからの主要ページの一つとして
+ * 新設する(Decision Log参照)。
+ *
+ * 構成: Hero → 気になるものを寄せる(フォーム) → 本を贈る/この本を
+ * 贈る(GiftBookList) → 一緒に試す・話す → 場所・知識・技術を貸す →
+ * ともに、続けていくために(まとめ)。
+ *
+ * 「気になるものを寄せる」は、Contactページと同じFormspreeエンドポイント
+ * (contactFormEndpoint、Decision Log 0076)を流用し、隠しフィールド
+ * `_subject`で件名を分けている。研究便り(index.astro、Decision Log
+ * 0111)と同じ「専用の送信先が未整備でも、まず実際に機能する形で
+ * 実装する」考え方を踏襲している。
+ *
+ * 「本を贈る」の3冊・「この本を贈る」の贈り方は、実在の書影画像・
+ * 受け皿(Amazonほしいものリスト等のURL)がまだ確定していないため、
+ * 「研究の本棚」(Decision Log 0111)と同じ仮カバー(color-mix)、
+ * 「研究を支える」(support.astro)と同じ「受け皿未定の導線はまず
+ * お問い合わせに委ねる」考え方を踏襲している。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchSection from "@components/ResearchSection.astro";
+import ArrowLink from "@components/ArrowLink.astro";
+import GiftBookList from "@components/GiftBookList.astro";
+import NightBackground from "@components/NightBackground.astro";
+import styles from "./participate.module.css";
+import type { GiftBookEntry, GiftMethod, LendCategory } from "@/types/participate";
+import { contactFormEndpoint } from "@/config/site";
+
+const giftBooks: GiftBookEntry[] = [
+  {
+    title: "偶然と観察",
+    reason: "意図しないところで気づきが生まれる過程について考えたい。",
+    tone: "warm",
+  },
+  {
+    title: "歩行の記録誌",
+    reason: "同じ道を歩き続けた人の記録から、変化の見え方を学びたい。",
+    tone: "moss",
+  },
+  {
+    title: "対話のかたち",
+    reason: "問いが人とのあいだで育っていく様子を、実例から知りたい。",
+    tone: "sky",
+  },
+];
+
+const giftMethods: GiftMethod[] = [
+  {
+    label: "ほしいものリストから贈る",
+    description: "準備中です。整い次第、こちらにリンクを掲載します。",
+    href: "#",
+  },
+  {
+    label: "郵送で贈る",
+    description: "宛先を準備中です。お問い合わせいただければご案内します。",
+    href: "/contact",
+  },
+  {
+    label: "お問い合わせから相談する",
+    description: "贈り方について、直接ご相談いただくこともできます。",
+    href: "/contact",
+  },
+];
+
+const lendCategories: LendCategory[] = [
+  {
+    icon: "place",
+    title: "場所を貸す",
+    description: "観察や対話の場として、部屋やスペースを貸していただける方。",
+    linkHref: "/contact",
+  },
+  {
+    icon: "knowledge",
+    title: "知識を貸す",
+    description: "専門分野の知見や、資料・文献の心当たりを共有していただける方。",
+    linkHref: "/contact",
+  },
+  {
+    icon: "skill",
+    title: "技術を貸す",
+    description: "撮影、編集、翻訳など、記録や発信を手伝う技術をお持ちの方。",
+    linkHref: "/contact",
+  },
+];
+
+/**
+ * 場所・知識・技術を貸すセクションの線画アイコン。外部アイコン
+ * ライブラリは使わず、about.astroの循環図と同じ方針でインラインSVGを
+ * 直接埋め込む(CLAUDE.md「UIライブラリを使わない」方針)。
+ */
+const lendIcons: Record<LendCategory["icon"], string> = {
+  place:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.6 7-12.2A7 7 0 105 8.8C5 13.4 12 21 12 21z"/><circle cx="12" cy="8.8" r="2.5"/></svg>',
+  knowledge:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.67 4.67 4 5.5 4H12v16H5.5A1.5 1.5 0 014 18.5v-13z"/><path d="M20 5.5c0-.83-.67-1.5-1.5-1.5H12v16h6.5c.83 0 1.5-.67 1.5-1.5v-13z"/></svg>',
+  skill:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.6 2.6-2-2 2.6-2.6z"/></svg>',
+};
+---
+
+<DefaultLayout
+  title="関わる ｜ ふ、と"
+  description="「ふ、と」に関わる、いくつかの方法。気になるものを寄せる、本を贈る、場所・知識・技術を貸す。"
+  theme="night"
+>
+  <NightBackground />
+
+  <ResearchSection ariaLabel="Participate" id="participate-hero">
+    <div class={styles.hero}>
+      <div class={styles.heroText}>
+        <p class={styles.eyebrow}>PARTICIPATE</p>
+        <h1 class={styles.heading}>関わる</h1>
+        <div class={styles.body}>
+          <p>「ふ、と」は、ひとりで完結させるための場所ではありません。</p>
+          <p>本を贈る、場所を貸す、話しにくる。小さな関わり方を、いくつか用意しています。</p>
+        </div>
+      </div>
+      <div class={styles.heroPanel} aria-hidden="true">
+        <p class={styles.heroPanelText}>問いは、ひとりでは育たない</p>
+      </div>
+    </div>
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="気になるものを寄せる" id="curiosity">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>気になるものを寄せる</h2>
+    <p class={styles.sectionBody}>
+      日々のなかで気になったこと、引っかかったことを教えてください。研究のきっかけになるかもしれません。
+    </p>
+
+    <form class={styles.form} method="POST" action={contactFormEndpoint} data-curiosity-form>
+      <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <input type="hidden" name="_subject" value="ふ、と 気になるものを寄せる" />
+
+      <div class={styles.field}>
+        <label class={styles.label} for="curiosity-name">お名前 <span class={styles.optional}>任意</span></label>
+        <input class={styles.input} type="text" id="curiosity-name" name="name" autocomplete="name" />
+      </div>
+
+      <div class={styles.field}>
+        <label class={styles.label} for="curiosity-email"
+          >メールアドレス <span class={styles.optional}>任意・ご返信をご希望の場合のみ</span></label
+        >
+        <input class={styles.input} type="email" id="curiosity-email" name="email" autocomplete="email" />
+      </div>
+
+      <div class={styles.field}>
+        <label class={styles.label} for="curiosity-content"
+          >気になっていること <span class={styles.required}>必須</span></label
+        >
+        <textarea class={styles.textarea} id="curiosity-content" name="message" rows="6" required></textarea>
+      </div>
+
+      <button class={styles.submit} type="submit">送る</button>
+      <p class={styles.status} data-curiosity-status role="status" aria-live="polite"></p>
+    </form>
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="本を贈る" id="gift-book">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本を贈る</h2>
+    <p class={styles.sectionBody}>いま読みたい本、気になっている本です。贈っていただけると、研究の助けになります。</p>
+    <GiftBookList books={giftBooks} methods={giftMethods} />
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="一緒に試す、話す" id="try-talk">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>一緒に試す、話す</h2>
+    <div class={styles.tryTalkGrid}>
+      <div class={styles.tryTalkItem}>
+        <h3 class={styles.tryTalkTitle}>一緒に試す</h3>
+        <p class={styles.tryTalkBody}>音や場所、歩くことを手がかりにした小さな実践を、一緒に試してみませんか。</p>
+        <ArrowLink href="/contact" label="実践について相談する" />
+      </div>
+      <div class={styles.tryTalkItem}>
+        <h3 class={styles.tryTalkTitle}>一緒に話す</h3>
+        <p class={styles.tryTalkBody}>研究のテーマについて、雑談や壁打ちの相手として話してみませんか。</p>
+        <ArrowLink href="/contact" label="話してみる" />
+      </div>
+    </div>
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="場所・知識・技術を貸す" id="lend">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>場所・知識・技術を貸す</h2>
+    <div class={styles.lendGrid}>
+      {
+        lendCategories.map((category) => (
+          <a class={styles.lendCard} href={category.linkHref}>
+            <span class={styles.lendIcon} aria-hidden="true" set:html={lendIcons[category.icon]} />
+            <h3 class={styles.lendTitle}>{category.title}</h3>
+            <p class={styles.lendDescription}>{category.description}</p>
+          </a>
+        ))
+      }
+    </div>
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="ともに、続けていくために" id="closing">
+    <div class={styles.closing}>
+      <div class={styles.closingPanel} aria-hidden="true" />
+      <div class={styles.closingText}>
+        <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ともに、続けていくために</h2>
+        <p class={styles.sectionBody}>
+          「ふ、と」は、ひとつの研究室であると同時に、関わってくれる人たちとともに育っていく場所でもあります。
+        </p>
+        <div class={styles.closingLink}>
+          <ArrowLink href="/contact" label="お問い合わせ" />
+        </div>
+      </div>
+    </div>
+  </ResearchSection>
+</DefaultLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-curiosity-form]");
+  const status = document.querySelector<HTMLElement>("[data-curiosity-status]");
+
+  if (form && status) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      submitButton?.setAttribute("disabled", "true");
+      status.textContent = "送信中...";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        });
+
+        if (response.ok) {
+          status.textContent = "送りました。ありがとうございます。";
+          form.reset();
+        } else {
+          status.textContent = "送信に失敗しました。時間をおいて再度お試しください。";
+        }
+      } catch {
+        status.textContent = "送信に失敗しました。通信環境をご確認のうえ再度お試しください。";
+      } finally {
+        submitButton?.removeAttribute("disabled");
+      }
+    });
+  }
+</script>

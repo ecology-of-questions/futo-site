@@ -1,0 +1,348 @@
+/**
+ * participate.module.css
+ * ------------------------------------------------------------
+ * /participate専用のページレベルスタイル。index.module.cssの
+ * .sectionRule/.panel等と同じ考え方(細い罫線・淡いcolor-mix背景面)を
+ * このページ用に複製している(既存ページと同様、ページごとに
+ * styleを独立させる方針を踏襲)。
+ * ------------------------------------------------------------
+ */
+
+.sectionRule {
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-5);
+}
+
+.sectionHeading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0;
+}
+
+.sectionBody {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+/* -----------------------------
+ * Hero
+ * ----------------------------- */
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 800px) {
+  .hero {
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--space-5);
+  }
+}
+
+.heroText {
+  flex: 1;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.heading {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.body p {
+  margin: 0;
+}
+
+/* 実在の写真素材がまだないため、「研究の本棚」の仮カバーと同じ
+   color-mixによる抽象色面をHero右側に置き、装飾として縦書きの
+   一文を重ねている(aria-hidden、本文と重複する情報を持たない
+   純粋な装飾)。 */
+.heroPanel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 12rem;
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 70%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 25%, var(--color-paper)) 100%
+  );
+  border-radius: 4px;
+}
+
+@media (min-width: 800px) {
+  .heroPanel {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+.heroPanelText {
+  writing-mode: vertical-rl;
+  font-size: var(--fs-lg);
+  letter-spacing: 0.08em;
+  color: var(--color-ink-muted);
+  margin: var(--space-4) 0;
+}
+
+/* -----------------------------
+ * 気になるものを寄せる(フォーム)
+ * ----------------------------- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  max-width: 32rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+}
+
+.required,
+.optional {
+  color: var(--color-ink-muted);
+}
+
+.input,
+.textarea {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-ink-on-surface);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  transition: border-color var(--transition-base);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-blue);
+}
+
+.textarea {
+  resize: vertical;
+  line-height: var(--lh-body);
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.submit {
+  align-self: flex-start;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-accent-blue);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-blue);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.submit:hover,
+.submit:focus-visible {
+  background-color: var(--color-accent-blue);
+  color: var(--color-surface);
+}
+
+.submit:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+/* -----------------------------
+ * 一緒に試す、話す
+ * ----------------------------- */
+.tryTalkGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 700px) {
+  .tryTalkGrid {
+    flex-direction: row;
+    gap: var(--space-5);
+  }
+
+  .tryTalkItem {
+    flex: 1;
+  }
+
+  .tryTalkItem + .tryTalkItem {
+    padding-left: var(--space-5);
+    border-left: 1px solid var(--color-accent-beige);
+  }
+}
+
+.tryTalkTitle {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0;
+}
+
+.tryTalkBody {
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+/* -----------------------------
+ * 場所・知識・技術を貸す
+ * ----------------------------- */
+.lendGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 700px) {
+  .lendGrid {
+    flex-direction: row;
+    gap: var(--space-5);
+  }
+}
+
+.lendCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (min-width: 700px) {
+  .lendCard {
+    flex: 1;
+  }
+}
+
+.lendIcon {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-accent-blue);
+}
+
+.lendIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.lendTitle {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0;
+}
+
+.lendDescription {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+}
+
+.lendCard:hover .lendTitle,
+.lendCard:focus-visible .lendTitle {
+  text-decoration: underline;
+}
+
+/* -----------------------------
+ * ともに、続けていくために(まとめ)
+ * ----------------------------- */
+.closing {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-4);
+}
+
+@media (min-width: 800px) {
+  .closing {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .closingText {
+    flex: 1;
+  }
+}
+
+.closingPanel {
+  min-height: 8rem;
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 40%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 70%, var(--color-paper)) 100%
+  );
+  border-radius: 4px;
+}
+
+@media (min-width: 800px) {
+  .closingPanel {
+    flex: 1;
+    min-height: 12rem;
+    align-self: stretch;
+  }
+}
+
+.closingLink {
+  margin-top: var(--space-3);
+}

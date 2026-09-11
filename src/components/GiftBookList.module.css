@@ -1,0 +1,179 @@
+/**
+ * GiftBookList.module.css
+ * ------------------------------------------------------------
+ * 「本を贈る」カード(.grid/.card)と「この本を贈る」詳細ボックス
+ * (.detail)のスタイル。
+ *
+ * 仮カバー(.cover)の色は、BookshelfList.module.css(Decision Log 0111)
+ * と同じ3トーン(warm/moss/sky)をそのまま流用している。新しいHEX値を
+ * 決め打ちせず、既存トークンから算出する方針を踏襲する。
+ * ------------------------------------------------------------
+ */
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 700px) {
+  .grid {
+    flex-direction: row;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+@media (min-width: 700px) {
+  .card {
+    flex: 1;
+  }
+}
+
+.card[aria-pressed="true"] .cover {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 3px;
+}
+
+.cover {
+  display: flex;
+  align-items: flex-end;
+  aspect-ratio: 3 / 4;
+  padding: var(--space-3);
+  border-radius: 2px;
+  transition: outline-color var(--transition-base);
+}
+
+.cover[data-tone="warm"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
+  );
+}
+
+.cover[data-tone="moss"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
+  );
+}
+
+.cover[data-tone="sky"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
+  );
+}
+
+.coverTitle {
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+  color: var(--color-ink);
+}
+
+.reason {
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+/* 「この本を贈る」詳細ボックス。研究の本棚のカードと違い、選択された
+   1冊分の情報+贈り方の選択肢を示す独立した面のため、Home
+   (index.module.css).panelと同じ、地の背景に対してごく淡く区別できる
+   色面にしている。 */
+.detail {
+  margin-top: var(--space-4);
+  background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-paper));
+  border-radius: 4px;
+  padding: var(--space-4);
+}
+
+@media (min-width: 600px) {
+  .detail {
+    margin-top: var(--space-5);
+    padding: var(--space-5);
+  }
+}
+
+.detailLabel {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  margin: 0;
+}
+
+.detailTitle {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: var(--space-2) 0 0;
+}
+
+.detailReason {
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+  margin: var(--space-1) 0 0;
+}
+
+.methods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 700px) {
+  .methods {
+    flex-direction: row;
+  }
+}
+
+.method {
+  display: block;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-2) var(--space-3);
+  transition: border-color var(--transition-base);
+}
+
+.method:hover,
+.method:focus-visible {
+  border-color: var(--color-accent-blue);
+}
+
+.methodLabel {
+  display: block;
+  font-weight: 500;
+}
+
+.methodDescription {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}

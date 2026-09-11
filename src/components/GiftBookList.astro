@@ -1,0 +1,89 @@
+---
+/**
+ * GiftBookList.astro
+ * ------------------------------------------------------------
+ * 役割: 「関わる」ページ(/participate)の「本を贈る」「この本を贈る」の
+ * 2セクション分をまとめて担当するコンポーネント。
+ *
+ * 「本を贈る」は3冊のカード(ボタン)を並べ、クリックで選択を切り替える。
+ * 「この本を贈る」は選択中の本のタイトル・著者・理由と、贈り方の選択肢
+ * (GiftMethod[])を表示する、選択に連動した詳細ボックス。
+ *
+ * 実在の書影画像はまだ用意していないため、「研究の本棚」
+ * (BookshelfList.astro、Decision Log 0111)と同じ、tokens.cssの
+ * 既存トークンをcolor-mixで組み合わせた仮カバーの考え方を踏襲している。
+ *
+ * 選択の切り替えは、フレームワークを使わずvanilla JSで実装している
+ * (Header.astroのメニュー開閉と同じ方針)。カードは<button>とし、
+ * aria-pressedで選択状態を伝える。JS未実行環境でも「この本を贈る」欄に
+ * 1冊目の内容が最初から表示されているため、情報が欠落することはない。
+ * ------------------------------------------------------------
+ */
+import styles from "./GiftBookList.module.css";
+import type { GiftBookEntry, GiftMethod } from "@/types/participate";
+
+interface Props {
+  books: GiftBookEntry[];
+  methods: GiftMethod[];
+}
+
+const { books, methods } = Astro.props;
+---
+
+<div class={styles.grid} data-gift-book-list>
+  {
+    books.map((book, i) => (
+      <button
+        type="button"
+        class={styles.card}
+        data-gift-book-card
+        data-index={i}
+        aria-pressed={i === 0 ? "true" : "false"}
+      >
+        <span class={styles.cover} data-tone={book.tone}>
+          <span class={styles.coverTitle} data-gift-book-title>{book.title}</span>
+        </span>
+        <span class={styles.reason} data-gift-book-reason>{book.reason}</span>
+      </button>
+    ))
+  }
+</div>
+
+<div class={styles.detail} data-gift-book-detail>
+  <p class={styles.detailLabel}>この本を贈る</p>
+  <p class={styles.detailTitle} data-gift-book-detail-title>{books[0]?.title}</p>
+  <p class={styles.detailReason} data-gift-book-detail-reason>{books[0]?.reason}</p>
+
+  <div class={styles.methods}>
+    {
+      methods.map((method) => (
+        <a class={styles.method} href={method.href}>
+          <span class={styles.methodLabel}>{method.label}</span>
+          <span class={styles.methodDescription}>{method.description}</span>
+        </a>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  const list = document.querySelector<HTMLElement>("[data-gift-book-list]");
+  const titleEl = document.querySelector<HTMLElement>("[data-gift-book-detail-title]");
+  const reasonEl = document.querySelector<HTMLElement>("[data-gift-book-detail-reason]");
+
+  if (list && titleEl && reasonEl) {
+    const cards = Array.from(list.querySelectorAll<HTMLButtonElement>("[data-gift-book-card]"));
+
+    list.addEventListener("click", (event) => {
+      const card = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-gift-book-card]");
+      if (!card) return;
+
+      const title = card.querySelector<HTMLElement>("[data-gift-book-title]");
+      const reason = card.querySelector<HTMLElement>("[data-gift-book-reason]");
+
+      cards.forEach((c) => c.setAttribute("aria-pressed", c === card ? "true" : "false"));
+      if (title) titleEl.textContent = title.textContent;
+      if (reason) reasonEl.textContent = reason.textContent;
+    });
+  }
+</script>
