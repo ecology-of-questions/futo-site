@@ -86,6 +86,13 @@
  * 列挙が他ページと重複していた)と、研究断面01・1.5の紹介文を、より
  * 短く具体的な文章に差し替えた。記事本文(01.astro・1-5.astro)との
  * 内容の齟齬がないことを確認済み。記事本文自体は変更していない。
+ *
+ * 【データをsrc/data/researchReviews.tsへ切り出し(2026-09-11、
+ * Decision Log 0125)】Homeの「いま考えていること」セクションが最新の
+ * 研究断面1件を表示する必要が生じたため、このページに直接
+ * ハードコードしていたpublishedReviews/plannedReviewsを
+ * `src/data/researchReviews.ts`に切り出し、Homeとこのページの両方が
+ * 同じ配列を参照するようにした。データの内容自体は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -93,36 +100,7 @@ import ResearchSection from "@components/ResearchSection.astro";
 import ResearchReviewList from "@components/ResearchReviewList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./research.module.css";
-import type {
-  PlannedReviewEntry,
-  PublishedReviewEntry,
-} from "@/types/researchReviewListing";
-
-const publishedReviews: PublishedReviewEntry[] = [
-  {
-    number: "01",
-    title: "『ふと』という日本語",
-    subtitle: "身体、知覚、記憶、思考を横断する言葉",
-    description:
-      "「ふと」は、もともと身体の動きを表す言葉だった。そこから、なぜ記憶や思考を表す言葉になったのか。辞書や古典、日本語研究をたどります。",
-    updatedLabel: "2026.08.15 更新",
-    href: "/research/reviews/01",
-  },
-  {
-    number: "1.5",
-    title: "なぜ私たちは、ある瞬間に「ふと」気づくのか",
-    subtitle: "その手前にある経験と時間",
-    description:
-      "「ふと」気づく一瞬だけを見ても、その理由はわからない。その手前には、どんな経験や時間が重なっているのか。いくつかの研究を行き来しながら考えます。",
-    updatedLabel: "2026.09.03 更新",
-    href: "/research/reviews/1-5",
-  },
-];
-
-const plannedReviews: PlannedReviewEntry[] = [
-  { number: "02", title: "認識の変化と言語の生態系", stageLabel: "構想中" },
-  { number: "03", title: "世界はどのように見えてくるのか", stageLabel: "構想中" },
-];
+import { publishedReviews, plannedReviews } from "@/data/researchReviews";
 ---
 
 <DefaultLayout title="Research ｜ ふ、と" theme="night">
