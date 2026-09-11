@@ -178,3 +178,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0120](./0120-support-to-participate.md) | Home・Footerの「研究を支える」導線を「関わる」に整理し、/supportは/participateへリダイレクトして廃止する |
 | [0121](./0121-book-photo-as-research-evidence.md) | 本の書影を単なる商品画像ではなく研究に入ってきた証拠として扱う撮影方針を記録する(所有本は実写真・未所蔵は仮カバー、コード変更なし) |
 | [0123](./0123-current-work-review-body-fix.md) | Home「いま、取り組んでいること」の「研究断面」本文を改訂する |
+| [0124](./0124-participate-panel-body-revision.md) | Home「関わる」パネルの本文を改訂する |
