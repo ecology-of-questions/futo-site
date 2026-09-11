@@ -37,6 +37,11 @@
  * 0120)】支援ページ(`/support`)を独立ページとして育てない方針に
  * 転換したため、遷移先を`/participate`に、ラベルを「関わる」に変更
  * した。「クロージングのCTA」という役割自体は変更していない。
+ *
+ * 【「関わる」→「持ち寄る」に表記変更(2026-09-11、Decision Log
+ * 0125)】PARTICIPATE(/participate、URLは変更なし)の日本語表記を
+ * サイト全体で「持ち寄る」に統一する指示に伴い、Footerのラベルも
+ * 変更した。
  * ------------------------------------------------------------
  */
 import styles from "./Footer.module.css";
@@ -47,7 +52,7 @@ import styles from "./Footer.module.css";
     <p class={styles.siteName}>公開研究室「ふ、と」</p>
 
     <nav class={styles.nav} aria-label="フッターナビゲーション">
-      <a class={styles.link} href="/participate">関わる</a>
+      <a class={styles.link} href="/participate">持ち寄る</a>
       <a class={styles.link} href="/contact">お問い合わせ</a>
     </nav>
 
