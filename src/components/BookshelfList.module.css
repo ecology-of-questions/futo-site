@@ -1,7 +1,8 @@
 /**
  * BookshelfList.module.css
  * ------------------------------------------------------------
- * 「研究の本棚」の本カード。Desktop幅(700px以上)で3カラム均等表示。
+ * 「研究の本棚」の本カード。Desktop幅(700px以上)で3枚分の幅が
+ * 見える横並び表示。
  *
  * 【Mobile幅を横スクロールの棚に変更(2026-09-11)】当初Mobile幅は
  * 縦1カラムに積んでいたが、書影(.cover)がコンテナ幅いっぱいに広がり
@@ -11,6 +12,16 @@
  * 採用した。1枚を70%幅(最大16rem)で表示し、隣の本が少し見切れる
  * ことで続きがあることを示す。JS・ライブラリは使わず、CSSの
  * overflow-x + scroll-snapのみで実装している。
+ *
+ * 【Desktop幅もスクロール式に変更(2026-09-11、Decision Log 0129)】
+ * 当初Desktop幅は「3カラム均等表示」(flex: 1で常に全冊を均等に
+ * 引き伸ばす)だったが、`featured: true`の本を3冊から6冊に増やした
+ * ことで、6等分だと1枚あたりが小さくなりすぎて書影が読みにくくなる
+ * 問題が生じた。card数が変わっても崩れないよう、Desktop幅も
+ * Mobile幅と同じ「一部が見切れる横スクロールの棚」方式に統一し、
+ * 常に3枚分の幅がぴったり収まるようcalc()で幅を固定した(4枚目以降は
+ * 横スクロールで見る)。「本棚を横に眺める」という比喩はDesktop幅でも
+ * 崩れない。
  *
  * 仮カバー(.cover)は、実際の書影画像の代わりに、tokens.cssの
  * 既存トークンをcolor-mixで組み合わせた抽象色面にした。新しいHEX値を
@@ -40,9 +51,6 @@
   .grid {
     gap: var(--space-5);
     margin-top: var(--space-5);
-    padding-bottom: 0;
-    overflow-x: visible;
-    scroll-snap-type: none;
   }
 }
 
@@ -58,10 +66,10 @@
 
 @media (min-width: 700px) {
   .card {
-    flex: 1;
-    width: auto;
+    /* 常に3枚分の幅がちょうど収まるようにする(gapは2つ分)。
+       4枚目以降は横スクロールで見る。 */
+    width: calc((100% - 2 * var(--space-5)) / 3);
     max-width: none;
-    scroll-snap-align: none;
   }
 }
 

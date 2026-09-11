@@ -21,11 +21,19 @@
  * 追加していない」としていたが、プロジェクトオーナーから所有状況の
  * 確定した3冊の提示を受け、実データとして追加した)。この3冊は
  * `owned: false` / `giftEnabled: true`で、実際に「この本を贈る」
- * 導線が表示される最初の本になる。`featured`は指示により`false`の
- * まま(勝手に変更しない)。`newBookUrl`/`usedBookUrl`は購入先が
+ * 導線が表示される最初の本になる。`newBookUrl`/`usedBookUrl`は購入先が
  * 未確定のため設定していない(BookshelfFullList.astro側で、
  * 未設定の贈り方は選択肢自体を出さない実装にしている。ダミーの
  * "#"は使わない)。
+ *
+ * 【「読みたい」3冊もfeaturedに追加(2026-09-11、Decision Log 0129)】
+ * `/participate`の「本をプレゼントする」teaserには、当初`featured:
+ * true`の「読書中」3冊のみを表示していたが、この3冊は`giftEnabled:
+ * false`で実際には贈れない本だった。プロジェクトオーナーの指示
+ * (「気になる本も追加して」)により、実際に贈れる「読みたい」3冊も
+ * `featured: true`に変更した(既存の3冊は残したまま追加、置き換えでは
+ * ない)。これにより、贈ることを主目的とするteaserに、実際に
+ * `giftEnabled: true`の本が表示されるようになった。
  *
  * 将来、外部データソースからの追加・更新に発展する可能性があるが、
  * 今回はこの配列を直接編集する運用のみ実装する(Google Sheets連携等は
@@ -77,7 +85,7 @@ export const books: BookEntry[] = [
     giftEnabled: true,
     conversationEnabled: true,
     reason: "人間だけではないものとの関係から、世界に気づく方法を考えてみたい。",
-    featured: false,
+    featured: true,
     tone: "warm",
   },
   {
@@ -89,7 +97,7 @@ export const books: BookEntry[] = [
     giftEnabled: true,
     conversationEnabled: true,
     reason: "観察することと、生きることはどうつながっているのか。",
-    featured: false,
+    featured: true,
     tone: "moss",
   },
   {
@@ -101,7 +109,7 @@ export const books: BookEntry[] = [
     giftEnabled: true,
     conversationEnabled: true,
     reason: "「ふと」ということばそのものを、もう少し深くたどってみたい。",
-    featured: false,
+    featured: true,
     tone: "sky",
   },
 ];
