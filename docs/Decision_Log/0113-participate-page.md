@@ -3,8 +3,10 @@
 - 日付: 2026-09-11
 - 状態: 一部上書き済み(→ 0114。本文コピー全文とGiftBookEntryの
   データ構造(著者名等を含む7項目化)、贈り方のper-book化はDecision
-  Log 0114に置き換えられた。ページの新設自体・全体構成・Header
-  ナビゲーション追加はそのまま有効)
+  Log 0114に置き換えられた。→ 0116。「本を贈る」中心の構造・
+  GiftBookList.astro自体はDecision Log 0116で「研究の本棚」中心の
+  構造(ParticipateBookshelf.astro)に置き換えられた。ページの新設
+  自体・Hero以降の全体構成・Headerナビゲーション追加はそのまま有効)
 
 ## Decision
 
