@@ -25,10 +25,17 @@
  * 余白は、旧.bookshelfLink(本棚プレビュー用)を.panelLinkに改名して
  * 引き続き使っている(.panel内の2つのpanelSection共通で使う余白の
  * ため)。
+ *
+ * 【「いま考えていること」→「研究断面」に改称(2026-09-11、Decision
+ * Log 0127)】見出し・class名を.currentWorkHeadingから
+ * .researchReviewsHeadingに変更し、短い説明文用の.researchReviews
+ * Introを追加した。「研究断面をすべて見る→」リンクの余白は、
+ * 「持ち寄る」パネルのリンクと共通の用途になったため、.panelLinkを
+ * より汎用的な.sectionLinkに改名した。
  * ------------------------------------------------------------
  */
 
-/* 「いま考えていること」の見出し直前に置く、細い横罫線。
+/* 「研究断面」の見出し直前に置く、細い横罫線。
    ResearchSectionが各セクションにpadding-block: space-6を
    持たせているため、セクション内の最初の要素として配置するだけで
    上部の余白と揃う。 */
@@ -37,18 +44,25 @@
   padding-top: var(--space-5);
 }
 
-.currentWorkHeading {
-  /* 「いま、取り組んでいること」→「いま考えていること」セクションの
-     見出し(2026-08-17、Decision Log 0057。見出し文言は2026-09-11、
-     Decision Log 0125で改訂)。ResearchStatementの.heading等と揃え、
-     fs-xlの控えめな見出しサイズにする。 */
+.researchReviewsHeading {
+  /* 「いま、取り組んでいること」→「いま考えていること」→「研究断面」
+     セクションの見出し(2026-08-17、Decision Log 0057。文言は
+     2026-09-11のDecision Log 0125・0127で改訂)。ResearchStatementの
+     .heading等と揃え、fs-xlの控えめな見出しサイズにする。 */
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
   margin: 0;
 }
 
-.panelLink {
+.researchReviewsIntro {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+}
+
+.sectionLink {
   margin-top: var(--space-4);
 }
 

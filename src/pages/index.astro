@@ -85,6 +85,16 @@
  * 「持ち寄る」「研究便り」は、引き続き1つの背景面(.panel)にまとめ、
  * 上記の順(持ち寄る→研究便り)に並べている。
  *
+ * 【「いま考えていること」→「研究断面」に改称、最新2件表示に変更
+ * (2026-09-11、Decision Log 0127)】プロジェクトオーナーの指示により、
+ * 見出しをHeader/Footerの「研究断面」表記と一致させ、短い説明文
+ * (「いま考えていること、試していることを記録しています。」)を追加、
+ * 表示件数を最新1件→最新2件に変更した(現在公開済みの研究断面が
+ * ちょうど2件のため、両方をトップから見つけられるようにする)。
+ * 記事が増えても表示は常に最新2件のみとし、下に「研究断面をすべて
+ * 見る→」を置いて既存の一覧ページ(/research)に委ねる。データは
+ * 引き続きsrc/data/researchReviews.tsを共有し、二重管理しない。
+ *
  * 以下、この変更より前の変遷(Hero統合・夜空背景・文章整理等)は、
  * このファイルのgit履歴および各Decision Logを参照。
  * ------------------------------------------------------------
@@ -102,20 +112,22 @@ import { publishedReviews } from "@/data/researchReviews";
 import { contactFormEndpoint } from "@/config/site";
 
 /**
- * 「いま考えていること」は、最新の研究断面1件のみを表示する
- * (2026-09-11、Decision Log 0125)。publishedReviewsは公開順
- * (古い→新しい)で並んでいるため、配列の末尾が最新記事になる。
+ * 「研究断面」セクションは、最新2件のみを表示する(2026-09-11、
+ * Decision Log 0127。旧「いま考えていること」は最新1件のみだったが、
+ * 現在公開済みの研究断面が2件になったため、2件ともトップから見つけ
+ * られるよう表示件数を2件に変更した)。publishedReviewsは公開順
+ * (古い→新しい)で並んでいるため、末尾から2件を取り、新しい順に
+ * 並べ替えて表示する。記事が増えても、ここで表示するのは常に最新2件
+ * のみで、それ以外は`/research`(既存の一覧ページ)に委ねる。
  */
-const latestReview = publishedReviews.at(-1)!;
-const currentWorkItems: CurrentWorkItem[] = [
-  {
-    label: "Research Review",
-    title: latestReview.title,
-    body: [latestReview.description],
-    linkLabel: "読む",
-    linkHref: latestReview.href,
-  },
-];
+const latestReviews = publishedReviews.slice(-2).reverse();
+const currentWorkItems: CurrentWorkItem[] = latestReviews.map((review) => ({
+  label: `研究断面 ${review.number}`,
+  title: review.title,
+  body: [review.description],
+  linkLabel: "読む",
+  linkHref: review.href,
+}));
 ---
 
 <DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践" theme="night">
@@ -137,9 +149,13 @@ const currentWorkItems: CurrentWorkItem[] = [
     linkHref="/research-statement"
   />
 
-  <ResearchSection ariaLabel="いま考えていること" id="current-work">
-    <h2 class={`${styles.currentWorkHeading} ${styles.sectionRule}`}>いま考えていること</h2>
+  <ResearchSection ariaLabel="研究断面" id="research-reviews">
+    <h2 class={`${styles.researchReviewsHeading} ${styles.sectionRule}`}>研究断面</h2>
+    <p class={styles.researchReviewsIntro}>いま考えていること、試していることを記録しています。</p>
     <CurrentWorkList items={currentWorkItems} />
+    <div class={styles.sectionLink}>
+      <ArrowLink href="/research" label="研究断面をすべて見る" />
+    </div>
   </ResearchSection>
 
   <ResearchSection ariaLabel="持ち寄る・研究便り" id="participate-newsletter">
@@ -150,7 +166,7 @@ const currentWorkItems: CurrentWorkItem[] = [
         <p class={styles.panelBody}>
           「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。
         </p>
-        <div class={styles.panelLink}>
+        <div class={styles.sectionLink}>
           <ArrowLink href="/participate" label="持ち寄る" />
         </div>
       </div>
