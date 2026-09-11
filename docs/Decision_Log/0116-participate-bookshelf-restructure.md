@@ -1,7 +1,12 @@
 # 0116. 「関わる」ページの本まわりを、「本を贈る」中心から「研究の本棚」中心へ再構成する
 
 - 日付: 2026-09-11
-- 状態: 採用(Decision Log 0113を一部上書き)
+- 状態: 一部上書き済み(→ 0117。`/participate`にフル機能で実装した
+  本棚UI・データは、`/bookshelf`への一本化に伴いDecision Log 0117で
+  移設・縮小された。「贈る」「話す」を独立させる設計思想、
+  `ParticipateBookEntry`のフィールド構成は`BookEntry`(src/types/
+  bookshelf.ts)にそのまま引き継がれている。Decision Log 0113を
+  一部上書きした点は変更なし)
 
 ## Decision
 
