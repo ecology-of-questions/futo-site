@@ -42,9 +42,20 @@
   display: flex;
   align-items: flex-end;
   aspect-ratio: 3 / 4;
+  /* Mobile幅では.cardが縦1カラムでコンテナ幅いっぱいに広がるため、
+     .coverも書影として不自然に大きくなってしまう(実機で約330×440px)。
+     Desktop幅(3カラム、.cardのflex:1で自然に収まる)は変更せず、
+     Mobile幅のみ上限を設けて本らしいサイズに抑える。 */
+  max-width: 10rem;
   padding: var(--space-3);
   border-radius: 2px;
   overflow: hidden;
+}
+
+@media (min-width: 700px) {
+  .cover {
+    max-width: none;
+  }
 }
 
 .coverImage {
