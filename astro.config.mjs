@@ -1,10 +1,17 @@
 import { defineConfig } from "astro/config";
+import sitemap from "@astrojs/sitemap";
 
 // 静的サイトとして出力する。
 // Cloudflare Pages を第一候補としつつ、特定サービスに依存しない構成を維持する。
 // (Cloudflare固有のアダプター/機能は導入しない)
 export default defineConfig({
   output: "static",
+
+  // sitemap.xmlを自動生成する(公開前チェック、2026-09-11)。
+  // @astrojs/sitemapは特定ホスティング先に依存しない標準的なAstro
+  // integrationで、build時に静的な`sitemap-index.xml`/`sitemap-0.xml`を
+  // 生成するだけのため、「ポータブルな静的サイトを保つ」方針に反しない。
+  integrations: [sitemap()],
 
   // OGPメタタグ(og:image・og:url等)の絶対URL生成に使う(2026-09-04、
   // Decision Log 0082)。2026-09-05、独自ドメイン取得(Decision Log
