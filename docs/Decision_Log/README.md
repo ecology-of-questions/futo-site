@@ -186,3 +186,4 @@ Decision Logは「正しい判断の記録」ではなく、
 | [0129](./0129-gift-teaser-add-wishlist-books.md) | 「本をプレゼントする」teaserに、実際に贈れる(giftEnabled: true)「読みたい」本3冊もfeaturedとして追加(3→6冊)。Desktop幅も横スクロール方式に統一し崩れを防止 |
 | [0130](./0130-gift-flow-amazon-wishlist.md) | 本を贈る導線をAmazonほしい物リストに一本化。/bookshelfの「この本を贈る」展開パネルを撤去し「この本をプレゼントする→」の単純な外部リンクに、/participateのCTAも同URLに変更 |
 | [0131](./0131-participate-remove-placeholder-panels.md) | /participateのHero・まとめから中身のない仮画像プレースホルダー(.heroPanel/.closingPanel)を削除し、2カラム分割用の未使用ラッパーCSSも整理 |
+| [0132](./0132-gift-books-wishlist-only-max-three.md) | /participateの「本をプレゼントする」を、読書中の本を除いたwishlist+giftEnabled+giftFeaturedの本のみ最大3冊「今、特に読みたい本」として紹介する構成に変更。BookshelfList.astroは未使用になり削除 |
