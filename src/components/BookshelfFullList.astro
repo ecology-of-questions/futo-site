@@ -35,6 +35,12 @@
  *
  * フィルターの開閉はフレームワークを使わずvanilla JSで実装している
  * (Header.astroのメニュー開閉と同じ方針)。
+ *
+ * 【「持ち寄られた本」ラベルの追加(2026-09-11、Decision Log 0137)】
+ * `book.contributed`がtrueの本にのみ、statusLabelと同じ行に「・
+ * 持ち寄られた本」という控えめなテキストを追加する。新しいバッジ・
+ * 色付きタグは作らず、既存の.statusLabelと同じ見た目(小さく淡い
+ * テキスト)のまま情報だけ足す形にした。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfFullList.module.css";
@@ -86,7 +92,10 @@ const filters: { value: "all" | BookStatus; label: string }[] = [
             )}
           </span>
           <div class={styles.info}>
-            <p class={styles.statusLabel}>{bookStatusLabels[book.status]}</p>
+            <p class={styles.statusLabel}>
+              {bookStatusLabels[book.status]}
+              {book.contributed && <span class={styles.contributedTag}>・ 持ち寄られた本</span>}
+            </p>
             <p class={styles.title}>{book.title}</p>
             {book.author && <p class={styles.author}>{book.author}</p>}
             {book.reason && <p class={styles.reason}>{book.reason}</p>}

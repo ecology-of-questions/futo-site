@@ -25,6 +25,166 @@
   color: var(--color-ink-muted);
 }
 
+/* 【2026-09-11、Decision Log 0137】「本棚に本を持ち寄る」機能の追加に
+   伴い、冒頭文が2文になったため、<p>間に余白を追加した(1文だった
+   ときはmargin: 0のままで問題なかった)。 */
 .note p {
+  margin: 0 0 var(--space-1);
+}
+
+.note p:last-child {
+  margin-bottom: 0;
+}
+
+/* -----------------------------
+ * 本棚に本を持ち寄る(2026-09-11、Decision Log 0137)
+ * participate.module.cssの「何かを持ち寄る」セクション
+ * (.sectionHeading/.sectionRule/.sectionBody/.form等)と同じ見た目・
+ * 構造をこのページ専用に複製している(既存ページと同様、ページごとに
+ * styleを独立させる方針を踏襲)。
+ * ----------------------------- */
+.sectionRule {
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-5);
+}
+
+.sectionHeading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
   margin: 0;
+}
+
+.sectionBody {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.sectionBody p {
+  margin: 0 0 var(--space-2);
+}
+
+.sectionBody p:last-child {
+  margin-bottom: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  max-width: 32rem;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (min-width: 560px) {
+  .fieldRow {
+    flex-direction: row;
+  }
+
+  .fieldRow > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+}
+
+.required,
+.optional {
+  color: var(--color-ink-muted);
+}
+
+.input,
+.textarea {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-ink-on-surface);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  transition: border-color var(--transition-base);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-blue);
+}
+
+.textarea {
+  resize: vertical;
+  line-height: var(--lh-body);
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.submit {
+  align-self: flex-start;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-accent-blue);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-blue);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.submit:hover,
+.submit:focus-visible {
+  background-color: var(--color-accent-blue);
+  color: var(--color-surface);
+}
+
+.submit:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.privacyNote {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.privacyLink {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
 }
