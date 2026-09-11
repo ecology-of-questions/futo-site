@@ -51,7 +51,11 @@ export interface BookEntry {
   status: BookStatus;
   /** 「ふ、と」がこの本を所有しているか */
   owned: boolean;
-  /** 「この本を贈る」を表示するか。ownedやstatusとは独立して判断する */
+  /**
+   * 「この本を贈る」導線を表示してよいか。ownedやstatusとは独立して
+   * 判断する。現時点のMVP(Decision Log 0119)では、実際の贈り方は
+   * 「手元にある本を贈る」(/contactへの導線)のみ。
+   */
   giftEnabled: boolean;
   /** 「この本について話したい」を受け付けるか。giftEnabledとは独立して判断する */
   conversationEnabled: boolean;
@@ -68,9 +72,16 @@ export interface BookEntry {
    * (省略時はコンポーネント側が並び順から機械的に割り当てる)。
    */
   tone?: "warm" | "moss" | "sky";
-  /** 「新品で贈る」の遷移先。giftEnabled=trueかつ未設定の場合は"#"(準備中)として扱う */
+  /**
+   * 「新品で贈る」の遷移先。将来用のフィールドとして残しているが、
+   * 匿名配送・送付方法が未確定のため、現時点のUI(BookshelfFullList.astro)
+   * では参照していない(2026-09-11、Decision Log 0119)。
+   */
   newBookUrl?: string;
-  /** 「古本で贈る」の遷移先。giftEnabled=trueかつ未設定の場合は"#"(準備中)として扱う */
+  /**
+   * 「古本で贈る」の遷移先。将来用のフィールドとして残しているが、
+   * newBookUrlと同じ理由で現時点のUIでは参照していない。
+   */
   usedBookUrl?: string;
   /** この本から生まれた記録(研究断面・Fieldnote等)へのリンク。存在する場合のみ「この本から生まれた記録 →」を表示する */
   relatedUrl?: string;

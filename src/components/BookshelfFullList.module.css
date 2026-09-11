@@ -344,45 +344,21 @@
 }
 
 /* -----------------------------
- * この本を贈る(展開パネル)
+ * この本を贈る(展開パネル、MVP、2026-09-11、Decision Log 0119)
+ * 新品/古本の購入導線は未確定のため表示せず、「手元にある本を贈る」
+ * の1つのみを、見出し+短い説明文+矢印テキストリンクという簡潔な
+ * 見た目で示す。.actionLink/.actionArrowを流用し、ECサイトの
+ * ボタン群のようなカード風UI(旧.methods/.method)は使わない。
  * ----------------------------- */
-.methods {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-@media (min-width: 700px) {
-  .methods {
-    flex-direction: row;
-  }
-}
-
-.method {
-  display: block;
-  flex: 1;
-  color: inherit;
-  text-decoration: none;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-accent-beige);
-  border-radius: 2px;
-  padding: var(--space-2) var(--space-3);
-  transition: border-color var(--transition-base);
-}
-
-.method:hover,
-.method:focus-visible {
-  border-color: var(--color-accent-blue);
-}
-
-.methodLabel {
-  display: block;
+.giftHeading {
+  font-size: var(--fs-base);
   font-weight: 500;
+  line-height: var(--lh-heading);
+  margin: 0;
 }
 
-.methodDescription {
-  display: block;
-  margin-top: var(--space-1);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
+.giftIntro {
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
 }

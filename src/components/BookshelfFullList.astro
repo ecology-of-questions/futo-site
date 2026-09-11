@@ -35,14 +35,16 @@
  * aria-expanded付きのインライン展開。SNS的な機能(フォロー・DM・
  * 参加者一覧公開・自動マッチング等)は引き続き実装していない。
  *
- * 【この本を贈る】
- * giftEnabled=trueの本のみ、贈り方を表示する。「新品で贈る」
- * 「古本で贈る」は、それぞれ`newBookUrl`/`usedBookUrl`が設定されて
- * いる場合のみ表示する(2026-09-11、Decision Log 0118)。購入先が
- * 未確定の本(現時点の「読みたい」3冊)では、ダミーの"#"リンクを
- * 出さず、選択肢自体を出さない実装にしている。「手元にある本を贈る」
- * は常に表示し、送付先住所を公開せず、お問い合わせ(既定: /contact)
- * につなげる(Decision Log 0113の設計を踏襲)。
+ * 【この本を贈る(MVP、2026-09-11、Decision Log 0119)】
+ * giftEnabled=trueの本のみ表示する。新品/古本の購入導線は、匿名配送・
+ * 送付方法が未確定で実際の体験を成立させられないため、現時点のMVPでは
+ * 表示しない(`newBookUrl`/`usedBookUrl`フィールド自体は将来用として
+ * 型・データに残しているが、UIでは参照していない)。表示するのは
+ * 「手元にある本を贈る」の1つのみで、見出し+短い説明文+矢印
+ * テキストリンクという、ECサイトやwishlistのように見えない簡潔な
+ * 見た目にしている(旧`.methods`のカード風UIから変更)。送付先住所は
+ * 公開せず、お問い合わせ(既定: /contact)につなげる(Decision Log
+ * 0113の設計を踏襲)。
  *
  * 選択の開閉・フィルターはフレームワークを使わずvanilla JSで実装
  * している(Header.astroのメニュー開閉と同じ方針)。
@@ -231,24 +233,15 @@ const filters: { value: "all" | BookStatus; label: string }[] = [
 
         {book.giftEnabled && (
           <div id={`gift-panel-${book.id}`} class={styles.giftPanel} data-gift-panel hidden>
-            <div class={styles.methods}>
-              {book.newBookUrl && (
-                <a class={styles.method} href={book.newBookUrl}>
-                  <span class={styles.methodLabel}>新品で贈る</span>
-                  <span class={styles.methodDescription}>書店から直接届きます。</span>
-                </a>
-              )}
-              {book.usedBookUrl && (
-                <a class={styles.method} href={book.usedBookUrl}>
-                  <span class={styles.methodLabel}>古本で贈る</span>
-                  <span class={styles.methodDescription}>古本でも、もちろん嬉しいです。</span>
-                </a>
-              )}
-              <a class={styles.method} href={contactHref}>
-                <span class={styles.methodLabel}>手元にある本を贈る</span>
-                <span class={styles.methodDescription}>すでにお持ちの本を譲っていただく。</span>
-              </a>
-            </div>
+            <h3 class={styles.giftHeading}>この本を贈る</h3>
+            <p class={styles.giftIntro}>
+              この本をお持ちで、
+              <br />
+              譲ってもいいと思ったら。
+            </p>
+            <a class={styles.actionLink} href={contactHref}>
+              手元にある本を贈る <span class={styles.actionArrow} aria-hidden="true">→</span>
+            </a>
           </div>
         )}
       </li>
