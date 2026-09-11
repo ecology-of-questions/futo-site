@@ -61,6 +61,18 @@
  * 0125)】プロジェクトオーナーの指示により、PARTICIPATE
  * (/participate、URLは変更なし)の日本語表記を「関わる」から
  * 「持ち寄る」に変更した。ナビゲーション項目数・順序は変更していない。
+ *
+ * 【Mobileメニューをスクロールで閉じるよう修正(2026-09-11、Decision
+ * Log 0126)】Mobile幅の`.nav`はposition: absoluteでHeaderの下に
+ * 浮くオーバーレイであり、開いてもページ本文を押し下げない(コンテンツ
+ * の上に重なるだけ)。かつHeader自体がposition: fixedのため、メニューを
+ * 開いたままスクロールすると、開いたメニューが画面上部に張り付いた
+ * ままページだけが下にスクロールしていた。Decision Log 0125でトップ
+ * ページを4セクションに短縮した結果、本文の総高さが縮み、この状態で
+ * スクロールするとほとんどのセクションがメニューの下に隠れ、
+ * フッターとの間が不自然に空白に見える不具合として顕在化した。
+ * メニューを開いたままスクロールした場合は自動的に閉じるようにして、
+ * この状態に陥らないようにした。
  * ------------------------------------------------------------
  */
 import styles from "./Header.module.css";
@@ -127,5 +139,13 @@ import styles from "./Header.module.css";
       if (nav.contains(event.target) || toggle.contains(event.target)) return;
       closeMenu();
     });
+
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (nav.getAttribute("data-open") === "true") closeMenu();
+      },
+      { passive: true },
+    );
   }
 </script>
