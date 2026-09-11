@@ -1,14 +1,15 @@
 /**
- * ParticipateBookshelf.module.css
+ * BookshelfFullList.module.css
  * ------------------------------------------------------------
- * 「研究の本棚」(旧「本を贈る」)のスタイル。大きな3カード固定では
- * なく、本が増えても見やすいコンパクトな縦リストにしている
- * (2026-09-11、Decision Log 0116)。
+ * 「研究の本棚」本体ページ(/bookshelf)のスタイル。旧
+ * ParticipateBookshelf.module.css(2026-09-11、Decision Log 0116)を
+ * そのまま移設した(Decision Log 0117、/participate専用から/bookshelf
+ * 専用へ)。大きな3カード固定ではなく、本が増えても見やすいコンパクト
+ * な縦リストにしている。
  *
- * 仮カバー(.cover、書影画像未設定時のみ表示)は、旧GiftBookList.module.css
- * /BookshelfList.module.css(Decision Log 0111)と同じ3トーン
- * (warm/moss/sky)をそのまま流用しているが、サイズは「小さな書影」に
- * 合わせて縮小している。
+ * 仮カバー(.cover、書影画像未設定時のみ表示)は、BookshelfList.module.css
+ * (Decision Log 0111)と同じ3トーン(warm/moss/sky)をそのまま流用して
+ * いるが、サイズは「小さな書影」に合わせて縮小している。
  * ------------------------------------------------------------
  */
 

@@ -1,19 +1,19 @@
 ---
 /**
- * ParticipateBookshelf.astro
+ * BookshelfFullList.astro
  * ------------------------------------------------------------
- * 役割: 「関わる」ページ(/participate)の「研究の本棚」セクション。
- * 旧GiftBookList.astro(「本を贈る」中心、3冊固定・共有の詳細パネル)
- * を置き換え、本が10冊・20冊に増えても見やすいコンパクトなリストUIに
- * 再設計した(2026-09-11、Decision Log 0116)。
+ * 役割: 「研究の本棚」本体ページ(/bookshelf)の全冊リスト。
+ * 旧ParticipateBookshelf.astro(2026-09-11、Decision Log 0116、
+ * `/participate`専用として実装)を、`/bookshelf`を「研究の本棚」の
+ * 正式な本体ページとする方針転換(Decision Log 0117)に伴い、
+ * `/bookshelf`側のコンポーネントとして移設・改名した。ロジック・
+ * マークアップは実質的に変更していない(型のimport元のみ
+ * `@/types/participate`→`@/types/bookshelf`に変更)。
  *
  * 【構造】
  * 各本は「小さな書影+タイトル/著者/状態ラベル/一言」の1行として
- * 並ぶ。以前のような「カードを選択→共有の詳細パネルが切り替わる」
- * 方式は廃止し、本ごとに独立した展開パネル(話したい/贈る)を持つ
- * 方式にした。これにより、選択中の本を追跡してhidden fieldを書き
- * 換えるJSが不要になった(各行のフォームは、その本のid/titleを
- * ビルド時に直接埋め込んでいるため、最初から正しい値になっている)。
+ * 並ぶ。本ごとに独立した展開パネル(話したい/贈る)を持つ方式で、
+ * 各行のフォームはその本のid/titleをビルド時に直接埋め込んでいる。
  *
  * 【フィルター】
  * すべて/読書中/これから読む/読みたい/読了の5ボタン(「贈って
@@ -23,9 +23,9 @@
  *
  * 【本ごとのアクション】
  * conversationEnabled/giftEnabled/relatedUrlはそれぞれ独立した条件で
- * 表示する(所有しているか・贈れるかとは無関係に「話したい」を出せる、
- * という2026-09-11の指示)。複数表示される場合もボタン風の枠は使わず、
- * 矢印テキストリンクを縦に並べる静かな見た目にしている。
+ * 表示する(所有しているか・贈れるかとは無関係に「話したい」を出せる)。
+ * 複数表示される場合もボタン風の枠は使わず、矢印テキストリンクを縦に
+ * 並べる静かな見た目にしている。
  *
  * 【この本について話したい(MVP)】
  * 2026-09-11に追加した仕組み(Decision Log 0115)をそのまま維持して
@@ -45,12 +45,12 @@
  * している(Header.astroのメニュー開閉と同じ方針)。
  * ------------------------------------------------------------
  */
-import styles from "./ParticipateBookshelf.module.css";
-import { bookStatusLabels, type BookStatus, type ParticipateBookEntry } from "@/types/participate";
+import styles from "./BookshelfFullList.module.css";
+import { bookStatusLabels, type BookStatus, type BookEntry } from "@/types/bookshelf";
 import { contactFormEndpoint } from "@/config/site";
 
 interface Props {
-  books: ParticipateBookEntry[];
+  books: BookEntry[];
   /** 「手元にある本を贈る」の遷移先。既定は/contact(送付先住所は公開しない) */
   contactHref?: string;
 }
@@ -89,7 +89,7 @@ const filters: { value: "all" | BookStatus; label: string }[] = [
     books.map((book, i) => (
       <li class={styles.row} data-book-row data-status={book.status}>
         <div class={styles.rowMain}>
-          <span class={styles.cover} data-tone={toneForIndex(i)}>
+          <span class={styles.cover} data-tone={book.tone ?? toneForIndex(i)}>
             {book.image ? (
               <img class={styles.coverImage} src={book.image} alt={book.title} loading="lazy" />
             ) : (

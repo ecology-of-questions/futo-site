@@ -2,42 +2,32 @@
 /**
  * bookshelf.astro (研究の本棚)
  * ------------------------------------------------------------
- * 役割: 「研究の本棚」の一覧ページ。トップページ(index.astro)の
- * 「研究の本棚」セクションの「本棚を見る →」リンク先(2026-09-10、
+ * 役割: 「研究の本棚」の正式な本体ページ。トップページ(index.astro)の
+ * 「研究の本棚」プレビューの「本棚を見る →」リンク先(2026-09-10、
  * トップページ再設計、Decision Log 0111)。
  *
- * /researchページ(研究断面一覧)と同じ構成(Eyebrow+h1+説明文+一覧)
- * を踏襲している。現時点ではHomeと同じ3冊のみを掲載しており、今後
- * 増えた際にこのページの一覧に追加していく想定(研究断面と同じ運用)。
+ * 【2026-09-11、本体ページとしての役割を確立(Decision Log 0117)】
+ * `/participate`側で「この本について話したい」「この本を贈る」を
+ * 含む本棚UI(Decision Log 0115・0116)を作ったことで、「研究の本棚」
+ * が`/bookshelf`と`/participate`の2箇所に分裂していた。プロジェクト
+ * オーナーの指示により、`/bookshelf`を本の全一覧・statusフィルター・
+ * 話したい・贈る・関連記録リンクを**すべて**集約する正式な本体ページと
+ * 位置づけた。`/participate`は「本から関わる」という短い入口
+ * (featured本のみ+本体ページへのリンク)を残すのみになった。
+ *
+ * 本データは`src/data/bookshelf.ts`(唯一のデータソース、Home・
+ * `/participate`と共有)、一覧UIは`BookshelfFullList.astro`(旧
+ * `/participate`専用のParticipateBookshelf.astro、Decision Log 0116を
+ * そのまま移設)を使う。見出し・導入文はDecision Log 0111時点のまま
+ * 変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
-import BookshelfList from "@components/BookshelfList.astro";
+import BookshelfFullList from "@components/BookshelfFullList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./bookshelf.module.css";
-import type { BookEntry } from "@/types/bookshelf";
-
-const books: BookEntry[] = [
-  {
-    title: "記録と表現",
-    label: "読んでいる",
-    description: "記録に残る、意図しなかったもの。",
-    tone: "warm",
-  },
-  {
-    title: "歩くこと",
-    label: "積読",
-    description: "同じ道を歩くことで見えてくること。",
-    tone: "moss",
-  },
-  {
-    title: "知覚と世界",
-    label: "気になる",
-    description: "気づく前に、何が起きているのか。",
-    tone: "sky",
-  },
-];
+import { books } from "@/data/bookshelf";
 ---
 
 <DefaultLayout title="研究の本棚 ｜ ふ、と" description="公開研究室「ふ、と」で読んでいる本、これから読みたい本。" theme="night">
@@ -48,6 +38,6 @@ const books: BookEntry[] = [
     <div class={styles.note}>
       <p>読んでいる本、これから読みたい本。</p>
     </div>
-    <BookshelfList books={books} />
+    <BookshelfFullList books={books} contactHref="/contact" />
   </ResearchSection>
 </DefaultLayout>

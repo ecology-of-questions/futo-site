@@ -47,6 +47,15 @@
  * まま、「問いの生態系」カードは表示せず「研究断面」1件のまま、
  * Headerは「公開研究室ふ、と」のまま。詳細はDecision Log 0112参照。
  *
+ * 【「研究の本棚」のデータ元を一元化(2026-09-11、Decision Log 0117)】
+ * `/participate`側で本棚UIが独自に拡張された結果、「研究の本棚」が
+ * `/bookshelf`と`/participate`の2箇所に分裂したため、プロジェクト
+ * オーナーの指示で`/bookshelf`を正式な本体ページと位置づけ、本データを
+ * `src/data/bookshelf.ts`の1箇所に統合した。このページのプレビュー
+ * (3件)は、以前はここに直接ハードコードしていたが、共有データから
+ * `featured: true`の本を絞り込んで表示するよう変更した。見出し・
+ * 導入文・カード自体の見た目(BookshelfList.astro)は変更していない。
+ *
  * 以下、この変更より前の変遷(Hero統合・夜空背景・文章整理等)は、
  * このファイルのgit履歴および各Decision Logを参照。
  * ------------------------------------------------------------
@@ -61,7 +70,7 @@ import BookshelfList from "@components/BookshelfList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./index.module.css";
 import type { CurrentWorkItem } from "@/types/currentWork";
-import type { BookEntry } from "@/types/bookshelf";
+import { books } from "@/data/bookshelf";
 import { contactFormEndpoint } from "@/config/site";
 
 const currentWorkItems: CurrentWorkItem[] = [
@@ -74,26 +83,8 @@ const currentWorkItems: CurrentWorkItem[] = [
   },
 ];
 
-const bookshelfBooks: BookEntry[] = [
-  {
-    title: "記録と表現",
-    label: "読んでいる",
-    description: "記録に残る、意図しなかったもの。",
-    tone: "warm",
-  },
-  {
-    title: "歩くこと",
-    label: "積読",
-    description: "同じ道を歩くことで見えてくること。",
-    tone: "moss",
-  },
-  {
-    title: "知覚と世界",
-    label: "気になる",
-    description: "気づく前に、何が起きているのか。",
-    tone: "sky",
-  },
-];
+/** Home「研究の本棚」プレビューは、featured本のみを表示する(Decision Log 0117)。 */
+const featuredBooks = books.filter((book) => book.featured);
 
 /**
  * 「一緒に試す」(OPEN PRACTICE)セクションのリンク一覧(2026-09-04、
@@ -132,7 +123,7 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
   <ResearchSection ariaLabel="研究の本棚" id="bookshelf">
     <h2 class={`${styles.bookshelfHeading} ${styles.sectionRule}`}>研究の本棚</h2>
     <p class={styles.bookshelfIntro}>読んでいる本、これから読みたい本。</p>
-    <BookshelfList books={bookshelfBooks} />
+    <BookshelfList books={featuredBooks} />
     <div class={styles.bookshelfLink}>
       <ArrowLink href="/bookshelf" label="本棚を見る" />
     </div>
