@@ -28,7 +28,9 @@
 ## 技術・SEO
 
 - [x] favicon(Decision Log 0021)
-- [x] robots.txt — 全クローラーに`Allow: /`を許可する最小構成を追加
+- [x] robots.txt — 全クローラーに`Allow: /`を許可する最小構成を追加。`Sitemap:`行あり(Decision Log 0134)
+- [x] sitemap.xml — `@astrojs/sitemap`で自動生成(Decision Log 0134)
+- [x] Privacy Policy — `/privacy`を新設し、Footer・お問い合わせ・持ち寄る・研究便り登録の各フォームからリンク(Decision Log 0135)
 - [x] OGP(タイトル・説明文・画像) — 実装済み(Decision Log 0082)
 - [x] 404ページ(Decision Log 0019)
 - [x] 各ページの `<title>` / meta description 確認 — 全ページに個別のtitleを設定済み。descriptionは一部ページが既定値のまま(必要に応じて追加)

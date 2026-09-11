@@ -116,11 +116,18 @@ import { contactFormEndpoint } from "@/config/site";
  * Decision Log 0127。旧「いま考えていること」は最新1件のみだったが、
  * 現在公開済みの研究断面が2件になったため、2件ともトップから見つけ
  * られるよう表示件数を2件に変更した)。publishedReviewsは公開順
- * (古い→新しい)で並んでいるため、末尾から2件を取り、新しい順に
- * 並べ替えて表示する。記事が増えても、ここで表示するのは常に最新2件
- * のみで、それ以外は`/research`(既存の一覧ページ)に委ねる。
+ * (古い→新しい)で並んでいるため、末尾から2件を取る。記事が増えても、
+ * ここで表示するのは常に最新2件のみで、それ以外は`/research`
+ * (既存の一覧ページ)に委ねる。
+ *
+ * 【並び順を公開順(01を上)に変更(2026-09-11、Decision Log 0136)】
+ * 当初は取得した2件を新しい順(.reverse())に並べ替えていたため、
+ * 研究断面01(2026.08.15)より1.5(2026.09.03)が上に表示されていた。
+ * プロジェクトオーナーの指示により、01が上に来るよう並び順を
+ * publishedReviews本来の公開順(古い→新しい)のまま表示するように
+ * 変更した(`/research`一覧ページの並び順と揃う)。
  */
-const latestReviews = publishedReviews.slice(-2).reverse();
+const latestReviews = publishedReviews.slice(-2);
 const currentWorkItems: CurrentWorkItem[] = latestReviews.map((review) => ({
   label: `研究断面 ${review.number}`,
   title: review.title,
@@ -195,6 +202,9 @@ const currentWorkItems: CurrentWorkItem[] = latestReviews.map((review) => ({
           />
           <button class={styles.newsletterSubmit} type="submit">登録する</button>
         </form>
+        <p class={styles.privacyNote}>
+          送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
+        </p>
         <p class={styles.newsletterStatus} data-newsletter-status role="status" aria-live="polite"></p>
       </div>
     </div>

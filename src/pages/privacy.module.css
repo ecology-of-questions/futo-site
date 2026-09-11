@@ -1,0 +1,120 @@
+/**
+ * privacy.module.css
+ * ------------------------------------------------------------
+ * about.module.cssの「ページヘッダー(Eyebrow・h1・Lead)+ 番号つき
+ * セクション(左: 番号+見出し / 右: 本文)」という既存パターンを
+ * そのまま流用している(2026-09-11、公開前の個人情報の取り扱い
+ * ページ新設)。about.module.cssとは別ファイルだが、値はすべて
+ * tokens.cssの同じトークンを参照しているため、見た目は統一される。
+ * ------------------------------------------------------------
+ */
+.pageHeader {
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 900px) {
+  .pageHeader {
+    margin-bottom: var(--space-5);
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.pageTitle {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.lead {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-body);
+  max-width: 36rem;
+}
+
+.block {
+  padding-block: var(--space-4);
+}
+
+.block:first-child {
+  padding-top: 0;
+}
+
+.block + .block {
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+@media (min-width: 900px) {
+  .block {
+    display: grid;
+    grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+    padding-block: var(--space-5);
+  }
+}
+
+.blockLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.number {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.subheading {
+  margin: 0;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  max-width: 36rem;
+}
+
+@media (min-width: 900px) {
+  .body {
+    margin-top: 0;
+  }
+}
+
+.body p {
+  margin: 0;
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.establishedDate {
+  margin: var(--space-5) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}

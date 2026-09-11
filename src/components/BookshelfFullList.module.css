@@ -15,6 +15,14 @@
  * Decision Log 0133)】HP公開を優先するため、共同読書・対話フォーム
  * (.conversationPanel等)とAmazonほしい物リスト導線用のスタイルを
  * 削除した。詳細は下記「本ごとのアクション」セクションのコメント参照。
+ *
+ * 【.coverTitleに3行クランプを追加(2026-09-11、公開前チェック)】
+ * 画像未設定の仮カバーでタイトルを表示する`.coverTitle`に行数制限が
+ * なく、`.cover`の固定サイズ(width 3.5rem、aspect-ratio 3/4)を
+ * 超える長いタイトル(例:「現代日本語における意図性副詞の意味研究」)が
+ * `overflow: hidden`で文字の途中から縦に切れ、崩れた文字のように
+ * 見えていたモバイル表示不具合を修正した。3行までは収め、それ以上は
+ * 末尾を省略記号(…)で切る。
  * ------------------------------------------------------------
  */
 
@@ -124,6 +132,10 @@
 }
 
 .coverTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   font-size: var(--fs-sm);
   font-weight: 500;
   line-height: 1.3;

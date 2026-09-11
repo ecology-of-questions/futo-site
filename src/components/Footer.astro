@@ -42,6 +42,10 @@
  * 0125)】PARTICIPATE(/participate、URLは変更なし)の日本語表記を
  * サイト全体で「持ち寄る」に統一する指示に伴い、Footerのラベルも
  * 変更した。
+ *
+ * 【「個人情報の取り扱い」へのリンクを追加(2026-09-11、Decision Log
+ * 0135)】新設した`/privacy`への導線として、3項目目に追加した。
+ * 「持ち寄る」「お問い合わせ」と同じ見た目(.link)のテキストリンク。
  * ------------------------------------------------------------
  */
 import styles from "./Footer.module.css";
@@ -54,6 +58,7 @@ import styles from "./Footer.module.css";
     <nav class={styles.nav} aria-label="フッターナビゲーション">
       <a class={styles.link} href="/participate">持ち寄る</a>
       <a class={styles.link} href="/contact">お問い合わせ</a>
+      <a class={styles.link} href="/privacy">個人情報の取り扱い</a>
     </nav>
 
     <p class={styles.copyright}>© 2026 ふ、と</p>
