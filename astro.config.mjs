@@ -24,4 +24,14 @@ export default defineConfig({
   // リダイレクト(Decision Log 0102)。2026-09-10のトップページ
   // 再設計で専用ページを復活させたため(Decision Log 0111)、
   // このリダイレクト設定自体が不要になり削除した。
+
+  // 【/support のリダイレクト追加(2026-09-11、Decision Log 0120)】
+  // 支援ページ(/support)を独立ページとして育てない方針に転換した
+  // ため、既存URLへのアクセスが404にならないよう/participateへ
+  // 誘導する。output: "static"のため、Astroが静的なmeta refresh
+  // ページを生成する(Cloudflare固有の_redirects等には依存しない、
+  // ポータブルな方式。/research-statement時と同じ考え方)。
+  redirects: {
+    "/support": "/participate",
+  },
 });

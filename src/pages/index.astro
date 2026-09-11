@@ -56,6 +56,12 @@
  * `featured: true`の本を絞り込んで表示するよう変更した。見出し・
  * 導入文・カード自体の見た目(BookshelfList.astro)は変更していない。
  *
+ * 【「研究を支える」→「関わる」に置き換え(2026-09-11、Decision Log
+ * 0120)】プロジェクトオーナーの指示により、支援ページ(`/support`)を
+ * 独立ページとして育てない方針に転換したため、このパネルを
+ * 「関わる」(`/participate`へのリンク)に差し替えた。「研究便り」
+ * パネルは変更していない。
+ *
  * 以下、この変更より前の変遷(Hero統合・夜空背景・文章整理等)は、
  * このファイルのgit履歴および各Decision Logを参照。
  * ------------------------------------------------------------
@@ -139,7 +145,7 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
     </div>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="研究便り・研究を支える" id="newsletter-support">
+  <ResearchSection ariaLabel="研究便り・関わる" id="newsletter-participate">
     <div class={styles.panel}>
       <div class={styles.panelSection}>
         <p class={sectionTitleStyles.title}>NEWSLETTER</p>
@@ -169,13 +175,20 @@ const openPracticeLinks = [{ label: "お問い合わせ", href: "/contact" }];
       </div>
 
       <div class={styles.panelSection}>
-        <p class={sectionTitleStyles.title}>SUPPORT</p>
-        <h2 class={styles.panelHeading}>研究を支える</h2>
-        <p class={styles.panelBody}>
-          本を読み、観察し、記録する。この研究を続けるための支援を受け付けています。
-        </p>
+        <p class={sectionTitleStyles.title}>PARTICIPATE</p>
+        <h2 class={styles.panelHeading}>関わる</h2>
+        <div class={styles.panelBody}>
+          <p>
+            気になる本や情報を寄せる。
+            <br />
+            同じ本について話す。
+            <br />
+            一緒に試したり、場所や知識を持ち寄ったりする。
+          </p>
+          <p>いろいろなかたちで、この研究に関わることができます。</p>
+        </div>
         <div class={styles.bookshelfLink}>
-          <ArrowLink href="/support" label="継続支援・単発の支援について" />
+          <ArrowLink href="/participate" label="関わる" />
         </div>
       </div>
     </div>
