@@ -93,6 +93,14 @@
  * ハードコードしていたpublishedReviews/plannedReviewsを
  * `src/data/researchReviews.ts`に切り出し、Homeとこのページの両方が
  * 同じ配列を参照するようにした。データの内容自体は変更していない。
+ *
+ * 【見出し下の説明文から「研究の途中」を削除(2026-09-11、Decision Log
+ * 0133)】プロジェクトオーナーの指示により、「研究の途中で考えたことを、
+ * その時点の断面として残しています。」を「その時点で考えていることを、
+ * 研究の断面として残しています。」に変更した。後半(「読んだこと、
+ * 観察したこと、まだ考えきれていないことも含めた研究ノートです。」)は
+ * 変更していない。研究断面の記事自体・一覧の見出し「研究断面」・
+ * 各記事タイトルは変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -110,7 +118,7 @@ import { publishedReviews, plannedReviews } from "@/data/researchReviews";
     <div class={styles.headingRow}>
       <h1 class={styles.heading}>研究断面</h1>
       <div class={styles.note}>
-        <p>研究の途中で考えたことを、その時点の断面として残しています。読んだこと、観察したこと、まだ考えきれていないことも含めた研究ノートです。</p>
+        <p>その時点で考えていることを、研究の断面として残しています。読んだこと、観察したこと、まだ考えきれていないことも含めた研究ノートです。</p>
       </div>
     </div>
     <ResearchReviewList published={publishedReviews} planned={plannedReviews} />

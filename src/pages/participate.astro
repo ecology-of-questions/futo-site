@@ -92,6 +92,23 @@
  * このファイル内に直接実装した(このセクション専用のため、新規
  * コンポーネントには切り出していない)。`BookshelfList.astro`は他に
  * 利用箇所が無くなったため削除した(下記コンポーネント一覧参照)。
+ *
+ * 【HP公開版に向けた整理(2026-09-11、Decision Log 0133)】プロジェクト
+ * オーナーから、HP公開を優先し「公開後に検討する機能」を公開UIから
+ * 外す指示を受けた。「本をプレゼントする」セクション(見出し・説明文・
+ * 「今、特に読みたい本」3冊・Amazonほしい物リストへのCTA)と、
+ * 「ともに、続けていくために」セクション(「話す」「一緒に試す」への
+ * 言及・お問い合わせCTA・タグライン)を、それぞれページから丸ごと
+ * 削除した。本のプレゼント方法自体を今後改めて設計するための保留で
+ * あり、機能の永久廃止ではない。「話す」「一緒に試す」を公開版の
+ * 参加メニューとして再導入することもしていない。
+ *
+ * 残る構成は、Hero(1. 持ち寄るという考え方)→ 何かを持ち寄る(2.
+ * フォーム)→ 持ち寄られたもの(3. 公開承認済みの投稿一覧)の3段の
+ * みで、この後は通常のFooterに続く。「何かを持ち寄る」フォーム・
+ * 「持ち寄られたもの」の仕組み(DB・CMSやFormspreeからの自動掲載は
+ * 追加しない、公開可否チェック→運営確認→手動でdata追加という運用)
+ * は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -99,26 +116,9 @@ import ResearchSection from "@components/ResearchSection.astro";
 import ArrowLink from "@components/ArrowLink.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./participate.module.css";
-import { books } from "@/data/bookshelf";
 import { contributions } from "@/data/contributions";
 import { contributionTypeLabels } from "@/types/contributions";
-import { contactFormEndpoint, amazonWishlistUrl } from "@/config/site";
-
-/**
- * 「今、特に読みたい本」= プレゼント対象の本のみ、最大3冊まで表示する
- * (2026-09-11、Decision Log 0132)。読書中・所有済みの本はここでは
- * 見せない(その全体像は`/bookshelf`に任せる)。`status === "wishlist"`
- * であることに加え、贈り付けを受け付けているか(`giftEnabled`)・
- * このセクションで特に見せたいか(`giftFeatured`)の両方を満たす本の
- * みを対象にする。表示件数は`giftFeatured`を付ける本の数に関わらず
- * 最大3冊に制限する。
- */
-const giftFeaturedBooks = books
-  .filter((book) => book.status === "wishlist" && book.giftEnabled && book.giftFeatured)
-  .slice(0, 3);
-
-const giftBookTones = ["warm", "moss", "sky"] as const;
-const giftBookToneForIndex = (i: number) => giftBookTones[i % giftBookTones.length];
+import { contactFormEndpoint } from "@/config/site";
 
 /** 公開承認済み(visible: true)の投稿のみ表示する(Decision Log 0128)。 */
 const visibleContributions = contributions.filter((c) => c.visible);
@@ -126,7 +126,7 @@ const visibleContributions = contributions.filter((c) => c.visible);
 
 <DefaultLayout
   title="持ち寄る ｜ ふ、と"
-  description="「ふ、と」に持ち寄る、いくつかの方法。何かを持ち寄る、本をプレゼントする。"
+  description="「ふ、と」に持ち寄る、いくつかの方法。何かを持ち寄ってください。"
   theme="night"
 >
   <NightBackground />
@@ -229,57 +229,6 @@ const visibleContributions = contributions.filter((c) => c.visible);
         </p>
       )
     }
-  </ResearchSection>
-
-  <ResearchSection ariaLabel="本をプレゼントする" id="gift-books">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本をプレゼントする</h2>
-    <p class={styles.sectionBody}>
-      研究の本棚には、これから読みたい本も置いています。
-      <br />
-      そのなかから、プレゼントしたい本があればAmazonから贈ることができます。
-    </p>
-    <h3 class={styles.giftBooksHeading}>今、特に読みたい本</h3>
-    <div class={styles.giftBookList}>
-      {
-        giftFeaturedBooks.map((book, i) => (
-          <div class={styles.giftBookItem}>
-            <span class={styles.giftBookCover} data-tone={book.tone ?? giftBookToneForIndex(i)}>
-              {book.image && (
-                <img class={styles.giftBookCoverImage} src={book.image} alt={book.title} loading="lazy" />
-              )}
-            </span>
-            <div class={styles.giftBookInfo}>
-              <p class={styles.giftBookTitle}>{book.title}</p>
-              {book.author && <p class={styles.giftBookAuthor}>{book.author}</p>}
-              {book.reason && <p class={styles.giftBookReason}>{book.reason}</p>}
-            </div>
-          </div>
-        ))
-      }
-    </div>
-    <div class={styles.link}>
-      <ArrowLink href={amazonWishlistUrl} label="Amazonのほしい物リストをすべて見る" external />
-    </div>
-  </ResearchSection>
-
-  <ResearchSection ariaLabel="ともに、続けていくために" id="closing">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ともに、続けていくために</h2>
-    <div class={styles.sectionBody}>
-      <p>持ち寄られたものから、誰かと話したり、一緒に何かを試したりすることがあります。</p>
-      <p>
-        これからも、気になることや感じたことを、
-        <br />
-        気軽にお知らせください。
-      </p>
-    </div>
-    <div class={styles.link}>
-      <ArrowLink href="/contact" label="お問い合わせ" />
-    </div>
-    <p class={styles.closingTagline}>
-      それぞれのふとが、
-      <br />
-      研究をひらいていく。
-    </p>
   </ResearchSection>
 </DefaultLayout>
 

@@ -10,6 +10,11 @@
  * 仮カバー(.cover、書影画像未設定時のみ表示)は、BookshelfList.module.css
  * (Decision Log 0111)と同じ3トーン(warm/moss/sky)をそのまま流用して
  * いるが、サイズは「小さな書影」に合わせて縮小している。
+ *
+ * 【「話したい」「プレゼントする」を公開版から保留(2026-09-11、
+ * Decision Log 0133)】HP公開を優先するため、共同読書・対話フォーム
+ * (.conversationPanel等)とAmazonほしい物リスト導線用のスタイルを
+ * 削除した。詳細は下記「本ごとのアクション」セクションのコメント参照。
  * ------------------------------------------------------------
  */
 
@@ -160,9 +165,15 @@
 }
 
 /* -----------------------------
- * 本ごとのアクション(話したい/贈る/記録)
- * SNSやECサイトのようなボタンの塊にならないよう、矢印付きの
- * テキストリンクを縦に並べる(ArrowLink.module.cssと同じ考え方)。
+ * 本ごとのアクション(この本から生まれた記録)
+ * 【「話したい」「プレゼントする」を公開版から保留(2026-09-11、
+ * Decision Log 0133)】共同読書・対話フォーム用(.conversationPanel・
+ * .conversationForm・.field・.checkboxField等)とAmazonほしい物
+ * リスト導線用のスタイルは、対応する機能を公開UIから外したことに
+ * 伴い削除した。関連する将来用データフィールド(conversationEnabled・
+ * giftEnabled等)自体は型・データに残っている。矢印付きテキスト
+ * リンク(.actionLink/.actionArrow)は、この本から生まれた記録への
+ * 導線として引き続き使う。
  * ----------------------------- */
 .actions {
   display: flex;
@@ -172,7 +183,6 @@
   margin-top: var(--space-2);
 }
 
-.actionTrigger,
 .actionLink {
   display: inline-flex;
   align-items: center;
@@ -188,9 +198,7 @@
   text-decoration: none;
 }
 
-.actionTrigger:hover,
 .actionLink:hover,
-.actionTrigger:focus-visible,
 .actionLink:focus-visible {
   text-decoration: underline;
 }
@@ -199,150 +207,3 @@
   display: inline-block;
   transition: transform var(--transition-base);
 }
-
-.actionTrigger[aria-expanded="true"] .actionArrow {
-  transform: rotate(90deg);
-}
-
-/* -----------------------------
- * この本について話したい(展開パネル、Decision Log 0115のMVPを維持)
- * ----------------------------- */
-.conversationPanel {
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-accent-beige);
-}
-
-.conversationHeading {
-  font-size: var(--fs-base);
-  font-weight: 500;
-  line-height: var(--lh-heading);
-  margin: 0;
-}
-
-.conversationIntro {
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-}
-
-.conversationForm {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-  max-width: 28rem;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.label {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-}
-
-.required,
-.optional {
-  color: var(--color-ink-muted);
-}
-
-.input,
-.textarea {
-  font-family: var(--font-sans);
-  font-size: var(--fs-base);
-  color: var(--color-ink-on-surface);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-accent-beige);
-  border-radius: 2px;
-  padding: var(--space-1) var(--space-2);
-  transition: border-color var(--transition-base);
-}
-
-.input:focus,
-.textarea:focus {
-  outline: 2px solid var(--color-accent-blue);
-  outline-offset: 1px;
-  border-color: var(--color-accent-blue);
-}
-
-.textarea {
-  resize: vertical;
-  line-height: var(--lh-body);
-}
-
-.checkboxField {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-1);
-}
-
-.checkbox {
-  margin-top: 3px;
-  accent-color: var(--color-accent-blue);
-}
-
-.checkboxLabel {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
-}
-
-.honeypot {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-}
-
-.conversationSubmit {
-  align-self: flex-start;
-  font-family: var(--font-sans);
-  font-size: var(--fs-base);
-  color: var(--color-accent-blue);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-accent-blue);
-  border-radius: 2px;
-  padding: var(--space-1) var(--space-3);
-  cursor: pointer;
-  transition:
-    background-color var(--transition-base),
-    color var(--transition-base);
-}
-
-.conversationSubmit:hover,
-.conversationSubmit:focus-visible {
-  background-color: var(--color-accent-blue);
-  color: var(--color-surface);
-}
-
-.conversationSubmit:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.conversationPrivacy {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-.conversationStatus {
-  margin: 0;
-  min-height: 1.5em;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-  white-space: pre-line;
-}
-
-/* 【この本を贈る→この本をプレゼントする(2026-09-11、Decision Log
-   0130)】展開パネル方式をやめ、.actionLink/.actionArrowをそのまま
-   使う1行の外部リンク(Amazonほしい物リスト)に変更したため、
-   専用の.giftHeading/.giftIntroは不要になり削除した。 */
