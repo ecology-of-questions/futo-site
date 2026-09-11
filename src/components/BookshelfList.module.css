@@ -1,8 +1,16 @@
 /**
  * BookshelfList.module.css
  * ------------------------------------------------------------
- * 「研究の本棚」の本カード。Desktop幅で3カラム、Mobile幅で
- * 縦1カラムに積む(ResearchReviewList等と同じレスポンシブパターン)。
+ * 「研究の本棚」の本カード。Desktop幅(700px以上)で3カラム均等表示。
+ *
+ * 【Mobile幅を横スクロールの棚に変更(2026-09-11)】当初Mobile幅は
+ * 縦1カラムに積んでいたが、書影(.cover)がコンテナ幅いっぱいに広がり
+ * 実機で約330×440pxまで拡大し「大きすぎる」という指摘を受けた。
+ * 単純な縮小(3カラム化・リスト行化)も検討したが、「本棚を横に
+ * 眺める」という比喩に近く、書影の見栄えも保てる横スクロール方式を
+ * 採用した。1枚を70%幅(最大16rem)で表示し、隣の本が少し見切れる
+ * ことで続きがあることを示す。JS・ライブラリは使わず、CSSの
+ * overflow-x + scroll-snapのみで実装している。
  *
  * 仮カバー(.cover)は、実際の書影画像の代わりに、tokens.cssの
  * 既存トークンをcolor-mixで組み合わせた抽象色面にした。新しいHEX値を
@@ -14,27 +22,46 @@
 
 .grid {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
+  flex-direction: row;
+  gap: var(--space-3);
   margin-top: var(--space-4);
+  padding-bottom: var(--space-1);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.grid::-webkit-scrollbar {
+  display: none;
 }
 
 @media (min-width: 700px) {
   .grid {
-    flex-direction: row;
+    gap: var(--space-5);
     margin-top: var(--space-5);
+    padding-bottom: 0;
+    overflow-x: visible;
+    scroll-snap-type: none;
   }
 }
 
 .card {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: var(--space-2);
+  width: 70%;
+  max-width: 16rem;
+  scroll-snap-align: start;
 }
 
 @media (min-width: 700px) {
   .card {
     flex: 1;
+    width: auto;
+    max-width: none;
+    scroll-snap-align: none;
   }
 }
 
@@ -42,20 +69,9 @@
   display: flex;
   align-items: flex-end;
   aspect-ratio: 3 / 4;
-  /* Mobile幅では.cardが縦1カラムでコンテナ幅いっぱいに広がるため、
-     .coverも書影として不自然に大きくなってしまう(実機で約330×440px)。
-     Desktop幅(3カラム、.cardのflex:1で自然に収まる)は変更せず、
-     Mobile幅のみ上限を設けて本らしいサイズに抑える。 */
-  max-width: 10rem;
   padding: var(--space-3);
   border-radius: 2px;
   overflow: hidden;
-}
-
-@media (min-width: 700px) {
-  .cover {
-    max-width: none;
-  }
 }
 
 .coverImage {
