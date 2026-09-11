@@ -4,9 +4,9 @@
  * 「本を贈る」カード(.grid/.card)と「この本を贈る」詳細ボックス
  * (.detail)のスタイル。
  *
- * 仮カバー(.cover)の色は、BookshelfList.module.css(Decision Log 0111)
- * と同じ3トーン(warm/moss/sky)をそのまま流用している。新しいHEX値を
- * 決め打ちせず、既存トークンから算出する方針を踏襲する。
+ * 仮カバー(.cover、書影画像未設定時のみ表示)は、BookshelfList.module.css
+ * (Decision Log 0111)と同じ3トーン(warm/moss/sky)をそのまま流用して
+ * いる。書影画像(image)が用意された本は.coverImageで表示する。
  * ------------------------------------------------------------
  */
 
@@ -28,7 +28,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
   font: inherit;
   color: inherit;
   text-align: left;
@@ -55,7 +55,14 @@
   aspect-ratio: 3 / 4;
   padding: var(--space-3);
   border-radius: 2px;
+  overflow: hidden;
   transition: outline-color var(--transition-base);
+}
+
+.coverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .cover[data-tone="warm"] {
@@ -89,16 +96,50 @@
   color: var(--color-ink);
 }
 
-.reason {
+.status {
+  margin-top: var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+}
+
+.title {
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+}
+
+.author {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+/* -----------------------------
+ * この本を贈る(詳細ボックス)
+ * ----------------------------- */
+.detail {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.detailHeading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0;
+}
+
+.detailIntro {
+  margin: var(--space-2) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
 
-/* 「この本を贈る」詳細ボックス。研究の本棚のカードと違い、選択された
-   1冊分の情報+贈り方の選択肢を示す独立した面のため、Home
-   (index.module.css).panelと同じ、地の背景に対してごく淡く区別できる
-   色面にしている。 */
-.detail {
+.detailBookInfo {
   margin-top: var(--space-4);
   background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-paper));
   border-radius: 4px;
@@ -106,34 +147,30 @@
 }
 
 @media (min-width: 600px) {
-  .detail {
-    margin-top: var(--space-5);
+  .detailBookInfo {
     padding: var(--space-5);
   }
-}
-
-.detailLabel {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-muted);
-  margin: 0;
 }
 
 .detailTitle {
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  margin: var(--space-2) 0 0;
+  margin: 0;
+}
+
+.detailAuthor {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
 }
 
 .detailReason {
+  margin: var(--space-2) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
   color: var(--color-ink-muted);
-  margin: var(--space-1) 0 0;
 }
 
 .methods {

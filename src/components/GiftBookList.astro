@@ -2,32 +2,46 @@
 /**
  * GiftBookList.astro
  * ------------------------------------------------------------
- * 役割: 「関わる」ページ(/participate)の「本を贈る」「この本を贈る」の
- * 2セクション分をまとめて担当するコンポーネント。
+ * 役割: 「関わる」ページ(/participate)の「本を贈る」カード一覧と、
+ * 選択に連動する「この本を贈る」詳細ボックスをまとめて担当する。
  *
- * 「本を贈る」は3冊のカード(ボタン)を並べ、クリックで選択を切り替える。
- * 「この本を贈る」は選択中の本のタイトル・著者・理由と、贈り方の選択肢
- * (GiftMethod[])を表示する、選択に連動した詳細ボックス。
+ * 【2026-09-11、プロジェクトオーナーの指示により差し替え可能な構造に】
+ * GiftBookEntryはtitle/author/status/reason/image/newBookUrl/
+ * usedBookUrlの7項目を持つ(src/types/participate.ts参照)。現時点の
+ * 値はすべてデザイン確認用の仮データで、実在の書籍情報として確定
+ * させていない(値そのものに「(仮データ)」と明記している。
+ * participate.astro参照)。書影画像(image)が未設定の本は、
+ * 「研究の本棚」(BookshelfList.astro、Decision Log 0111)と同じ
+ * color-mixの仮カバーを、並び順(index)からトーンを機械的に割り当てて
+ * 表示する。データ自体に色の情報は持たせない。
  *
- * 実在の書影画像はまだ用意していないため、「研究の本棚」
- * (BookshelfList.astro、Decision Log 0111)と同じ、tokens.cssの
- * 既存トークンをcolor-mixで組み合わせた仮カバーの考え方を踏襲している。
+ * 「この本を贈る」の贈り方3択のうち、「新品で贈る」「古本で贈る」は
+ * 選択中の本のnewBookUrl/usedBookUrlに連動して遷移先が変わる
+ * (未設定時は"#")。「手元にある本を贈る」は本に依存しない固定の
+ * 導線で、送付先住所をサイト上に公開せず、お問い合わせ(既定: /contact)
+ * へつなげる(プロジェクトオーナーの指示)。
  *
- * 選択の切り替えは、フレームワークを使わずvanilla JSで実装している
+ * 選択の切り替えはフレームワークを使わずvanilla JSで実装している
  * (Header.astroのメニュー開閉と同じ方針)。カードは<button>とし、
- * aria-pressedで選択状態を伝える。JS未実行環境でも「この本を贈る」欄に
- * 1冊目の内容が最初から表示されているため、情報が欠落することはない。
+ * aria-pressedで選択状態を伝える。JS未実行環境でも1冊目の内容が
+ * 詳細ボックスに最初から表示されているため、情報は欠落しない。
  * ------------------------------------------------------------
  */
 import styles from "./GiftBookList.module.css";
-import type { GiftBookEntry, GiftMethod } from "@/types/participate";
+import type { GiftBookEntry } from "@/types/participate";
 
 interface Props {
   books: GiftBookEntry[];
-  methods: GiftMethod[];
+  /** 「手元にある本を贈る」の遷移先。既定は/contact(送付先住所は公開しない) */
+  contactHref?: string;
 }
 
-const { books, methods } = Astro.props;
+const { books, contactHref = "/contact" } = Astro.props;
+
+const tones = ["warm", "moss", "sky"] as const;
+const toneForIndex = (i: number) => tones[i % tones.length];
+
+const first = books[0];
 ---
 
 <div class={styles.grid} data-gift-book-list>
@@ -37,53 +51,87 @@ const { books, methods } = Astro.props;
         type="button"
         class={styles.card}
         data-gift-book-card
-        data-index={i}
         aria-pressed={i === 0 ? "true" : "false"}
+        data-title={book.title}
+        data-author={book.author}
+        data-status={book.status}
+        data-reason={book.reason}
+        data-new-book-url={book.newBookUrl ?? "#"}
+        data-used-book-url={book.usedBookUrl ?? "#"}
       >
-        <span class={styles.cover} data-tone={book.tone}>
-          <span class={styles.coverTitle} data-gift-book-title>{book.title}</span>
+        <span class={styles.cover} data-tone={toneForIndex(i)}>
+          {book.image ? (
+            <img class={styles.coverImage} src={book.image} alt={book.title} loading="lazy" />
+          ) : (
+            <span class={styles.coverTitle}>{book.title}</span>
+          )}
         </span>
-        <span class={styles.reason} data-gift-book-reason>{book.reason}</span>
+        <span class={styles.status}>{book.status}</span>
+        <span class={styles.title}>{book.title}</span>
+        <span class={styles.author}>{book.author}</span>
       </button>
     ))
   }
 </div>
 
-<div class={styles.detail} data-gift-book-detail>
-  <p class={styles.detailLabel}>この本を贈る</p>
-  <p class={styles.detailTitle} data-gift-book-detail-title>{books[0]?.title}</p>
-  <p class={styles.detailReason} data-gift-book-detail-reason>{books[0]?.reason}</p>
+<div class={styles.detail}>
+  <h2 class={styles.detailHeading}>この本を贈る</h2>
+  <p class={styles.detailIntro}>
+    この本は、研究のために大切に読ませていただきます。
+    <br />
+    贈り方は、下の3つからお選びください。
+  </p>
+
+  <div class={styles.detailBookInfo} data-gift-book-detail>
+    <p class={styles.detailTitle} data-gift-book-detail-title>
+      {first?.title}
+    </p>
+    <p class={styles.detailAuthor} data-gift-book-detail-author>
+      {first?.author}
+    </p>
+    <p class={styles.detailReason} data-gift-book-detail-reason>
+      {first?.reason}
+    </p>
+  </div>
 
   <div class={styles.methods}>
-    {
-      methods.map((method) => (
-        <a class={styles.method} href={method.href}>
-          <span class={styles.methodLabel}>{method.label}</span>
-          <span class={styles.methodDescription}>{method.description}</span>
-        </a>
-      ))
-    }
+    <a class={styles.method} href={first?.newBookUrl ?? "#"} data-gift-method="new">
+      <span class={styles.methodLabel}>新品で贈る</span>
+      <span class={styles.methodDescription}>書店から直接届きます。</span>
+    </a>
+    <a class={styles.method} href={first?.usedBookUrl ?? "#"} data-gift-method="used">
+      <span class={styles.methodLabel}>古本で贈る</span>
+      <span class={styles.methodDescription}>古本でも、もちろん嬉しいです。</span>
+    </a>
+    <a class={styles.method} href={contactHref}>
+      <span class={styles.methodLabel}>手元にある本を贈る</span>
+      <span class={styles.methodDescription}>すでにお持ちの本を譲っていただく。</span>
+    </a>
   </div>
 </div>
 
 <script>
   const list = document.querySelector<HTMLElement>("[data-gift-book-list]");
   const titleEl = document.querySelector<HTMLElement>("[data-gift-book-detail-title]");
+  const authorEl = document.querySelector<HTMLElement>("[data-gift-book-detail-author]");
   const reasonEl = document.querySelector<HTMLElement>("[data-gift-book-detail-reason]");
+  const newMethodEl = document.querySelector<HTMLAnchorElement>('[data-gift-method="new"]');
+  const usedMethodEl = document.querySelector<HTMLAnchorElement>('[data-gift-method="used"]');
 
-  if (list && titleEl && reasonEl) {
+  if (list && titleEl && authorEl && reasonEl && newMethodEl && usedMethodEl) {
     const cards = Array.from(list.querySelectorAll<HTMLButtonElement>("[data-gift-book-card]"));
 
     list.addEventListener("click", (event) => {
       const card = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-gift-book-card]");
       if (!card) return;
 
-      const title = card.querySelector<HTMLElement>("[data-gift-book-title]");
-      const reason = card.querySelector<HTMLElement>("[data-gift-book-reason]");
-
       cards.forEach((c) => c.setAttribute("aria-pressed", c === card ? "true" : "false"));
-      if (title) titleEl.textContent = title.textContent;
-      if (reason) reasonEl.textContent = reason.textContent;
+
+      titleEl.textContent = card.dataset.title ?? "";
+      authorEl.textContent = card.dataset.author ?? "";
+      reasonEl.textContent = card.dataset.reason ?? "";
+      newMethodEl.href = card.dataset.newBookUrl || "#";
+      usedMethodEl.href = card.dataset.usedBookUrl || "#";
     });
   }
 </script>

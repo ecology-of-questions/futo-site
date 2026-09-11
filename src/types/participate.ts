@@ -3,41 +3,43 @@
  * ------------------------------------------------------------
  * 「関わる」ページ(/participate)が扱うデータ型。
  *
- * GiftBookEntry: 「本を贈る」セクションで並べる、研究室が読みたい本の
- * 候補。実在の書影画像はまだ用意していないため、「研究の本棚」
- * (src/types/bookshelf.ts)と同じ`tone`(color-mixで仮カバーを生成する
- * 手がかり)の考え方を踏襲している。
+ * 【2026-09-11、プロジェクトオーナーの指示によりデータ構造を確定】
+ * GiftBookEntry(「本を贈る」候補)は、title/author/status/reason/
+ * image/newBookUrl/usedBookUrlの7項目を持つ。1冊ずつ独立して差し
+ * 替えられるよう、配列の要素を丸ごと置き換えるだけで対応できる形に
+ * している。現時点の値(participate.astro)はすべてデザイン確認用の
+ * 仮データであり、実在の書籍情報として確定していない。値そのものに
+ * 「(仮データ)」と明記し、実在情報と誤認されないようにしている。
  *
- * GiftMethod: 選んだ本の贈り方の選択肢。受け皿(Amazonほしいものリスト
- * のURL等)が未確定のものはhrefを"#"のままにし、確定した導線
- * (お問い合わせ)と混在させている。研究を支えるページ(Decision Log
- * 0111)と同じ「受け皿が決まるまではお問い合わせに委ねる」考え方。
+ * imageが未設定の本は、書影画像の代わりに「研究の本棚」
+ * (src/types/bookshelf.ts、Decision Log 0111)と同じcolor-mixの
+ * 仮カバーを表示する(GiftBookList.astroが並び順(index)から機械的に
+ * トーンを割り当てるため、この型自体に色の情報は持たせていない)。
  *
  * LendCategory: 「場所・知識・技術を貸す」セクションの3項目。
  * ------------------------------------------------------------
  */
 
 export interface GiftBookEntry {
-  /** 本のタイトル */
+  /** 本のタイトル。現時点は仮データ(participate.astro参照) */
   title: string;
-  /** なぜこの本が読みたいか、一言(実在の著者名は確定情報がないため扱わない。src/types/bookshelf.tsと同じ方針) */
+  /** 著者名。現時点は仮データ */
+  author: string;
+  /** 読みたい度合い等を示す短いラベル(例: "気になっている")。現時点は仮データ */
+  status: string;
+  /** なぜこの本を読みたいか、一言。現時点は仮データ */
   reason: string;
-  /** 仮カバーの色味の手がかり(GiftBookList.module.cssの.cover[data-tone]と対応) */
-  tone: "warm" | "moss" | "sky";
-}
-
-export interface GiftMethod {
-  /** 贈り方のラベル */
-  label: string;
-  /** 一言説明 */
-  description: string;
-  /** 遷移先。受け皿未定の場合は"#"のまま(GiftBookList.astro参照) */
-  href: string;
+  /** 書影画像のパス。未設定の場合はGiftBookList.astroが仮カバーを表示する */
+  image?: string;
+  /** 「新品で贈る」の遷移先。未設定の場合は"#"(準備中)として扱う */
+  newBookUrl?: string;
+  /** 「古本で贈る」の遷移先。未設定の場合は"#"(準備中)として扱う */
+  usedBookUrl?: string;
 }
 
 export interface LendCategory {
   /** GiftBookList.module.css内のインラインSVGアイコンと対応する識別子 */
-  icon: "place" | "knowledge" | "skill";
+  icon: "place" | "info" | "skill";
   title: string;
   description: string;
   linkHref: string;

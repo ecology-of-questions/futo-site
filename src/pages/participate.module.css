@@ -20,10 +20,25 @@
   margin: 0;
 }
 
+/* <p>単体にも、複数<p>を束ねる<div>にも使う共通の本文スタイル。
+   改行位置はコピーの意図そのものなので<br />でそのまま保持している
+   (ResearchStatement.astroと同じ方針)。 */
 .sectionBody {
   margin: var(--space-2) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+}
+
+.sectionBody p {
+  margin: 0 0 var(--space-2);
+}
+
+.sectionBody p:last-child {
+  margin-bottom: 0;
+}
+
+.link {
+  margin-top: var(--space-3);
 }
 
 /* -----------------------------
@@ -65,26 +80,23 @@
 }
 
 .body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
   margin-top: var(--space-3);
   font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
 
 .body p {
-  margin: 0;
+  margin: 0 0 var(--space-2);
 }
 
-/* 実在の写真素材がまだないため、「研究の本棚」の仮カバーと同じ
-   color-mixによる抽象色面をHero右側に置き、装飾として縦書きの
-   一文を重ねている(aria-hidden、本文と重複する情報を持たない
-   純粋な装飾)。 */
+.body p:last-child {
+  margin-bottom: 0;
+}
+
+/* 実在の写真素材がまだないため、書影の仮カバーと同じ考え方で
+   color-mixによる抽象色面のみを置いている(文言は重ねない。将来
+   実際の写真に差し替える想定のプレースホルダー)。 */
 .heroPanel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 12rem;
   background: linear-gradient(
     165deg,
@@ -99,14 +111,6 @@
     flex: 1;
     min-height: 0;
   }
-}
-
-.heroPanelText {
-  writing-mode: vertical-rl;
-  font-size: var(--fs-lg);
-  letter-spacing: 0.08em;
-  color: var(--color-ink-muted);
-  margin: var(--space-4) 0;
 }
 
 /* -----------------------------
@@ -201,45 +205,6 @@
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
-}
-
-/* -----------------------------
- * 一緒に試す、話す
- * ----------------------------- */
-.tryTalkGrid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  margin-top: var(--space-4);
-}
-
-@media (min-width: 700px) {
-  .tryTalkGrid {
-    flex-direction: row;
-    gap: var(--space-5);
-  }
-
-  .tryTalkItem {
-    flex: 1;
-  }
-
-  .tryTalkItem + .tryTalkItem {
-    padding-left: var(--space-5);
-    border-left: 1px solid var(--color-accent-beige);
-  }
-}
-
-.tryTalkTitle {
-  font-size: var(--fs-lg);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: 0;
-}
-
-.tryTalkBody {
-  margin: var(--space-2) 0 var(--space-3);
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
 }
 
 /* -----------------------------
@@ -343,6 +308,9 @@
   }
 }
 
-.closingLink {
-  margin-top: var(--space-3);
+.closingTagline {
+  margin: var(--space-4) 0 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
 }

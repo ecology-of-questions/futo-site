@@ -4,24 +4,36 @@
  * ------------------------------------------------------------
  * 役割: 「ふ、と」に関わるための、いくつかの入口をまとめたページ。
  * プロジェクトオーナーからの指示(添付イメージ・各セクションの構成案)
- * に基づき新規実装した。Header/Footerからの主要ページの一つとして
- * 新設する(Decision Log参照)。
+ * に基づき新規実装した(Decision Log 0113)。
  *
  * 構成: Hero → 気になるものを寄せる(フォーム) → 本を贈る/この本を
- * 贈る(GiftBookList) → 一緒に試す・話す → 場所・知識・技術を貸す →
+ * 贈る(GiftBookList) → 一緒に試す → 話す → 場所・知識・技術を貸す →
  * ともに、続けていくために(まとめ)。
+ *
+ * 【2026-09-11、本文コピーを確定版に差し替え(Decision Log 0114)】
+ * 実装確認後にセッションのコンテキスト要約を挟んだ影響で、いったん
+ * 本文を推測で再構成していたが、プロジェクトオーナーから確定済みの
+ * 全文言の提示を受け、このコミットで一字一句差し替えた。改行位置は
+ * 意図されたリズムのため、<br />でそのまま保持している
+ * (ResearchStatement.astroの「改行位置はコピーの意図そのものなので
+ * 変更しない」という既存方針と同じ考え方)。
  *
  * 「気になるものを寄せる」は、Contactページと同じFormspreeエンドポイント
  * (contactFormEndpoint、Decision Log 0076)を流用し、隠しフィールド
- * `_subject`で件名を分けている。研究便り(index.astro、Decision Log
- * 0111)と同じ「専用の送信先が未整備でも、まず実際に機能する形で
- * 実装する」考え方を踏襲している。
+ * `_subject`に「関わるページ」であることを明記した件名を入れている。
+ * 必須項目は「URL / 名前」の1項目のみで、なぜ気になったか・お名前・
+ * メールアドレスはすべて任意にした(プロジェクトオーナーの指示)。
  *
- * 「本を贈る」の3冊・「この本を贈る」の贈り方は、実在の書影画像・
- * 受け皿(Amazonほしいものリスト等のURL)がまだ確定していないため、
- * 「研究の本棚」(Decision Log 0111)と同じ仮カバー(color-mix)、
- * 「研究を支える」(support.astro)と同じ「受け皿未定の導線はまず
- * お問い合わせに委ねる」考え方を踏襲している。
+ * 「本を贈る」の3冊は、プロジェクトオーナーの指示によりtitle/author/
+ * status/reason/image/newBookUrl/usedBookUrlの7項目を持つ構造にした
+ * (src/types/participate.ts)。現時点の値はすべてデザイン確認用の
+ * 仮データであり、実在の書籍情報として確定していない(値そのものに
+ * 「(仮データ)」と明記している)。1冊ずつ配列の要素を丸ごと差し替える
+ * だけで、実際に読みたい本の情報に更新できる。
+ *
+ * 「この本を贈る」の「手元にある本を贈る」は、送付先住所をサイト上に
+ * 公開せず、お問い合わせ(/contact)につなげる設計にしている
+ * (プロジェクトオーナーの指示)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -30,42 +42,33 @@ import ArrowLink from "@components/ArrowLink.astro";
 import GiftBookList from "@components/GiftBookList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./participate.module.css";
-import type { GiftBookEntry, GiftMethod, LendCategory } from "@/types/participate";
+import type { GiftBookEntry, LendCategory } from "@/types/participate";
 import { contactFormEndpoint } from "@/config/site";
 
+/**
+ * 「本を贈る」の候補。すべてデザイン確認用の仮データ(値に「(仮データ)」と
+ * 明記している)。実在の書籍情報は未確定のため、実際に読みたい本が
+ * 決まり次第、要素ごと差し替えること。newBookUrl/usedBookUrlも未設定
+ * (GiftBookList.astro側で"#"扱いになる)。
+ */
 const giftBooks: GiftBookEntry[] = [
   {
-    title: "偶然と観察",
-    reason: "意図しないところで気づきが生まれる過程について考えたい。",
-    tone: "warm",
+    title: "書籍タイトル1(仮データ)",
+    author: "著者名1(仮データ)",
+    status: "気になっている(仮データ)",
+    reason: "この本を選んだ理由も仮データです。実際に読みたい本の情報に差し替えてください。",
   },
   {
-    title: "歩行の記録誌",
-    reason: "同じ道を歩き続けた人の記録から、変化の見え方を学びたい。",
-    tone: "moss",
+    title: "書籍タイトル2(仮データ)",
+    author: "著者名2(仮データ)",
+    status: "気になっている(仮データ)",
+    reason: "この本を選んだ理由も仮データです。実際に読みたい本の情報に差し替えてください。",
   },
   {
-    title: "対話のかたち",
-    reason: "問いが人とのあいだで育っていく様子を、実例から知りたい。",
-    tone: "sky",
-  },
-];
-
-const giftMethods: GiftMethod[] = [
-  {
-    label: "ほしいものリストから贈る",
-    description: "準備中です。整い次第、こちらにリンクを掲載します。",
-    href: "#",
-  },
-  {
-    label: "郵送で贈る",
-    description: "宛先を準備中です。お問い合わせいただければご案内します。",
-    href: "/contact",
-  },
-  {
-    label: "お問い合わせから相談する",
-    description: "贈り方について、直接ご相談いただくこともできます。",
-    href: "/contact",
+    title: "書籍タイトル3(仮データ)",
+    author: "著者名3(仮データ)",
+    status: "気になっている(仮データ)",
+    reason: "この本を選んだ理由も仮データです。実際に読みたい本の情報に差し替えてください。",
   },
 ];
 
@@ -73,19 +76,19 @@ const lendCategories: LendCategory[] = [
   {
     icon: "place",
     title: "場所を貸す",
-    description: "観察や対話の場として、部屋やスペースを貸していただける方。",
+    description: "活動に使える場所やスペースがありましたら、\nぜひ教えてください。",
     linkHref: "/contact",
   },
   {
-    icon: "knowledge",
-    title: "知識を貸す",
-    description: "専門分野の知見や、資料・文献の心当たりを共有していただける方。",
+    icon: "info",
+    title: "情報を教える",
+    description: "資料や体験談、\n気になる取り組みなど、\n情報をお寄せください。",
     linkHref: "/contact",
   },
   {
     icon: "skill",
-    title: "技術を貸す",
-    description: "撮影、編集、翻訳など、記録や発信を手伝う技術をお持ちの方。",
+    title: "知識・技術を貸す",
+    description: "専門的な知識やスキルをお持ちでしたら、\nぜひお力をお貸しください。",
     linkHref: "/contact",
   },
 ];
@@ -98,8 +101,7 @@ const lendCategories: LendCategory[] = [
 const lendIcons: Record<LendCategory["icon"], string> = {
   place:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-7.6 7-12.2A7 7 0 105 8.8C5 13.4 12 21 12 21z"/><circle cx="12" cy="8.8" r="2.5"/></svg>',
-  knowledge:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.67 4.67 4 5.5 4H12v16H5.5A1.5 1.5 0 014 18.5v-13z"/><path d="M20 5.5c0-.83-.67-1.5-1.5-1.5H12v16h6.5c.83 0 1.5-.67 1.5-1.5v-13z"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>',
   skill:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.6 2.6-2-2 2.6-2.6z"/></svg>',
 };
@@ -118,25 +120,49 @@ const lendIcons: Record<LendCategory["icon"], string> = {
         <p class={styles.eyebrow}>PARTICIPATE</p>
         <h1 class={styles.heading}>関わる</h1>
         <div class={styles.body}>
-          <p>「ふ、と」は、ひとりで完結させるための場所ではありません。</p>
-          <p>本を贈る、場所を貸す、話しにくる。小さな関わり方を、いくつか用意しています。</p>
+          <p>「ふ、と」は、ひとりで完結する研究ではありません。</p>
+          <p>
+            誰かが教えてくれた本や記事。
+            <br />
+            日常でふと気になったこと。
+            <br />
+            ある場所での経験や、誰かとの会話。
+          </p>
+          <p>そうしたものが加わることで、研究は少しずつ動いていきます。</p>
+          <p>あなたが気になったものも、ここに持ち込んでみてください。</p>
         </div>
       </div>
-      <div class={styles.heroPanel} aria-hidden="true">
-        <p class={styles.heroPanelText}>問いは、ひとりでは育たない</p>
-      </div>
+      <div class={styles.heroPanel} aria-hidden="true"></div>
     </div>
   </ResearchSection>
 
   <ResearchSection ariaLabel="気になるものを寄せる" id="curiosity">
     <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>気になるものを寄せる</h2>
     <p class={styles.sectionBody}>
-      日々のなかで気になったこと、引っかかったことを教えてください。研究のきっかけになるかもしれません。
+      本、記事、論文、人、場所、展覧会、ポッドキャスト、イベント、プロジェクトなど、
+      <br />
+      研究のヒントになりそうなものを教えてください。
+      <br />
+      どんな小さなことでも構いません。
     </p>
 
     <form class={styles.form} method="POST" action={contactFormEndpoint} data-curiosity-form>
       <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <input type="hidden" name="_subject" value="ふ、と 気になるものを寄せる" />
+      <input type="hidden" name="_subject" value="ふ、と 関わるページ 気になるものを寄せる" />
+
+      <div class={styles.field}>
+        <label class={styles.label} for="curiosity-target"
+          >URL / 名前 <span class={styles.required}>必須</span></label
+        >
+        <input class={styles.input} type="text" id="curiosity-target" name="target" required />
+      </div>
+
+      <div class={styles.field}>
+        <label class={styles.label} for="curiosity-reason"
+          >なぜ気になったか <span class={styles.optional}>任意</span></label
+        >
+        <textarea class={styles.textarea} id="curiosity-reason" name="reason" rows="4"></textarea>
+      </div>
 
       <div class={styles.field}>
         <label class={styles.label} for="curiosity-name">お名前 <span class={styles.optional}>任意</span></label>
@@ -145,54 +171,79 @@ const lendIcons: Record<LendCategory["icon"], string> = {
 
       <div class={styles.field}>
         <label class={styles.label} for="curiosity-email"
-          >メールアドレス <span class={styles.optional}>任意・ご返信をご希望の場合のみ</span></label
+          >メールアドレス <span class={styles.optional}>任意</span></label
         >
         <input class={styles.input} type="email" id="curiosity-email" name="email" autocomplete="email" />
       </div>
 
-      <div class={styles.field}>
-        <label class={styles.label} for="curiosity-content"
-          >気になっていること <span class={styles.required}>必須</span></label
-        >
-        <textarea class={styles.textarea} id="curiosity-content" name="message" rows="6" required></textarea>
-      </div>
-
-      <button class={styles.submit} type="submit">送る</button>
+      <button class={styles.submit} type="submit">これ、気になるかも <span aria-hidden="true">→</span></button>
       <p class={styles.status} data-curiosity-status role="status" aria-live="polite"></p>
     </form>
   </ResearchSection>
 
   <ResearchSection ariaLabel="本を贈る" id="gift-book">
     <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本を贈る</h2>
-    <p class={styles.sectionBody}>いま読みたい本、気になっている本です。贈っていただけると、研究の助けになります。</p>
-    <GiftBookList books={giftBooks} methods={giftMethods} />
+    <p class={styles.sectionBody}>
+      研究を続けていくうえで、本からは問いをいただきます。
+      <br />
+      今、気になっている本をご紹介します。
+    </p>
+    <GiftBookList books={giftBooks} contactHref="/contact" />
   </ResearchSection>
 
-  <ResearchSection ariaLabel="一緒に試す、話す" id="try-talk">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>一緒に試す、話す</h2>
-    <div class={styles.tryTalkGrid}>
-      <div class={styles.tryTalkItem}>
-        <h3 class={styles.tryTalkTitle}>一緒に試す</h3>
-        <p class={styles.tryTalkBody}>音や場所、歩くことを手がかりにした小さな実践を、一緒に試してみませんか。</p>
-        <ArrowLink href="/contact" label="実践について相談する" />
-      </div>
-      <div class={styles.tryTalkItem}>
-        <h3 class={styles.tryTalkTitle}>一緒に話す</h3>
-        <p class={styles.tryTalkBody}>研究のテーマについて、雑談や壁打ちの相手として話してみませんか。</p>
-        <ArrowLink href="/contact" label="話してみる" />
-      </div>
+  <ResearchSection ariaLabel="一緒に試す" id="try">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>一緒に試す</h2>
+    <div class={styles.sectionBody}>
+      <p>
+        音、場所、歩くこと、ものの見方など、
+        <br />
+        小さな実践を一緒に試してみませんか。
+      </p>
+      <p>
+        日常のなかでできることから、
+        <br />
+        ゆるやかに始めていきます。
+      </p>
+    </div>
+    <div class={styles.link}>
+      <ArrowLink href="/contact" label="一緒に試す" />
+    </div>
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="話す" id="talk">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>話す</h2>
+    <div class={styles.sectionBody}>
+      <p>
+        今考えていること、気になっていること、
+        <br />
+        抱えている問いについて、
+        <br />
+        お話を聞かせてください。
+      </p>
+      <p>対話から、新しい視点が生まれるかもしれません。</p>
+    </div>
+    <div class={styles.link}>
+      <ArrowLink href="/contact" label="話してみる" />
     </div>
   </ResearchSection>
 
   <ResearchSection ariaLabel="場所・知識・技術を貸す" id="lend">
     <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>場所・知識・技術を貸す</h2>
+    <p class={styles.sectionBody}>研究を進めていく上で、場所や知識、技術などのサポートも歓迎しています。</p>
     <div class={styles.lendGrid}>
       {
         lendCategories.map((category) => (
           <a class={styles.lendCard} href={category.linkHref}>
             <span class={styles.lendIcon} aria-hidden="true" set:html={lendIcons[category.icon]} />
             <h3 class={styles.lendTitle}>{category.title}</h3>
-            <p class={styles.lendDescription}>{category.description}</p>
+            <p class={styles.lendDescription}>
+              {category.description.split("\n").map((line, i) => (
+                <>
+                  {i > 0 && <br />}
+                  {line}
+                </>
+              ))}
+            </p>
           </a>
         ))
       }
@@ -204,12 +255,27 @@ const lendIcons: Record<LendCategory["icon"], string> = {
       <div class={styles.closingPanel} aria-hidden="true" />
       <div class={styles.closingText}>
         <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ともに、続けていくために</h2>
-        <p class={styles.sectionBody}>
-          「ふ、と」は、ひとつの研究室であると同時に、関わってくれる人たちとともに育っていく場所でもあります。
-        </p>
-        <div class={styles.closingLink}>
+        <div class={styles.sectionBody}>
+          <p>「ふ、と」は、特定の個人に閉じた研究ではありません。</p>
+          <p>
+            さまざまな方との関わりによって、
+            <br />
+            少しずつ育っていきます。
+          </p>
+          <p>
+            これからも、気になることや感じたことを、
+            <br />
+            気軽にお知らせください。
+          </p>
+        </div>
+        <div class={styles.link}>
           <ArrowLink href="/contact" label="お問い合わせ" />
         </div>
+        <p class={styles.closingTagline}>
+          それぞれのふとが、
+          <br />
+          研究をひらいていく。
+        </p>
       </div>
     </div>
   </ResearchSection>
