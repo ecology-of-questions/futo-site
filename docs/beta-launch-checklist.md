@@ -45,6 +45,8 @@
 - [ ] Research Reviewのバージョン管理
 - [ ] Research Fragmentsの実装
 - [x] Contactフォームの送信先設定 — FormspreeのForm ID設定・実機での送信確認まで完了(Decision Log 0076)
+- [ ] Amazonアソシエイト登録・`PUBLIC_AMAZON_ASSOCIATE_TAG`の設定 — `/bookshelf`に購入導線・アソシエイト対応の構造を実装済み(Decision Log 0138)だが、アソシエイトID自体は未登録・未設定。登録後、Cloudflare Pagesの環境変数に`PUBLIC_AMAZON_ASSOCIATE_TAG`を設定すれば、`affiliate: true`かつ`purchaseProvider: "amazon"`の本にタグが自動的に付与される。設定した場合は、Amazonアソシエイトの規約に必要な開示文言が`/bookshelf`に自動表示されることも確認すること
+- [ ] `src/data/bookshelf.ts`への`purchaseUrl`/`isbn13`等の追加 — 現時点でどの本にも購入リンクは設定されていない。実際にAmazon等で確認できたURLのみを本ごとに追加する(推測で埋めない)
 
 ## 本番反映待ち・要実機確認(2026-09-05時点)
 
