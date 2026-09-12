@@ -53,6 +53,18 @@
  * 「ふ、と」側で確認・承認した本だけ、運営が手動でこの配列に追加し
  * `contributed: true`を付ける(Formspreeからの自動反映・DB等は
  * 使わない、既存の`/participate`「持ち寄られたもの」と同じ手動運用)。
+ *
+ * 【「本を知る→購入する→一緒に読みたい」の導線を追加(2026-09-12、
+ * Decision Log 0138)】`isbn13`(本の識別、判明分のみ)・
+ * `externalCoverUrl`(正規に取得した書影URL、Amazon Product
+ * Advertising API等を想定)・`purchaseUrl`/`purchaseProvider`/
+ * `affiliate`(購入導線とAmazonアソシエイト対応)を追加した。
+ * Amazonの商品画像をスクリーンショット・再アップロードする実装は
+ * 行っておらず、`externalCoverUrl`は正規の取得方法(API等)で得た
+ * URLをそのまま参照する想定(現時点でAPI連携自体は未実装、データ
+ * 構造のみ)。`affiliate`は`purchaseUrl`とは独立したフラグで、
+ * アソシエイトタグを付与してよいかを表す(タグの値自体は
+ * `src/config/site.ts`の環境変数から読む。本ごとにハードコードしない)。
  * ------------------------------------------------------------
  */
 
@@ -116,8 +128,20 @@ export interface BookEntry {
    * `featured`とは役割が異なる、独立したフラグ。
    */
   giftFeatured?: boolean;
-  /** 書影画像のパス。未設定の場合は仮カバー(tone、color-mix)を表示する */
+  /**
+   * 書影画像のパス(自分で撮影・用意した画像)。表示の優先順位は
+   * 1. image → 2. externalCoverUrl → 3. 仮カバー(tone、color-mix)の順
+   * (BookshelfFullList.astro参照)。
+   */
   image?: string;
+  /**
+   * 正規に取得した外部の書影URL(Amazon Product Advertising API等、
+   * 提供元が許諾する方法で得たものを想定)。`image`が無い場合のみ
+   * 参照する。商品画像のスクリーンショット・ダウンロード後の再
+   * アップロードは行わない方針のため、このフィールドには外部URLを
+   * そのまま入れる(2026-09-12、Decision Log 0138)。
+   */
+  externalCoverUrl?: string;
   /**
    * 仮カバーの色味の手がかり(image未設定時のみ使用)。同じ本が
    * Home/`/participate`の圧縮表示と`/bookshelf`本体の両方に登場しても
@@ -148,4 +172,36 @@ export interface BookEntry {
    * このフラグ自体もコード上で直接編集する(自動化はしない)。
    */
   contributed?: boolean;
+  /**
+   * ISBN-13(判明している本のみ)。本の一意な識別子として、将来
+   * 外部サービス(書影API・関連書籍表示等)と連携する際の手がかりに
+   * なる。現時点ではUIから直接参照していない(2026-09-12、Decision
+   * Log 0138)。不明な本は省略する(推測で補わない)。
+   */
+  isbn13?: string;
+  /**
+   * この本の購入先URL(Amazon商品ページ、または他の販売者)。存在する
+   * 場合のみ、BookshelfFullList.astroに控えめな外部リンク(「Amazonで
+   * 見る →」等)を表示する。本棚の主目的は購入ではないため、EC
+   * カードのような強い見た目にはしない。実際に表示するURLは
+   * `affiliate`/`purchaseProvider`の値に応じて
+   * `src/config/site.ts`の`buildPurchaseUrl`が組み立てる
+   * (2026-09-12、Decision Log 0138)。
+   */
+  purchaseUrl?: string;
+  /**
+   * `purchaseUrl`の提供元。"amazon"の場合のみ、`affiliate: true`と
+   * 環境変数`PUBLIC_AMAZON_ASSOCIATE_TAG`が両方そろっていれば
+   * アソシエイトタグを付加する(2026-09-12、Decision Log 0138)。
+   */
+  purchaseProvider?: "amazon" | "other";
+  /**
+   * `purchaseUrl`にAmazonアソシエイトのタグを付加してよいかを示す
+   * フラグ。`purchaseUrl`/`purchaseProvider`とは独立して管理する
+   * (どこで買えるかとアソシエイト対象かどうかは別の情報のため)。
+   * アソシエイトIDそのものはこのファイルにはハードコードせず、
+   * `src/config/site.ts`が環境変数から読む(2026-09-12、Decision Log
+   * 0138)。
+   */
+  affiliate?: boolean;
 }

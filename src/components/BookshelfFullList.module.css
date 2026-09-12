@@ -187,15 +187,20 @@
 }
 
 /* -----------------------------
- * 本ごとのアクション(この本から生まれた記録)
+ * 本ごとのアクション(購入リンク・この本から生まれた記録・一緒に読みたい)
  * 【「話したい」「プレゼントする」を公開版から保留(2026-09-11、
- * Decision Log 0133)】共同読書・対話フォーム用(.conversationPanel・
- * .conversationForm・.field・.checkboxField等)とAmazonほしい物
- * リスト導線用のスタイルは、対応する機能を公開UIから外したことに
- * 伴い削除した。関連する将来用データフィールド(conversationEnabled・
- * giftEnabled等)自体は型・データに残っている。矢印付きテキスト
- * リンク(.actionLink/.actionArrow)は、この本から生まれた記録への
- * 導線として引き続き使う。
+ * Decision Log 0133)】共同読書・対話フォーム用(.conversationPanel等)と
+ * Amazonほしい物リスト導線用のスタイルは、対応する機能を公開UIから
+ * 外したことに伴い一度削除した。
+ *
+ * 【購入リンク・「一緒に読みたい」を追加(2026-09-12、Decision Log
+ * 0138)】矢印付きテキストリンク(.actionLink/.actionArrow)を、
+ * 「Amazonで見る」等の購入リンク・「この本から生まれた記録」・
+ * 「一緒に読みたい」トグルボタンの3つで共有する(見た目を統一する
+ * ため、あえてボタン用の別クラスを作らない)。「一緒に読みたい」の
+ * 展開パネル・フォームは、0133で一度削除した`.conversationPanel`等と
+ * 同じ構造・スタイルを`.readTogether*`という名前で再構築した
+ * (「この本について話したい」とは別の目的・文言のフォームのため)。
  * ----------------------------- */
 .actions {
   display: flex;
@@ -228,4 +233,143 @@
 .actionArrow {
   display: inline-block;
   transition: transform var(--transition-base);
+}
+
+/* -----------------------------
+ * 一緒に読みたい(展開パネル、2026-09-12、Decision Log 0138)
+ * ----------------------------- */
+.readTogetherPanel {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.readTogetherHeading {
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+  margin: 0;
+}
+
+.readTogetherIntro {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.readTogetherForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  max-width: 28rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+}
+
+.required,
+.optional {
+  color: var(--color-ink-muted);
+}
+
+.input,
+.textarea {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-ink-on-surface);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  transition: border-color var(--transition-base);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-blue);
+}
+
+.textarea {
+  resize: vertical;
+  line-height: var(--lh-body);
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.readTogetherSubmit {
+  align-self: flex-start;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-accent-blue);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-blue);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.readTogetherSubmit:hover,
+.readTogetherSubmit:focus-visible {
+  background-color: var(--color-accent-blue);
+  color: var(--color-surface);
+}
+
+.readTogetherSubmit:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+/* 【2026-09-12、/privacyへのリンクを含む注記を追加(Decision Log
+   0138)】contact.module.css・participate.module.css・
+   index.module.cssの.privacyNote/.privacyLinkと同じ見た目。 */
+.readTogetherPrivacyNote {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.privacyLink {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
+}
+
+/* 【Amazonアソシエイト開示文言(2026-09-12、Decision Log 0138)】
+   実際にアソシエイトタグ付きリンクを表示する場合のみ描画される
+   (BookshelfFullList.astroのhasAffiliateDisclosure参照)。一覧全体に
+   対する注記のため、行ごとではなく<ul>の外側・末尾に1つだけ置く。 */
+.affiliateDisclosure {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
 }
