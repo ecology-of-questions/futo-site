@@ -3,7 +3,8 @@
 ## 「実験室」ノートの書き足し(交換ノート)機能専用のCloudflare Worker
 ## 設定(2026-09-13、Decision Log 0141・0142ではPages Functions前提
 ## だったが、実際の本番環境確認によりDecision Log 0143でWorker +
-## Workers Static Assets + D1構成へ変更した)。
+## Workers Static Assets + D1構成へ変更。Decision Log 0144で、
+## named environmentの命名仕様を踏まえて構成を再修正した)。
 ##
 ## 本番の`futoing.com`はCloudflare Worker `futo-site`のCustom Domain
 ## であり、Cloudflare Pagesではない。このWorkerはGitHub連携の
@@ -19,24 +20,40 @@
 ## `/api/*`以外はこのWorkerを経由せずassetsへ直接ルーティングされる
 ## (全リクエストをWorker経由にする`run_worker_first = true`は使わない)。
 ##
-## D1データベースは3つに分離している(いずれもbinding名は"DB"で統一し、
-## worker/index.ts側はどの環境でも`env.DB`のまま変更不要):
-##   - トップレベル [[d1_databases]] … ローカル開発
-##     (`wrangler dev`、`wrangler d1 execute --local`)専用。
-##     CLOUDFLARE_ENVが未設定のままdeploy/versions uploadされた場合も
-##     この設定が使われる(database_idはプレースホルダーのため、
-##     万一Preview/Productionで環境変数の設定が漏れていても、本番D1へ
-##     誤って書き込むのではなく、存在しないデータベースへのbind失敗で
-##     デプロイ自体が失敗する安全側の構成にしている。Decision Log 0143
-##     参照)。
-##   - [env.preview]    … Cloudflare Workers BuildsのPreviewビルド用。
-##   - [env.production] … Cloudflare Workers BuildsのProductionビルド用。
-## Workers Builds側のデプロイコマンド(`wrangler deploy` /
-## `wrangler versions upload`)は`--env`を指定していないため、
-## どちらの環境を使うかは`CLOUDFLARE_ENV`環境変数で選択する必要がある
-## (Cloudflareダッシュボード側でProduction/Previewそれぞれのビルド設定に
-## `CLOUDFLARE_ENV=production` / `CLOUDFLARE_ENV=preview`を設定する。
-## 手順はDecision Log 0143に記載)。
+## 【重要: named environmentとWorker名について】
+## Cloudflareの仕様では、`[env.X]`という named environment は、
+## `name`を明示的に指定しない限り、実際にデプロイされるWorker名を
+## `<トップレベルのname>-X`(例: `futo-site-preview`)に自動的に
+## 変えてしまう(「legacy environments」と呼ばれる挙動)。これに
+## 気づかず`[env.preview]`・`[env.production]`を追加すると、
+## Custom Domainが付いた既存Worker`futo-site`とは別の、
+## 存在しない・Custom Domainの無いWorkerを対象にしてしまう
+## (`node_modules/wrangler`の`unstable_readConfig({env: "production"})`
+## で実際に検証し確認した。Decision Log 0144参照)。そのため、
+## 各`[env.X]`ブロックには必ず`name = "futo-site"`を明示し、
+## どの環境でも同じWorker`futo-site`を対象にするようにしている。
+##
+## 【環境の構成(Decision Log 0144)】
+## - トップレベル(env未指定) = Production。既存Worker`futo-site`と
+##   完全に一致させ、D1もPRODUCTION用データベースを直接指定する。
+##   Workers BuildsのProduction deploy(`npx wrangler deploy`、
+##   `--env`もCLOUDFLARE_ENVも指定しない)は、この設定をそのまま使う
+##   ため、Production側のCloudflareダッシュボード設定は今回
+##   一切変更不要。
+## - [env.production] … トップレベルと同一内容(name・D1とも)を
+##   念のため明示的に複製している。仮にProduction側のビルド設定に
+##   `CLOUDFLARE_ENV=production`が設定されていても(または将来
+##   設定されても)、トップレベルと同じWorker・同じD1になるための
+##   保険。
+## - [env.preview]    … Cloudflare Workers BuildsのPreviewビルド用。
+##   `name`はトップレベルと同じ`futo-site`(別Workerにしない)。
+##   D1のみPreview専用データベースに差し替える。
+##
+## Preview用ビルドが誤ってProduction D1(トップレベル)を使わない
+## ようにするには、Preview側のビルド設定で明示的に
+## `CLOUDFLARE_ENV=preview`(またはデプロイコマンドに`--env preview`
+## を追加)を設定する必要がある。これは省略できない、必ず行う
+## Cloudflareダッシュボード側の作業(Decision Log 0144参照)。
 ## ------------------------------------------------------------
 name = "futo-site"
 main = "worker/index.ts"
@@ -48,30 +65,15 @@ binding = "ASSETS"
 not_found_handling = "404-page"
 run_worker_first = ["/api/*"]
 
-# --- ローカル開発・CLOUDFLARE_ENV未設定時のフォールバック -------------
+# --- トップレベル = Production(既存Worker futo-site と一致) --------
 [[d1_databases]]
 binding = "DB"
-database_name = "futo-lab-notebooks"
-database_id = "REPLACE_WITH_LOCAL_DEV_DATABASE_ID"
+database_name = "futo-lab-notebooks-production"
+database_id = "REPLACE_WITH_PRODUCTION_DATABASE_ID"
 
-# --- Cloudflare Workers Builds: Preview環境用(CLOUDFLARE_ENV=preview) --
-[env.preview]
-main = "worker/index.ts"
-compatibility_date = "2024-09-13"
-
-[env.preview.assets]
-directory = "./dist"
-binding = "ASSETS"
-not_found_handling = "404-page"
-run_worker_first = ["/api/*"]
-
-[[env.preview.d1_databases]]
-binding = "DB"
-database_name = "futo-lab-notebooks-preview"
-database_id = "REPLACE_WITH_PREVIEW_DATABASE_ID"
-
-# --- Cloudflare Workers Builds: Production環境用(CLOUDFLARE_ENV=production) --
+# --- [env.production](トップレベルの明示的な複製。念のための保険) ----
 [env.production]
+name = "futo-site"
 main = "worker/index.ts"
 compatibility_date = "2024-09-13"
 
@@ -85,3 +87,20 @@ run_worker_first = ["/api/*"]
 binding = "DB"
 database_name = "futo-lab-notebooks-production"
 database_id = "REPLACE_WITH_PRODUCTION_DATABASE_ID"
+
+# --- [env.preview](同じWorker futo-site、D1のみPreview用に差し替え) --
+[env.preview]
+name = "futo-site"
+main = "worker/index.ts"
+compatibility_date = "2024-09-13"
+
+[env.preview.assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "404-page"
+run_worker_first = ["/api/*"]
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "futo-lab-notebooks-preview"
+database_id = "REPLACE_WITH_PREVIEW_DATABASE_ID"
