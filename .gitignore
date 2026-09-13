@@ -17,5 +17,8 @@ npm-debug.log*
 .env
 .env.production
 
+# Cloudflare Pages Functions local secrets (never commit; see .dev.vars.example)
+.dev.vars
+
 # macOS
 .DS_Store

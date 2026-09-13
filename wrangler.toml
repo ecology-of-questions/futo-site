@@ -1,18 +1,44 @@
 ## wrangler.toml
 ## ------------------------------------------------------------
 ## 「実験室」ノートの書き足し(交換ノート)機能専用のCloudflare Pages
-## Functions設定(2026-09-13、Decision Log 0141)。
+## Functions設定(2026-09-13、Decision Log 0141。Preview/Production
+## D1分離は2026-09-13、Decision Log 0142)。
 ##
 ## Astro本体は`output: "static"`のポータブルな静的サイトのまま維持し、
 ## Cloudflare固有機能(Pages Functions + D1)への依存は、この交換ノート
 ## 機能の永続化・API部分(`functions/api/notebooks/`)に限定している。
 ## サイト本体の静的ページのビルド(`npm run build`)には一切影響しない。
+##
+## D1データベースは3つに分離している(いずれもbinding名は"DB"で統一し、
+## Functionsコード側はどの環境でも`context.env.DB`のまま変更不要):
+##   - トップレベル [[d1_databases]] … ローカル開発
+##     (`npm run pages:dev`、`wrangler d1 execute --local`)専用。
+##     Cloudflare本番のPreview/Productionには一切影響しない。
+##   - [[env.preview.d1_databases]]    … Cloudflare PagesのPreview
+##     デプロイ(PRブランチ等)用。
+##   - [[env.production.d1_databases]] … Cloudflare PagesのProduction
+##     デプロイ(mainブランチ)用。
+## PR Previewが本番データへ書き込まないよう、Preview/Productionの
+## database_idは必ず別のD1データベースにする(Decision Log 0142参照)。
 ## ------------------------------------------------------------
 name = "futo-site"
 compatibility_date = "2024-09-13"
 pages_build_output_dir = "dist"
 
+# --- ローカル開発用(デフォルト、--envなし) ---------------------------
 [[d1_databases]]
 binding = "DB"
 database_name = "futo-lab-notebooks"
+database_id = "REPLACE_WITH_LOCAL_DEV_DATABASE_ID"
+
+# --- Cloudflare Pages: Preview環境用 ----------------------------------
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "futo-lab-notebooks-preview"
+database_id = "REPLACE_WITH_PREVIEW_DATABASE_ID"
+
+# --- Cloudflare Pages: Production環境用 -------------------------------
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "futo-lab-notebooks-production"
 database_id = "REPLACE_WITH_PRODUCTION_DATABASE_ID"

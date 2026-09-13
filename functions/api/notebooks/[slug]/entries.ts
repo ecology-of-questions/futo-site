@@ -2,7 +2,9 @@
  * functions/api/notebooks/[slug]/entries.ts
  * ------------------------------------------------------------
  * 「実験室」ノート(交換ノート)への書き込みを永続化するCloudflare
- * Pages Function(2026-09-13、Decision Log 0141)。
+ * Pages Function(2026-09-13、Decision Log 0141。IPハッシュのHMAC化・
+ * Preview/Production D1分離は2026-09-13、Decision Log 0142でレビュー
+ * 反映)。
  *
  * このファイルはAstroのビルド対象外(Cloudflare Pagesがdist/と並行して
  * 自動検出・デプロイする)。Astro本体は`output: "static"`のまま維持し、
@@ -18,6 +20,14 @@
  *   管理API・管理画面を用意せず、`wrangler d1 execute --remote`または
  *   Cloudflareダッシュボード経由の手動SQLで行う運用にしている
  *   (Decision Log 0141参照)。
+ *
+ * 【IPハッシュについて】生IPは保存しない。連投判定用に、Cloudflare
+ * Pages Secret(`IP_HASH_SECRET`、クライアントには一切露出しない)を
+ * 鍵にしたHMAC-SHA256でハッシュ化してから保存する(単純なSHA-256
+ * ハッシュはIPv4アドレス空間が小さく総当たりで復元されうるため、
+ * secretを鍵に使うHMACへ変更した。Decision Log 0142参照)。
+ * `IP_HASH_SECRET`が設定されていない場合は、弱いハッシュにフォール
+ * バックせず500を返す(fail closed)。
  * ------------------------------------------------------------
  */
 
@@ -42,6 +52,9 @@ interface D1Database {
 
 interface Env {
   DB: D1Database;
+  /** 連投判定用IPハッシュのHMAC鍵。Cloudflare PagesのSecretとして
+   * Production/Previewそれぞれに設定する(クライアントへは露出しない)。 */
+  IP_HASH_SECRET: string;
 }
 
 interface PagesFunctionContext<P extends Record<string, string> = Record<string, string>> {
@@ -112,11 +125,22 @@ function isValidUrl(value: string): boolean {
   }
 }
 
-/** IPアドレスをそのまま保存せず、SHA-256でハッシュ化してから保存する。 */
-async function hashIp(ip: string): Promise<string> {
-  const data = new TextEncoder().encode(ip);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest))
+/**
+ * IPアドレスをそのまま保存せず、secretを鍵にしたHMAC-SHA256でハッシュ化
+ * してから保存する。鍵の無い単純なSHA-256/MD5等は、IPv4アドレス空間が
+ * 約43億通りしかなく総当たりで元のIPへ復元されうるため使わない
+ * (2026-09-13、Decision Log 0142)。
+ */
+async function hashIp(ip: string, secret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(ip));
+  return Array.from(new Uint8Array(signature))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
@@ -193,8 +217,16 @@ export const onRequestPost = async (context: PagesFunctionContext<{ slug: string
     rawUrl = trimmed;
   }
 
+  const ipHashSecret = context.env.IP_HASH_SECRET;
+  if (!ipHashSecret) {
+    // secret未設定のまま弱いハッシュへフォールバックしない(fail
+    // closed)。Cloudflare Pages側でIP_HASH_SECRETが未設定
+    // (Production/Preview双方に必要)。
+    return json({ error: "server misconfigured" }, 500);
+  }
+
   const ip = context.request.headers.get("CF-Connecting-IP") ?? "unknown";
-  const ipHash = await hashIp(ip);
+  const ipHash = await hashIp(ip, ipHashSecret);
 
   const recentPost = await context.env.DB.prepare(
     `SELECT id FROM entries WHERE ip_hash = ?1 AND created_at > datetime('now', ?2) LIMIT 1`,
