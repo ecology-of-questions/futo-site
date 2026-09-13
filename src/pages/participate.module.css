@@ -1,86 +1,25 @@
 /**
  * participate.module.css
  * ------------------------------------------------------------
- * /participate専用のページレベルスタイル。index.module.cssの
- * .sectionRule/.panel等と同じ考え方(細い罫線・淡いcolor-mix背景面)を
- * このページ用に複製している(既存ページと同様、ページごとに
- * styleを独立させる方針を踏襲)。
+ * /participate(実験室、ノート表紙一覧)専用のページレベルスタイル。
+ * index.module.cssの.sectionRule等と同じ考え方(細い罫線)をこの
+ * ページ用に複製している(既存ページと同様、ページごとにstyleを
+ * 独立させる方針を踏襲)。
  *
- * 【ページ再構成に伴うスタイル整理(2026-09-11、Decision Log 0128)】
- * 「場所・知識・技術を貸す」3カード用の.lendGrid/.lendCard/.lendIcon/
- * .lendTitle/.lendDescriptionは、そのセクション自体の廃止に伴い削除
- * した。新設した「持ち寄られたもの」一覧用(.contributionList等)・
- * フォームの公開可否チェックボックス用(.checkboxField等、
- * BookshelfFullList.module.cssと同じパターン)を追加した。
- *
- * 【Hero・まとめの仮画像プレースホルダーを削除(2026-09-11)】
- * 実在の写真素材がまだない間の仮の色面として置いていた.heroPanel・
- * .closingPanelを削除した。2カラム分割用だった.hero/.heroText/
- * .closing/.closingTextも、単一カラムになったため合わせて削除した
- * (中身のあるクラスのみ残す)。
- *
- * 【「本をプレゼントする」を控えめな一覧に変更(2026-09-11、Decision
- * Log 0132)】旧BookshelfList.astroコンポーネント(表紙が画面の大半を
- * 占める横スクロールUI)の利用をやめ、小さな書影+タイトル/著者/
- * 読みたい理由の一覧(.giftBookList等)をこのファイルに直接追加した。
- *
- * 【HP公開版に向けて「本をプレゼントする」「ともに、続けていくために」
- * を削除(2026-09-11、Decision Log 0133)】両セクションを丸ごと
- * ページから削除したことに伴い、0132で追加した.giftBooksHeading/
- * .giftBookList/.giftBookItem/.giftBookCover/.giftBookInfo/
- * .giftBookTitle/.giftBookAuthor/.giftBookReasonと、まとめ専用
- * だった.closingTaglineを削除した。永久廃止ではなく公開版からの
- * 保留のため、必要になれば git 履歴から復元できる。
- *
- * 【「持ち寄る」→「実験室」への改訂(2026-09-13、Decision Log 0139)】
- * 「いま、考えていること」一覧用の.ideaList/.idea/.ideaCategory/
- * .ideaTitle/.ideaDescription/.ideaLinkを追加した。.contributionItem
- * (「持ち寄られたもの」)と同じ「細い罫線区切りの静かな一覧」という
- * 考え方をそのまま踏襲している。フォームの質問文言に合わせて
- * .helper(質問の下に置く補足文)・.themeNote(どの項目から来たかの
- * 確認テキスト)を追加した。「持ち寄られたもの」が0件のときの空状態
- * 専用に.contributionEmptyState/.contributionEmptyCategories/
- * .contributionEmptyLinkを追加し、既存の.contributionEmptyは0件
- * メッセージの文字スタイル(サイズ・行間・色)としてそのまま流用した。
+ * 【「いま、つくっていることをひらく3冊のノート」への作り替え
+ * (2026-09-13、Decision Log 0140)】旧「いま、考えていること」の
+ * 細い罫線一覧(.ideaList等)・共通フォーム(.form等)・「持ち寄られた
+ * もの」一覧(.contributionList等)は、ノート詳細ページ
+ * (`/participate/[slug]`、`[slug].module.css`)側に機能が移った
+ * ため、このファイルからは削除した。かわりに、3冊のノートを
+ * 「表紙」として見せる.notebookGrid以下のスタイルを追加した。
+ * みすず書房のサイトのような「文字と余白を大切にする、検索結果一覧
+ * ではなく気になったものをひらく感覚」を参考に、Webカード一覧・SNS
+ * 投稿一覧には見えないよう、影・太い枠線・角丸は使わず、色面(tone)と
+ * タイポグラフィだけで「表紙」を表現している。
  * ------------------------------------------------------------
  */
 
-.sectionRule {
-  border-top: 1px solid var(--color-accent-beige);
-  padding-top: var(--space-5);
-}
-
-.sectionHeading {
-  font-size: var(--fs-xl);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: 0;
-}
-
-/* <p>単体にも、複数<p>を束ねる<div>にも使う共通の本文スタイル。
-   改行位置はコピーの意図そのものなので<br />でそのまま保持している
-   (ResearchStatement.astroと同じ方針)。 */
-.sectionBody {
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-}
-
-.sectionBody p {
-  margin: 0 0 var(--space-2);
-}
-
-.sectionBody p:last-child {
-  margin-bottom: 0;
-}
-
-.link {
-  margin-top: var(--space-3);
-}
-
-/* -----------------------------
- * Hero
- * ----------------------------- */
 .eyebrow {
   margin: 0;
   font-family: var(--font-sans);
@@ -102,6 +41,7 @@
   margin-top: var(--space-3);
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+  max-width: 36rem;
 }
 
 .body p {
@@ -112,288 +52,149 @@
   margin-bottom: 0;
 }
 
+.sectionRule {
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-5);
+}
+
+.sectionHeading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0;
+}
+
 /* -----------------------------
- * いま、考えていること(2026-09-13、Decision Log 0139)
- * .contributionList/.contributionItem(下記「持ち寄られたもの」)と
- * 同じ「細い罫線区切りの静かな一覧」。3件固定を前提にしていないため
- * (将来増減してもレイアウトが崩れないよう)、Desktop幅でも常に
- * 縦積みのままにしている。
+ * いま、つくっていること(ノートの表紙一覧、2026-09-13、Decision Log
+ * 0140)。Mobileは縦積み、Desktop幅(700px〜)は3冊を横に並べる
+ * (CurrentWorkList.module.cssと同じ「Mobile縦積み/Desktop横並び」の
+ * 考え方を、3項目に適用したもの)。
  * ----------------------------- */
-.ideaList {
+.notebookGrid {
   display: flex;
   flex-direction: column;
+  gap: var(--space-5);
   margin-top: var(--space-4);
 }
 
-.idea {
+@media (min-width: 700px) {
+  .notebookGrid {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+}
+
+.notebook {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  padding-block: var(--space-4);
-  border-top: 1px solid var(--color-accent-beige);
+  gap: var(--space-2);
+  text-decoration: none;
+  color: inherit;
 }
 
-.idea:first-child {
-  padding-top: 0;
-  border-top: none;
+@media (min-width: 700px) {
+  .notebook {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
-.ideaCategory {
-  margin: 0;
+/* 「表紙」。書影のcolor-mixトーン(BookshelfFullList.module.cssと
+   同じ3色)を、本棚の小さな書影よりずっと大きいサイズで使い、
+   category/titleを表紙の文字として下寄せで載せる。 */
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 16rem;
+  aspect-ratio: 3 / 4;
+  padding: var(--space-3);
+  border-radius: 2px;
+  transition: transform var(--transition-base);
+}
+
+@media (min-width: 700px) {
+  .cover {
+    max-width: none;
+  }
+}
+
+.notebook:hover .cover,
+.notebook:focus-visible .cover {
+  transform: translateY(-2px);
+}
+
+.cover[data-tone="warm"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
+  );
+}
+
+.cover[data-tone="moss"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
+  );
+}
+
+.cover[data-tone="sky"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
+  );
+}
+
+.coverCategory {
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-ink-muted);
 }
 
-.ideaTitle {
-  font-size: var(--fs-lg);
+.coverTitle {
+  margin-top: var(--space-1);
+  font-size: var(--fs-xl);
   font-weight: 500;
   line-height: var(--lh-heading);
-  margin: 0;
+  color: var(--color-ink);
 }
 
-.ideaDescription {
-  margin: 0;
+.notebookInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.notebookDescription {
   font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
 
-.ideaLink {
-  margin-top: var(--space-1);
-}
-
-/* -----------------------------
- * ふと思い出したことを寄せる(フォーム)
- * ----------------------------- */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-  max-width: 32rem;
-}
-
-/* どの「いま、考えていること」から来たかの確認テキスト
-   (?theme=をJSが読み取って表示する。既定は非表示)。 */
-.themeNote {
-  margin: 0 0 var(--space-1);
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.label {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-}
-
-.helper {
-  margin: 0;
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
-  color: var(--color-ink-muted);
-}
-
-.required,
-.optional {
-  color: var(--color-ink-muted);
-}
-
-.input,
-.textarea {
-  font-family: var(--font-sans);
-  font-size: var(--fs-base);
-  color: var(--color-ink-on-surface);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-accent-beige);
-  border-radius: 2px;
-  padding: var(--space-1) var(--space-2);
-  transition: border-color var(--transition-base);
-}
-
-.input:focus,
-.textarea:focus {
-  outline: 2px solid var(--color-accent-blue);
-  outline-offset: 1px;
-  border-color: var(--color-accent-blue);
-}
-
-.textarea {
-  resize: vertical;
-  line-height: var(--lh-body);
-}
-
-.honeypot {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-}
-
-.submit {
+.notebookLink {
+  display: inline-flex;
   align-self: flex-start;
-  font-family: var(--font-sans);
-  font-size: var(--fs-base);
-  color: var(--color-accent-blue);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-accent-blue);
-  border-radius: 2px;
-  padding: var(--space-1) var(--space-3);
-  cursor: pointer;
-  transition:
-    background-color var(--transition-base),
-    color var(--transition-base);
-}
-
-.submit:hover,
-.submit:focus-visible {
-  background-color: var(--color-accent-blue);
-  color: var(--color-surface);
-}
-
-.submit:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.status {
-  margin: 0;
-  min-height: 1.5em;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-/* -----------------------------
- * 何かを持ち寄る(フォーム内チェックボックス)
- * BookshelfFullList.module.cssの.checkboxField/.checkbox/
- * .checkboxLabelと同じ考え方(2026-09-11、Decision Log 0128)。
- * ----------------------------- */
-.checkboxField {
-  display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-1);
-}
-
-.checkbox {
-  margin-top: 3px;
-  accent-color: var(--color-accent-blue);
-}
-
-.checkboxLabel {
-  font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  line-height: var(--lh-body);
-}
-
-.privacyNote {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-/* 【2026-09-11、/privacyへのリンクを含む注記を追加(Decision Log
-   0135)】既存の.privacyNote(お名前・メールアドレスは公開しない旨)は
-   そのまま残し、その下に「個人情報の取り扱いに基づいて管理します」の
-   注記を1文追加した。リンク色はFooter/ArrowLinkと同じ
-   --color-accent-blue。 */
-.privacyLink {
   color: var(--color-accent-blue);
-  text-decoration: underline;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
 }
 
-/* -----------------------------
- * 持ち寄られたもの(2026-09-11、Decision Log 0128)。
- * カード化せず、細い罫線区切りの静かな一覧にする(index.module.cssの
- * .sectionRule・CurrentWorkList.module.cssの.label/.itemTitle/
- * .itemBodyと同じ考え方)。件数が可変のため、Desktop幅でも常に縦積み
- * のまま(index.astro「研究断面」の2カラムレイアウトとは異なり、
- * 固定2件を前提にしていない)。
- * ----------------------------- */
-.contributionList {
-  display: flex;
-  flex-direction: column;
-  margin-top: var(--space-4);
+.notebookLinkArrow {
+  display: inline-block;
+  transition: transform var(--transition-base);
 }
 
-.contributionItem {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding-block: var(--space-3);
-  border-top: 1px solid var(--color-accent-beige);
-}
-
-.contributionItem:first-child {
-  padding-top: 0;
-  border-top: none;
-}
-
-.contributionLabel {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--color-ink-muted);
-}
-
-.contributionTitle {
-  font-size: var(--fs-lg);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: 0;
-}
-
-.contributionBody {
-  margin: 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-}
-
-.contributionLink {
-  margin-top: var(--space-1);
-}
-
-.contributionEmpty {
-  margin: 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-  color: var(--color-ink-muted);
-}
-
-/* 【空状態を「未完成」ではなく「まだ何も置かれていない場所」に見せる
-   (2026-09-13、Decision Log 0139)】通常の本文よりも大きく余白を
-   取り、中央寄せにすることで、単なる「データがありません」という
-   エラー的な見た目ではなく、静かに次を待っている場所であることを
-   示す。 */
-.contributionEmptyState {
-  margin-top: var(--space-4);
-  padding-block: var(--space-5);
-  text-align: center;
-}
-
-.contributionEmptyCategories {
-  margin: var(--space-2) 0 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  letter-spacing: 0.02em;
-  color: var(--color-ink-muted);
-}
-
-.contributionEmptyLink {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--space-4);
+.notebook:hover .notebookLinkArrow,
+.notebook:focus-visible .notebookLinkArrow {
+  transform: translateX(4px);
 }
