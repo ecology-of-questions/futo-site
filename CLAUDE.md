@@ -82,6 +82,14 @@ human reference — keep both in sync when it changes.)
     reusable pieces used across Hero / Research Statement / Research.
 - Deploy target is Cloudflare Pages, but the build must stay a
   portable static site (no Cloudflare-specific adapters/features).
+  **Scoped exception (2026-09-13, Decision Log 0141):** the lab
+  notebooks' exchange-notebook persistence and API
+  (`functions/api/notebooks/[slug]/entries.ts`, `wrangler.toml`,
+  `migrations/`) use Cloudflare Pages Functions + D1 and are
+  Cloudflare-specific. Astro itself stays `output: "static"`; every
+  other page remains a portable static build. Do not extend this
+  Cloudflare dependency to other features without a new Decision Log
+  entry.
 
 ---
 
