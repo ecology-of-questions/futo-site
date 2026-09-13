@@ -1,0 +1,264 @@
+---
+/**
+ * [slug].astro (ノート詳細)
+ * ------------------------------------------------------------
+ * 役割: 「実験室」(/participate)の3冊のノートの詳細ページ。1つの
+ * テンプレートファイルが`getStaticPaths`で3つのURL
+ * (/participate/oto-no-michi、/participate/fieldnote、
+ * /participate/research-fragments)を生成する(2026-09-13、Decision
+ * Log 0140。プロジェクトオーナーの指示「3ページとも共通レイアウトを
+ * 使い、中身だけデータで切り替えられる構造にする」に対応)。データは
+ * `src/data/labNotebooks.ts`を`/participate`と共有し、二重管理しない。
+ *
+ * 【ノートの構成】
+ *   1. 「← 実験室」(`/participate`への実リンク。ブラウザバックには
+ *      依存しない)
+ *   2. category(Eyebrow)・ノート名(h1)・「現在つくっているもの」
+ *      (description)・共通のノート説明文(commonNotebookDescription)
+ *   3. 「書かれたこと」: 「ふ、と」自身の記録(kind: "studio")と
+ *      訪問者が書き残した記録(kind: "visitor")を、区別する見出しを
+ *      設けずに同じ時系列(`entries`、`publishedAt`昇順)で1つの
+ *      一覧として表示する(交換ノートのような構成、という指示に
+ *      対応)。現時点でどのノートも`entries`が空のため、空状態
+ *      (「まだこのノートに書き足された記録はありません」)を表示する。
+ *   4. 「ふと思い出したことを書き残す」: 通常の縦長フォームページに
+ *      遷移させず、このページ内で完結する軽量な書き足しUI。本文
+ *      (必須)のみを常時表示し、「どんなときに思い出した？」「URLを
+ *      添える」は「＋」ボタンで個別に展開する任意項目にした
+ *      (2026-09-13の指示に基づく最小限のフィールド構成。名前・
+ *      メールアドレス・公開可否チェックボックスは今回のフォームでは
+ *      収集しない)。どのノートへの書き足しかは、隠しフィールド
+ *      `theme`(値はノート名)で自動的に記録する。送信は`/participate`
+ *      の旧フォーム(Decision Log 0128・0135)と同じ
+ *      `contactFormEndpoint`(Formspree)・honeypot・fetchによる進行
+ *      拡張をそのまま再利用しており、新しいバックエンドは追加して
+ *      いない。
+ *
+ *      【即時公開はしない】このサイトは`output: "static"`の
+ *      ポータブルな静的サイトで、Formspreeへの送信を読み戻して
+ *      画面に即時反映する永続ストレージを持たない。そのため送信後の
+ *      案内は「書き残していただきました。内容を確認のうえ、この
+ *      ノートに書き足すことがあります。」という、確認・手動掲載を
+ *      前提にした文言にしている(即時公開しているように見せかけない)。
+ *      実際に承認した記録は、`src/data/labNotebooks.ts`の該当ノートの
+ *      `entries`に運営が手動で追加し`visible: true`にする(既存の
+ *      `contributions.ts`と同じ手動運用)。
+ *   5. 「他のノートを見る」: 残り2冊への小さなテキストリンク
+ *      (カルーセル・カード一覧にはしない)。
+ * ------------------------------------------------------------
+ */
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchSection from "@components/ResearchSection.astro";
+import NightBackground from "@components/NightBackground.astro";
+import styles from "./[slug].module.css";
+import { labNotebooks, commonNotebookDescription } from "@/data/labNotebooks";
+import { contactFormEndpoint } from "@/config/site";
+import type { LabNotebook } from "@/types/labNotebook";
+
+export function getStaticPaths() {
+  return labNotebooks.map((notebook) => ({
+    params: { slug: notebook.slug },
+    props: { notebook },
+  }));
+}
+
+interface Props {
+  notebook: LabNotebook;
+}
+
+const { notebook } = Astro.props;
+const otherNotebooks = labNotebooks.filter((n) => n.slug !== notebook.slug);
+
+const visibleEntries = notebook.entries
+  .filter((entry) => entry.visible)
+  .sort((a, b) => a.publishedAt.localeCompare(b.publishedAt));
+
+/** URL表示用のホスト名。大きなOGPカードは作らず、ドメイン名程度の静かなリンクにする。 */
+function hostnameOf(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+---
+
+<DefaultLayout title={`${notebook.title} ｜ 実験室 ｜ ふ、と`} description={notebook.description} theme="night">
+  <NightBackground />
+
+  <ResearchSection ariaLabel={notebook.title} id="notebook-top">
+    <a class={styles.back} href="/participate">← 実験室</a>
+    <p class={styles.eyebrow}>{notebook.category}</p>
+    <h1 class={styles.heading}>{notebook.title}</h1>
+    <p class={styles.lead}>{notebook.description}</p>
+    <p class={styles.commonNote}>{commonNotebookDescription}</p>
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="書かれたこと" id="notebook-entries">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>書かれたこと</h2>
+    {
+      visibleEntries.length > 0 ? (
+        <div class={styles.entryList}>
+          {visibleEntries.map((entry) => (
+            <div class={styles.entry}>
+              <p class={styles.entryBody}>{entry.body}</p>
+              {entry.context && <p class={styles.entryContext}>{entry.context}</p>}
+              {entry.url && (
+                <p class={styles.entryUrl}>
+                  <a href={entry.url} target="_blank" rel="ugc nofollow noopener noreferrer">
+                    {hostnameOf(entry.url)}
+                  </a>
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class={styles.entryEmptyState}>
+          <p class={styles.entryEmpty}>
+            まだこのノートに書き足された記録はありません。読んで、ふと思い出したことがあれば書き残してください。
+          </p>
+        </div>
+      )
+    }
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="ふと思い出したことを書き残す" id="notebook-write">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ふと思い出したことを書き残す</h2>
+
+    <form class={styles.form} method="POST" action={contactFormEndpoint} data-entry-form>
+      <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <input type="hidden" name="_subject" value={`ふ、と｜実験室ノート「${notebook.title}」に書き残す`} />
+      <input type="hidden" name="theme" value={notebook.title} />
+
+      <label class={styles.srOnly} for="entry-body">
+        ここにそのまま書いてください。
+      </label>
+      <textarea
+        class={styles.textarea}
+        id="entry-body"
+        name="message"
+        rows="4"
+        placeholder="ここにそのまま書いてください。"
+        required
+      />
+
+      <div class={styles.optionalField}>
+        <button
+          type="button"
+          class={styles.expandTrigger}
+          data-optional-trigger
+          data-label="どんなときに思い出した？"
+          aria-expanded="false"
+          aria-controls="entry-context-wrap"
+        >
+          ＋ どんなときに思い出した？
+        </button>
+        <div id="entry-context-wrap" class={styles.expandWrap} data-optional-wrap hidden>
+          <label class={styles.srOnly} for="entry-context">
+            どんなときに思い出した？
+          </label>
+          <input class={styles.input} type="text" id="entry-context" name="context" placeholder="どんなときに思い出した？" />
+        </div>
+      </div>
+
+      <div class={styles.optionalField}>
+        <button
+          type="button"
+          class={styles.expandTrigger}
+          data-optional-trigger
+          data-label="URLを添える"
+          aria-expanded="false"
+          aria-controls="entry-url-wrap"
+        >
+          ＋ URLを添える
+        </button>
+        <div id="entry-url-wrap" class={styles.expandWrap} data-optional-wrap hidden>
+          <label class={styles.srOnly} for="entry-url">
+            URL
+          </label>
+          <input class={styles.input} type="url" id="entry-url" name="url" placeholder="https://" />
+        </div>
+      </div>
+
+      <button class={styles.submit} type="submit">書き残す <span aria-hidden="true">→</span></button>
+      <p class={styles.status} data-entry-status role="status" aria-live="polite" />
+
+      <p class={styles.privacyNote}>
+        書き残していただいた内容は、「ふ、と」で確認したうえで、このノートに書き足すことがあります。
+      </p>
+      <p class={styles.privacyNote}>
+        送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
+      </p>
+    </form>
+  </ResearchSection>
+
+  <ResearchSection ariaLabel="他のノートを見る" id="notebook-others">
+    <nav aria-label="他のノートを見る">
+      <p class={styles.otherNotebooksLabel}>他のノートを見る</p>
+      <ul class={styles.otherNotebooksList}>
+        {
+          otherNotebooks.map((other) => (
+            <li>
+              <a class={styles.otherNotebookLink} href={`/participate/${other.slug}`}>
+                {other.title} <span aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </ResearchSection>
+</DefaultLayout>
+
+<script>
+  const triggers = document.querySelectorAll<HTMLButtonElement>("[data-optional-trigger]");
+  triggers.forEach((trigger) => {
+    const targetId = trigger.getAttribute("aria-controls");
+    const wrap = targetId ? document.getElementById(targetId) : null;
+    if (!wrap) return;
+
+    trigger.addEventListener("click", () => {
+      const expanded = trigger.getAttribute("aria-expanded") === "true";
+      trigger.setAttribute("aria-expanded", expanded ? "false" : "true");
+      wrap.hidden = expanded;
+      const label = trigger.dataset.label ?? "";
+      trigger.textContent = `${expanded ? "＋" : "－"} ${label}`;
+      if (!expanded) {
+        wrap.querySelector<HTMLInputElement>("input")?.focus();
+      }
+    });
+  });
+
+  const form = document.querySelector<HTMLFormElement>("[data-entry-form]");
+  const status = document.querySelector<HTMLElement>("[data-entry-status]");
+
+  if (form && status) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      submitButton?.setAttribute("disabled", "true");
+      status.textContent = "送信中...";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        });
+
+        if (response.ok) {
+          status.textContent = "書き残していただきました。確認のうえ、このノートに書き足すことがあります。";
+          form.reset();
+        } else {
+          status.textContent = "送信に失敗しました。時間をおいて、もう一度お試しください。";
+        }
+      } catch {
+        status.textContent = "送信に失敗しました。通信環境をご確認のうえ、もう一度お試しください。";
+      } finally {
+        submitButton?.removeAttribute("disabled");
+      }
+    });
+  }
+</script>
