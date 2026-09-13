@@ -31,6 +31,17 @@
  * .giftBookTitle/.giftBookAuthor/.giftBookReasonと、まとめ専用
  * だった.closingTaglineを削除した。永久廃止ではなく公開版からの
  * 保留のため、必要になれば git 履歴から復元できる。
+ *
+ * 【「持ち寄る」→「実験室」への改訂(2026-09-13、Decision Log 0139)】
+ * 「いま、考えていること」一覧用の.ideaList/.idea/.ideaCategory/
+ * .ideaTitle/.ideaDescription/.ideaLinkを追加した。.contributionItem
+ * (「持ち寄られたもの」)と同じ「細い罫線区切りの静かな一覧」という
+ * 考え方をそのまま踏襲している。フォームの質問文言に合わせて
+ * .helper(質問の下に置く補足文)・.themeNote(どの項目から来たかの
+ * 確認テキスト)を追加した。「持ち寄られたもの」が0件のときの空状態
+ * 専用に.contributionEmptyState/.contributionEmptyCategories/
+ * .contributionEmptyLinkを追加し、既存の.contributionEmptyは0件
+ * メッセージの文字スタイル(サイズ・行間・色)としてそのまま流用した。
  * ------------------------------------------------------------
  */
 
@@ -102,7 +113,59 @@
 }
 
 /* -----------------------------
- * 気になるものを寄せる(フォーム)
+ * いま、考えていること(2026-09-13、Decision Log 0139)
+ * .contributionList/.contributionItem(下記「持ち寄られたもの」)と
+ * 同じ「細い罫線区切りの静かな一覧」。3件固定を前提にしていないため
+ * (将来増減してもレイアウトが崩れないよう)、Desktop幅でも常に
+ * 縦積みのままにしている。
+ * ----------------------------- */
+.ideaList {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-4);
+}
+
+.idea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.idea:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.ideaCategory {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+}
+
+.ideaTitle {
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+  margin: 0;
+}
+
+.ideaDescription {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.ideaLink {
+  margin-top: var(--space-1);
+}
+
+/* -----------------------------
+ * ふと思い出したことを寄せる(フォーム)
  * ----------------------------- */
 .form {
   display: flex;
@@ -110,6 +173,15 @@
   gap: var(--space-3);
   margin-top: var(--space-4);
   max-width: 32rem;
+}
+
+/* どの「いま、考えていること」から来たかの確認テキスト
+   (?theme=をJSが読み取って表示する。既定は非表示)。 */
+.themeNote {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
 }
 
 .field {
@@ -121,6 +193,13 @@
 .label {
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+}
+
+.helper {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
 }
 
 .required,
@@ -288,8 +367,33 @@
 }
 
 .contributionEmpty {
-  margin: var(--space-4) 0 0;
+  margin: 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
   color: var(--color-ink-muted);
+}
+
+/* 【空状態を「未完成」ではなく「まだ何も置かれていない場所」に見せる
+   (2026-09-13、Decision Log 0139)】通常の本文よりも大きく余白を
+   取り、中央寄せにすることで、単なる「データがありません」という
+   エラー的な見た目ではなく、静かに次を待っている場所であることを
+   示す。 */
+.contributionEmptyState {
+  margin-top: var(--space-4);
+  padding-block: var(--space-5);
+  text-align: center;
+}
+
+.contributionEmptyCategories {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  letter-spacing: 0.02em;
+  color: var(--color-ink-muted);
+}
+
+.contributionEmptyLink {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-4);
 }

@@ -62,6 +62,10 @@
  * (/participate、URLは変更なし)の日本語表記を「関わる」から
  * 「持ち寄る」に変更した。ナビゲーション項目数・順序は変更していない。
  *
+ * 【「持ち寄る」→「実験室」に表記変更(2026-09-13、Decision Log
+ * 0139)】`/participate`のページ内容を「実験室」に作り替えたことに
+ * 伴い、ナビゲーション表記も揃えた(URL・項目数・順序は変更なし)。
+ *
  * 【Mobileメニューをスクロールで閉じるよう修正(2026-09-11、Decision
  * Log 0126)】Mobile幅の`.nav`はposition: absoluteでHeaderの下に
  * 浮くオーバーレイであり、開いてもページ本文を押し下げない(コンテンツ
@@ -104,7 +108,7 @@ import styles from "./Header.module.css";
     <nav id="site-nav" class={styles.nav} aria-label="サイト内ナビゲーション" data-nav>
       <a class={styles.navLink} href="/research">研究断面</a>
       <a class={styles.navLink} href="/bookshelf">本棚</a>
-      <a class={styles.navLink} href="/participate">持ち寄る</a>
+      <a class={styles.navLink} href="/participate">実験室</a>
       <a class={styles.navLink} href="/about">公開研究室ふ、と</a>
     </nav>
   </div>
