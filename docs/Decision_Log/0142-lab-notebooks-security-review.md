@@ -1,8 +1,17 @@
 # 0142. 実験室ノート永続化のセキュリティレビュー反映(IPハッシュのHMAC化・Preview/Production D1分離)
 
 - 日付: 2026-09-13
-- 状態: 採用
+- 状態: 採用(実行基盤 → Decision Log 0143で更新)
 - 関連: Decision Log 0141(この決定はDecision Log 0141の実装内容の一部を更新する)
+
+**2026-09-13追記:** この節が前提としている実行基盤(Cloudflare Pages
+Functions)は、本番環境の実態確認によりDecision Log 0143で
+Worker + Workers Static Assetsへ置き換えられた。IPハッシュのHMAC化・
+Preview/Production D1分離という**方針そのもの**(何をどう分離するか)
+は0143でも維持されている。secretの名称は`IP_HASH_SECRET`のまま、
+設定場所がCloudflare Pages SecretからCloudflare Worker(Workers
+Builds連携)のsecretに変わる。具体的な設定手順は0143を参照。この節は
+削除せず、検討過程の記録として残す。
 
 ## Decision
 

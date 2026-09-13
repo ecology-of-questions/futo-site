@@ -80,16 +80,19 @@ human reference — keep both in sync when it changes.)
     publish state) — see `src/types/research.ts`.
   - `ArrowLink`, `SectionTitle`, `ResearchSection` are shared,
     reusable pieces used across Hero / Research Statement / Research.
-- Deploy target is Cloudflare Pages, but the build must stay a
+- Deploy target is a Cloudflare Worker (`futo-site`, Custom Domain
+  `futoing.com`, deployed via Workers Builds git integration — not
+  Cloudflare Pages; corrected 2026-09-13, Decision Log 0143 after
+  checking the actual dashboard state), but the build must stay a
   portable static site (no Cloudflare-specific adapters/features).
-  **Scoped exception (2026-09-13, Decision Log 0141):** the lab
-  notebooks' exchange-notebook persistence and API
-  (`functions/api/notebooks/[slug]/entries.ts`, `wrangler.toml`,
-  `migrations/`) use Cloudflare Pages Functions + D1 and are
-  Cloudflare-specific. Astro itself stays `output: "static"`; every
-  other page remains a portable static build. Do not extend this
-  Cloudflare dependency to other features without a new Decision Log
-  entry.
+  **Scoped exception (2026-09-13, Decision Log 0141; execution
+  platform corrected 2026-09-13, Decision Log 0143):** the lab
+  notebooks' exchange-notebook persistence and API (`worker/index.ts`,
+  `wrangler.toml`, `migrations/`) use a Cloudflare Worker + Workers
+  Static Assets + D1 and are Cloudflare-specific. Astro itself stays
+  `output: "static"`; every other page remains a portable static
+  build served as static assets. Do not extend this Cloudflare
+  dependency to other features without a new Decision Log entry.
 
 ---
 

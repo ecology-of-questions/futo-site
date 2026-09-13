@@ -1,7 +1,7 @@
 # 0141. 実験室ノートの書き込みをCloudflare Pages Functions + D1で永続化・即時公開する
 
 - 日付: 2026-09-13
-- 状態: 採用(一部 → Decision Log 0142で更新)
+- 状態: 採用(一部 → Decision Log 0142・0143で更新)
 
 **2026-09-13追記:** 本番設定前のセキュリティレビューにより、
 以下2点はDecision Log 0142で更新された(この節は削除せず残す)。
@@ -10,6 +10,17 @@
 2. D1データベース構成(単一のD1 → Preview/Production分離)。
    下記「Cloudflare本番側で必要な手動設定」節の記述は更新前の内容。
 詳細と最新の手順はDecision Log 0142を参照。
+
+**2026-09-13 追記2(重要):** 本番環境を実際に確認した結果、本番は
+Cloudflare PagesではなくCustom Domainを持つCloudflare Worker
+(`futo-site`、Workers Builds連携)だったことが判明した。この節が
+前提としている「Cloudflare Pages Functions」という実行基盤は
+実態と異なっていたため、Decision Log 0143で**Worker + Workers
+Static Assets + D1**構成に置き換えた。データモデル・API仕様・
+スパム対策・非表示運用などの決定内容(この節の実装以外の部分)は
+そのまま有効。実行基盤に関する記述(`functions/`ディレクトリ、
+Pages Functionsのコード構造)は0143を参照。この節は削除せず、
+検討過程の記録として残す。
 
 ## Decision
 
