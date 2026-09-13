@@ -97,6 +97,14 @@
  *
  * 以下、この変更より前の変遷(Hero統合・夜空背景・文章整理等)は、
  * このファイルのgit履歴および各Decision Logを参照。
+ *
+ * 【「持ち寄る」パネルを「実験室」に更新(2026-09-13、Decision Log
+ * 0139)】`/participate`のページ内容を「実験室」に作り替えたことに
+ * 伴い、見出し・本文・CTAを揃えた(見出し「持ち寄る」→「実験室」、
+ * CTA「持ち寄る」→「実験室を見る」、本文は`/participate`のHero本文
+ * 冒頭と同じ1文に差し替え)。レイアウト・背景面(.panel)・
+ * リンク先(/participate)・Eyebrow「PARTICIPATE」・「研究便り」
+ * パネルは変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -165,16 +173,14 @@ const currentWorkItems: CurrentWorkItem[] = latestReviews.map((review) => ({
     </div>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="持ち寄る・研究便り" id="participate-newsletter">
+  <ResearchSection ariaLabel="実験室・研究便り" id="participate-newsletter">
     <div class={styles.panel}>
       <div class={styles.panelSection}>
         <p class={sectionTitleStyles.title}>PARTICIPATE</p>
-        <h2 class={styles.panelHeading}>持ち寄る</h2>
-        <p class={styles.panelBody}>
-          「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。
-        </p>
+        <h2 class={styles.panelHeading}>実験室</h2>
+        <p class={styles.panelBody}>まだどうつながるかわからないものを持ち寄ったり、誰かと一緒に試したりする場所です。</p>
         <div class={styles.sectionLink}>
-          <ArrowLink href="/participate" label="持ち寄る" />
+          <ArrowLink href="/participate" label="実験室を見る" />
         </div>
       </div>
 
