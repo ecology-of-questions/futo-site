@@ -1,0 +1,18 @@
+## wrangler.toml
+## ------------------------------------------------------------
+## 「実験室」ノートの書き足し(交換ノート)機能専用のCloudflare Pages
+## Functions設定(2026-09-13、Decision Log 0141)。
+##
+## Astro本体は`output: "static"`のポータブルな静的サイトのまま維持し、
+## Cloudflare固有機能(Pages Functions + D1)への依存は、この交換ノート
+## 機能の永続化・API部分(`functions/api/notebooks/`)に限定している。
+## サイト本体の静的ページのビルド(`npm run build`)には一切影響しない。
+## ------------------------------------------------------------
+name = "futo-site"
+compatibility_date = "2024-09-13"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "futo-lab-notebooks"
+database_id = "REPLACE_WITH_PRODUCTION_DATABASE_ID"

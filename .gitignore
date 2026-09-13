@@ -1,6 +1,9 @@
 # build output
 dist/
 
+# Cloudflare Wrangler local state (D1 emulation, caches) — never commit
+.wrangler/
+
 # generated types
 .astro/
 

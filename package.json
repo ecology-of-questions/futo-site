@@ -8,7 +8,10 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "pages:dev": "astro build && wrangler pages dev dist",
+    "d1:migrate:local": "wrangler d1 execute futo-lab-notebooks --local --file=./migrations/0001_init.sql",
+    "d1:migrate:remote": "wrangler d1 execute futo-lab-notebooks --remote --file=./migrations/0001_init.sql"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -16,6 +19,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "wrangler": "^4.131.1"
   }
 }

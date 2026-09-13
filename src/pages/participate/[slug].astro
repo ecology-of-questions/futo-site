@@ -7,42 +7,36 @@
  * (/participate/oto-no-michi、/participate/fieldnote、
  * /participate/research-fragments)を生成する(2026-09-13、Decision
  * Log 0140。プロジェクトオーナーの指示「3ページとも共通レイアウトを
- * 使い、中身だけデータで切り替えられる構造にする」に対応)。データは
- * `src/data/labNotebooks.ts`を`/participate`と共有し、二重管理しない。
+ * 使い、中身だけデータで切り替えられる構造にする」に対応)。
  *
  * 【ノートの構成】
  *   1. 「← 実験室」(`/participate`への実リンク。ブラウザバックには
  *      依存しない)
  *   2. category(Eyebrow)・ノート名(h1)・「現在つくっているもの」
  *      (description)・共通のノート説明文(commonNotebookDescription)
- *   3. 「書かれたこと」: 「ふ、と」自身の記録(kind: "studio")と
- *      訪問者が書き残した記録(kind: "visitor")を、区別する見出しを
- *      設けずに同じ時系列(`entries`、`publishedAt`昇順)で1つの
- *      一覧として表示する(交換ノートのような構成、という指示に
- *      対応)。現時点でどのノートも`entries`が空のため、空状態
- *      (「まだこのノートに書き足された記録はありません」)を表示する。
+ *   3. 「書かれたこと」: 「ふ、と」自身の記録(`src/data/labNotebooks.ts`
+ *      の静的`entries`、kind: "studio")と、訪問者が書き残した記録
+ *      (Cloudflare D1に保存、`kind: "visitor"`)を、区別する見出しを
+ *      設けずに同じ時系列の一覧として表示する(交換ノートのような
+ *      構成)。静的な記録をビルド時に表示し、訪問者の記録はページ表示後に
+ *      `GET /api/notebooks/:slug/entries`から取得して追記する
+ *      (2026-09-13、Decision Log 0141。既存の静的entriesと二重管理に
+ *      ならないよう、訪問者の書き込みは静的データへ手動転記しない)。
  *   4. 「ふと思い出したことを書き残す」: 通常の縦長フォームページに
  *      遷移させず、このページ内で完結する軽量な書き足しUI。本文
  *      (必須)のみを常時表示し、「どんなときに思い出した？」「URLを
- *      添える」は「＋」ボタンで個別に展開する任意項目にした
- *      (2026-09-13の指示に基づく最小限のフィールド構成。名前・
- *      メールアドレス・公開可否チェックボックスは今回のフォームでは
- *      収集しない)。どのノートへの書き足しかは、隠しフィールド
- *      `theme`(値はノート名)で自動的に記録する。送信は`/participate`
- *      の旧フォーム(Decision Log 0128・0135)と同じ
- *      `contactFormEndpoint`(Formspree)・honeypot・fetchによる進行
- *      拡張をそのまま再利用しており、新しいバックエンドは追加して
- *      いない。
+ *      添える」は「＋」ボタンで個別に展開する任意項目にした(名前・
+ *      メールアドレス・公開可否チェックボックスは収集しない)。送信は
+ *      `POST /api/notebooks/:slug/entries`(Cloudflare Pages Function
+ *      + D1、Decision Log 0141)へJSONで送る。このノート機能だけ
+ *      Formspreeを使わない(他ページのFormspree利用には影響しない)。
  *
- *      【即時公開はしない】このサイトは`output: "static"`の
- *      ポータブルな静的サイトで、Formspreeへの送信を読み戻して
- *      画面に即時反映する永続ストレージを持たない。そのため送信後の
- *      案内は「書き残していただきました。内容を確認のうえ、この
- *      ノートに書き足すことがあります。」という、確認・手動掲載を
- *      前提にした文言にしている(即時公開しているように見せかけない)。
- *      実際に承認した記録は、`src/data/labNotebooks.ts`の該当ノートの
- *      `entries`に運営が手動で追加し`visible: true`にする(既存の
- *      `contributions.ts`と同じ手動運用)。
+ *      【即時公開する】保存に成功すると、ページ遷移せずその場で
+ *      このノートの一覧に新しい書き込みを追記する(永続ストレージが
+ *      D1にできたため、Decision Log 0140時点の「確認・手動掲載」前提を
+ *      この機能に限り更新した)。非公開化(荒らし対応)は管理画面を
+ *      作らず、D1へ直接SQLを実行して`status`を`hidden`にする運用
+ *      (Decision Log 0141参照)。
  *   5. 「他のノートを見る」: 残り2冊への小さなテキストリンク
  *      (カルーセル・カード一覧にはしない)。
  * ------------------------------------------------------------
@@ -52,7 +46,6 @@ import ResearchSection from "@components/ResearchSection.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./[slug].module.css";
 import { labNotebooks, commonNotebookDescription } from "@/data/labNotebooks";
-import { contactFormEndpoint } from "@/config/site";
 import type { LabNotebook } from "@/types/labNotebook";
 
 export function getStaticPaths() {
@@ -96,40 +89,44 @@ function hostnameOf(url: string): string {
 
   <ResearchSection ariaLabel="書かれたこと" id="notebook-entries">
     <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>書かれたこと</h2>
-    {
-      visibleEntries.length > 0 ? (
-        <div class={styles.entryList}>
-          {visibleEntries.map((entry) => (
-            <div class={styles.entry}>
-              <p class={styles.entryBody}>{entry.body}</p>
-              {entry.context && <p class={styles.entryContext}>{entry.context}</p>}
-              {entry.url && (
-                <p class={styles.entryUrl}>
-                  <a href={entry.url} target="_blank" rel="ugc nofollow noopener noreferrer">
-                    {hostnameOf(entry.url)}
-                  </a>
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div class={styles.entryEmptyState}>
-          <p class={styles.entryEmpty}>
-            まだこのノートに書き足された記録はありません。読んで、ふと思い出したことがあれば書き残してください。
-          </p>
-        </div>
-      )
-    }
+    <div class={styles.entryList} data-entry-list data-notebook-slug={notebook.slug}>
+      {
+        visibleEntries.map((entry) => (
+          <div class={styles.entry}>
+            <p class={styles.entryBody}>{entry.body}</p>
+            {entry.context && <p class={styles.entryContext}>{entry.context}</p>}
+            {entry.url && (
+              <p class={styles.entryUrl}>
+                <a href={entry.url} target="_blank" rel="ugc nofollow noopener noreferrer">
+                  {hostnameOf(entry.url)}
+                </a>
+              </p>
+            )}
+          </div>
+        ))
+      }
+    </div>
+    <div class={styles.entryEmptyState} data-entry-empty-state hidden={visibleEntries.length > 0}>
+      <p class={styles.entryEmpty}>
+        まだこのノートに書き足された記録はありません。読んで、ふと思い出したことがあれば書き残してください。
+      </p>
+    </div>
+    <template data-entry-template>
+      <div class={styles.entry}>
+        <p class={styles.entryBody} data-field="body" />
+        <p class={styles.entryContext} data-field="context" hidden />
+        <p class={styles.entryUrl} data-field="url-wrap" hidden>
+          <a data-field="url-link" target="_blank" rel="ugc nofollow noopener noreferrer" />
+        </p>
+      </div>
+    </template>
   </ResearchSection>
 
   <ResearchSection ariaLabel="ふと思い出したことを書き残す" id="notebook-write">
     <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ふと思い出したことを書き残す</h2>
 
-    <form class={styles.form} method="POST" action={contactFormEndpoint} data-entry-form>
+    <form class={styles.form} data-entry-form>
       <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <input type="hidden" name="_subject" value={`ふ、と｜実験室ノート「${notebook.title}」に書き残す`} />
-      <input type="hidden" name="theme" value={notebook.title} />
 
       <label class={styles.srOnly} for="entry-body">
         ここにそのまま書いてください。
@@ -185,7 +182,7 @@ function hostnameOf(url: string): string {
       <p class={styles.status} data-entry-status role="status" aria-live="polite" />
 
       <p class={styles.privacyNote}>
-        書き残していただいた内容は、「ふ、と」で確認したうえで、このノートに書き足すことがあります。
+        書き残していただいた内容は、このノートにそのまま公開されます。不適切な内容や誤って公開されたものは、後から非表示にすることがあります。
       </p>
       <p class={styles.privacyNote}>
         送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
@@ -230,10 +227,89 @@ function hostnameOf(url: string): string {
     });
   });
 
+  // 「書かれたこと」の永続化・即時反映(2026-09-13、Decision Log 0141)。
+  // Cloudflare Pages Function(/api/notebooks/:slug/entries) + D1を
+  // 使う。このノートのslugだけをAPIの宛先に使う(取得したエントリの
+  // 表示以外に、slugをどこかへ送信することはない)。
+  const entryList = document.querySelector<HTMLElement>("[data-entry-list]");
+  const notebookSlug = entryList?.dataset.notebookSlug ?? "";
+  const apiUrl = `/api/notebooks/${notebookSlug}/entries`;
+
+  const emptyState = document.querySelector<HTMLElement>("[data-entry-empty-state]");
+  const template = document.querySelector<HTMLTemplateElement>("[data-entry-template]");
+
+  interface VisitorEntry {
+    body: string;
+    context?: string;
+    url?: string;
+  }
+
+  function hostnameOf(url: string): string {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
+  }
+
+  function appendEntry(entry: VisitorEntry) {
+    if (!entryList || !template) return;
+    const node = template.content.cloneNode(true) as DocumentFragment;
+
+    const bodyEl = node.querySelector<HTMLElement>('[data-field="body"]');
+    if (bodyEl) bodyEl.textContent = entry.body;
+
+    const contextEl = node.querySelector<HTMLElement>('[data-field="context"]');
+    if (contextEl) {
+      if (entry.context) {
+        contextEl.textContent = entry.context;
+        contextEl.hidden = false;
+      } else {
+        contextEl.hidden = true;
+      }
+    }
+
+    const urlWrap = node.querySelector<HTMLElement>('[data-field="url-wrap"]');
+    const urlLink = node.querySelector<HTMLAnchorElement>('[data-field="url-link"]');
+    if (entry.url && urlWrap && urlLink) {
+      urlLink.href = entry.url;
+      urlLink.textContent = hostnameOf(entry.url);
+      urlWrap.hidden = false;
+    } else if (urlWrap) {
+      urlWrap.hidden = true;
+    }
+
+    entryList.appendChild(node);
+    if (emptyState) emptyState.hidden = true;
+  }
+
+  // ページ表示時に、このノートへ訪問者が書き残した公開済みエントリを
+  // 取得して、静的な「ふ、と」自身の記録の後ろに追記する(時系列を
+  // 厳密に統合するのではなく、静的分→動的分の順で表示する簡略化。
+  // Decision Log 0141に記載)。
+  if (notebookSlug) {
+    fetch(apiUrl)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { entries?: VisitorEntry[] } | null) => {
+        if (!data?.entries) return;
+        data.entries.forEach(appendEntry);
+        if (entryList && entryList.children.length === 0 && emptyState) {
+          emptyState.hidden = false;
+        }
+      })
+      .catch(() => {
+        // 取得に失敗しても、静的な記録の表示自体は維持する。
+      });
+  }
+
   const form = document.querySelector<HTMLFormElement>("[data-entry-form]");
   const status = document.querySelector<HTMLElement>("[data-entry-status]");
+  const bodyField = document.querySelector<HTMLTextAreaElement>("#entry-body");
+  const contextField = document.querySelector<HTMLInputElement>("#entry-context");
+  const urlField = document.querySelector<HTMLInputElement>("#entry-url");
+  const gotchaField = document.querySelector<HTMLInputElement>('input[name="_gotcha"]');
 
-  if (form && status) {
+  if (form && status && bodyField) {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
@@ -241,21 +317,30 @@ function hostnameOf(url: string): string {
       submitButton?.setAttribute("disabled", "true");
       status.textContent = "送信中...";
 
+      const payload = {
+        body: bodyField.value,
+        context: contextField?.value || undefined,
+        url: urlField?.value || undefined,
+        _gotcha: gotchaField?.value || "",
+      };
+
       try {
-        const response = await fetch(form.action, {
+        const response = await fetch(apiUrl, {
           method: "POST",
-          body: new FormData(form),
-          headers: { Accept: "application/json" },
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         });
 
         if (response.ok) {
-          status.textContent = "書き残していただきました。確認のうえ、このノートに書き足すことがあります。";
+          const data: { entry?: VisitorEntry } = await response.json();
+          if (data.entry) appendEntry(data.entry);
+          status.textContent = "書き残しました。";
           form.reset();
         } else {
-          status.textContent = "送信に失敗しました。時間をおいて、もう一度お試しください。";
+          status.textContent = "書き残せませんでした。もう一度お試しください。";
         }
       } catch {
-        status.textContent = "送信に失敗しました。通信環境をご確認のうえ、もう一度お試しください。";
+        status.textContent = "書き残せませんでした。もう一度お試しください。";
       } finally {
         submitButton?.removeAttribute("disabled");
       }
