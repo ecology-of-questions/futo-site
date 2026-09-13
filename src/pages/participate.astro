@@ -1,114 +1,41 @@
 ---
 /**
- * participate.astro (持ち寄る)
+ * participate.astro (実験室)
  * ------------------------------------------------------------
- * 役割: 「ふ、と」に持ち寄るための入口をまとめたページ。
- * プロジェクトオーナーからの指示(添付イメージ・各セクションの構成案)
- * に基づき新規実装した(Decision Log 0113)。日本語表記は当初「関わる」
- * だったが、2026-09-11にサイト全体で「持ち寄る」に変更した(Decision
- * Log 0125、URLは/participateのまま)。
+ * 役割: 「ふ、と」の実験的な取り組みを紹介し、それをきっかけに
+ * 誰かが「ふと思い出したこと」を寄せられる場所。URLは引き続き
+ * `/participate`(2026-09-13、プロジェクトオーナーの指示により
+ * 「持ち寄る」から「実験室」へ改称。過去の履歴・被リンクを保つため
+ * URLは変更していない)。
  *
- * 【2026-09-11、本文コピーを確定版に差し替え(Decision Log 0114)】
- * 実装確認後にセッションのコンテキスト要約を挟んだ影響で、いったん
- * 本文を推測で再構成していたが、プロジェクトオーナーから確定済みの
- * 全文言の提示を受け、このコミットで一字一句差し替えた。
+ * 【これまでの経緯】このページは当初「持ち寄る」として実装され
+ * (Decision Log 0113〜0133)、「何かを持ち寄る」フォーム+「持ち寄られた
+ * もの」一覧という構成だった。今回の改訂(Decision Log 0139)では、
+ * 添付のUIモックアップ(LAB/実験室、「いま、考えていること」3件、
+ * 「持ち寄られたもの」空状態)を参考に、ページの入口を「持ち寄る」
+ * という一般的な呼びかけから、「『ふ、と』がいま実験していること」を
+ * 具体的に3つ示し、それぞれに反応して「ふと思い出したこと」を
+ * 送れる、という構成に変えた。
  *
- * 【2026-09-11、「本を贈る」中心から「研究の本棚」中心へ再編
- * (Decision Log 0116)】プロジェクトオーナーの指示により、「本を贈る」
- * 3冊固定の構造を、「ふ、とが今何を読み、何をこれから読み、どこへ
- * 関心を向けているのか」が見える「研究の本棚」に変更した。
+ * 【構成】
+ *   1. Hero(LAB / 実験室 / 本文)
+ *   2. いま、考えていること(3件、細い罫線区切りの一覧。各項目に
+ *      「ふと思い出したことを寄せる →」CTA)
+ *   3. ふと思い出したことを寄せる(フォーム。既存のFormspree
+ *      エンドポイント・honeypot・公開可否チェックボックス・fetchに
+ *      よる進行拡張をそのまま再利用。新しいバックエンドは追加して
+ *      いない)。どの項目から来たかを、URLクエリ(`?theme=`)+隠し
+ *      フィールドで記録する(ユーザーには「「◯◯」について送ります」
+ *      という確認テキストとしても表示する)。
+ *   4. 持ち寄られたもの(既存の`src/data/contributions.ts`・
+ *      `visible`フラグによる手動公開の仕組みをそのまま使う。公開
+ *      データが0件の現在は、指定された空状態のみを表示し、ダミー
+ *      投稿は置かない)。
  *
- * 【2026-09-11、本棚UIを/bookshelfに一本化(Decision Log 0117)】
- * フィルター・話したい・贈る機能付きの本棚UIが`/participate`と
- * `/bookshelf`の2箇所に分裂したため、`/bookshelf`を「研究の本棚」の
- * 正式な本体ページと位置づけ、フル機能はそちらに集約した。本データは
- * `src/data/bookshelf.ts`に一元化した(Home・`/bookshelf`と共有、
- * このページ専用のデータは持たない)。
- *
- * 【トップページ再設計に伴う改訂(2026-09-11、Decision Log 0125)】
- * PARTICIPATEの日本語表記を「関わる」から「持ち寄る」に変更した
- * (URLは/participateのまま)。
- *
- * 【ページ全体を再構成(2026-09-11、Decision Log 0128)】プロジェクト
- * オーナーから、「参加方法をたくさん並べるページ」ではなく「さまざま
- * な人が持っているものを『ふ、と』に持ち寄り、公開できるものは他の
- * 人とも共有されていく場所」への再構成指示を受けた。
- *
- * 旧構成(Hero → 気になるものを寄せる → 本から参加する → 一緒に試す →
- * 話す → 場所・知識・技術を貸す → まとめ)を、以下に整理した。
- *
- *   1. Hero(スタンス表明+「持ち寄る」の考え方の短い説明)
- *   2. 何かを持ち寄る(旧「気になるものを寄せる」フォームを拡張。
- *      旧「場所・知識・技術を貸す」3カードの内容も、別カテゴリに
- *      分けず、この1つの入口に統合した。公開可否チェックボックスを
- *      追加)
- *   3. 持ち寄られたもの(新設。公開承認済みの投稿を
- *      `src/data/contributions.ts`から表示する。Formspreeからの自動
- *      取得・自動公開はしない、運営が手動でdataに追加するMVP)
- *   4. 本をプレゼントする(旧「本から参加する」を改称。featured本の
- *      表示・`/bookshelf`への導線は変更なし)
- *   5. まとめ(旧「一緒に試す」「話す」の独立カードは廃止し、
- *      「持ち寄られたものから話したり試したりすることがある」という
- *      1文に圧縮してこのセクションに統合した)
- *
- * 「紹介」(本や人を知らせる)と「提供」(場所や知識を貸す)を別々の
- * カテゴリに分けない、というのが今回の核心的な変更。データ構造・
- * Formspreeエンドポイント・honeypot等のスパム対策は既存のものを
- * そのまま再利用しており、新しいバックエンドやアカウント機能は
- * 追加していない。詳細はDecision Log 0128参照。
- *
- * 【「本をプレゼントする」をAmazonほしい物リストに一本化
- * (2026-09-11、Decision Log 0130)】CTAを「研究の本棚を見る→」
- * (`/bookshelf`)から「本をプレゼントする→」(共通のAmazonほしい物
- * リスト、`amazonWishlistUrl`、外部リンク)に変更した。featured本の
- * プレビュー表示(`BookshelfList`)自体は変更していない。
- *
- * 【Hero・まとめの仮画像プレースホルダーを削除(2026-09-11)】
- * 実在の写真素材がまだないため色面のみを置いていた`.heroPanel`・
- * `.closingPanel`(いずれも`aria-hidden="true"`、装飾以外の情報を
- * 持たない仮のプレースホルダー)を、プロジェクトオーナーの指示により
- * 削除した。中身のない色面を残すより、テキストを1カラムで見せる方が
- * 静かで誠実だと判断した。これに伴い、2カラム分割用だった`.hero`/
- * `.heroText`/`.closing`/`.closingText`のラッパーも撤去し、他の
- * セクションと同じ「見出し+本文を`ResearchSection`直下に並べる」
- * 構造に揃えた。将来実際の写真素材が用意された場合は、改めて画像を
- * 追加する形で対応する。
- *
- * 【「本をプレゼントする」を本棚プレビューからプレゼント本のみの紹介に
- * 変更(2026-09-11、Decision Log 0132)】このセクションは「研究の本棚
- * 全体のプレビュー」ではなく「現在プレゼントを受け付けている本の紹介」
- * であるべき、という指示を受けた。表示対象を`featured`(読書中3冊を
- * 含む6冊)から`status === "wishlist" && giftEnabled && giftFeatured`
- * (最大3冊)に変更し、小見出し「今、特に読みたい本」を追加した。本が
- * 増えても`/participate`が本一覧ページ化しないよう、表示側でも
- * `.slice(0, 3)`で3冊に制限している。全件は`/bookshelf`または
- * Amazonほしい物リスト(下部の「Amazonのほしい物リストをすべて見る
- * →」)に委ねる。
- *
- * 表示に使っていた`BookshelfList.astro`(表紙が画面の大半を占める
- * 横スクロールUI)は、このセクション用としては「本棚そのものを見せる
- * つもりはない」という今回の方針に合わなくなったため使用をやめ、
- * 小さな書影+タイトル/著者/読みたい理由という、より控えめな一覧を
- * このファイル内に直接実装した(このセクション専用のため、新規
- * コンポーネントには切り出していない)。`BookshelfList.astro`は他に
- * 利用箇所が無くなったため削除した(下記コンポーネント一覧参照)。
- *
- * 【HP公開版に向けた整理(2026-09-11、Decision Log 0133)】プロジェクト
- * オーナーから、HP公開を優先し「公開後に検討する機能」を公開UIから
- * 外す指示を受けた。「本をプレゼントする」セクション(見出し・説明文・
- * 「今、特に読みたい本」3冊・Amazonほしい物リストへのCTA)と、
- * 「ともに、続けていくために」セクション(「話す」「一緒に試す」への
- * 言及・お問い合わせCTA・タグライン)を、それぞれページから丸ごと
- * 削除した。本のプレゼント方法自体を今後改めて設計するための保留で
- * あり、機能の永久廃止ではない。「話す」「一緒に試す」を公開版の
- * 参加メニューとして再導入することもしていない。
- *
- * 残る構成は、Hero(1. 持ち寄るという考え方)→ 何かを持ち寄る(2.
- * フォーム)→ 持ち寄られたもの(3. 公開承認済みの投稿一覧)の3段の
- * みで、この後は通常のFooterに続く。「何かを持ち寄る」フォーム・
- * 「持ち寄られたもの」の仕組み(DB・CMSやFormspreeからの自動掲載は
- * 追加しない、公開可否チェック→運営確認→手動でdata追加という運用)
- * は変更していない。
+ * 「何をふと思い出しましたか？」「どんなときに思い出しましたか？」
+ * という、答えやすい2つの質問のみをフォームの中心に置き、「なぜ
+ * 関係があると思ったか」のような理由の説明を求める質問は入れて
+ * いない(プロジェクトオーナーの明示的な指示)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -120,76 +47,132 @@ import { contributions } from "@/data/contributions";
 import { contributionTypeLabels } from "@/types/contributions";
 import { contactFormEndpoint } from "@/config/site";
 
-/** 公開承認済み(visible: true)の投稿のみ表示する(Decision Log 0128)。 */
+/** 公開承認済み(visible: true)の投稿のみ表示する(Decision Log 0128から変更なし)。 */
 const visibleContributions = contributions.filter((c) => c.visible);
+
+/**
+ * 「いま、考えていること」3件。各項目のCTAは、共通のフォーム
+ * (#lab-contribute)へ、どの項目から来たかを示す`theme`クエリ
+ * パラメータ付きでリンクする。themeLabelsは、そのクエリ値を
+ * 人が読める日本語ラベルに変換するための対応表で、クライアント
+ * 側スクリプト(このファイル末尾の<script>)にもdata属性経由で
+ * 渡している(2026-09-13、Decision Log 0139)。
+ */
+const themeLabels: Record<string, string> = {
+  sound: "音の道",
+  fieldnote: "Fieldnote",
+  reviews: "研究断面をひらく",
+};
+
+interface LabIdea {
+  slug: keyof typeof themeLabels;
+  category: string;
+  description: string;
+}
+
+const ideas: LabIdea[] = [
+  {
+    slug: "sound",
+    category: "実験",
+    description:
+      "音を手がかりに、誰かが何に気づき、どこで立ち止まったのか。その人の経験の道筋を、別の人が辿ることはできるだろうか。",
+  },
+  {
+    slug: "fieldnote",
+    category: "アプリ",
+    description:
+      "日常のなかで生まれた小さな気づきを、ただ保存するのではなく、そのあと考えたり、別の何かと出会ったりするところまで支える道具をつくれないか。",
+  },
+  {
+    slug: "reviews",
+    category: "企画",
+    description:
+      "書いてきた「研究断面」を、画面の中だけではなく、実際の場所にひらいてみたい。展示したり、誰かと話したり、その場でまた別のものが生まれたりするような形を考えています。",
+  },
+];
 ---
 
 <DefaultLayout
-  title="持ち寄る ｜ ふ、と"
-  description="「ふ、と」に持ち寄る、いくつかの方法。何かを持ち寄ってください。"
+  title="実験室 ｜ ふ、と"
+  description="「ふ、と」がいま実験していること。読んだり、見たり、経験したりして、ふと思い出したことを教えてください。"
   theme="night"
 >
   <NightBackground />
 
-  <ResearchSection ariaLabel="Participate" id="participate-hero">
-    <p class={styles.eyebrow}>PARTICIPATE</p>
-    <h1 class={styles.heading}>持ち寄る</h1>
+  <ResearchSection ariaLabel="Lab" id="lab-hero">
+    <p class={styles.eyebrow}>LAB</p>
+    <h1 class={styles.heading}>実験室</h1>
     <div class={styles.body}>
-      <p>「ふ、と」では、自分とは異なる他者や、これまで知らなかった世界との出会いを大切にしたいと考えています。</p>
+      <p>まだどうつながるかわからないものを持ち寄ったり、誰かと一緒に試したりする場所です。</p>
       <p>
-        本や記事、人、場所、知識、経験。
+        読んだあとでも、ずっとあとでも。
         <br />
-        何が新しい「ふと」のきっかけになるかは、まだわかりません。
+        何かを見たり、聞いたり、経験したときに、
         <br />
-        ここでは、そんなものを持ち寄ることができます。
+        ふと思い出したことがあれば教えてください。
       </p>
     </div>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="何かを持ち寄る" id="contribute">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>何かを持ち寄る</h2>
-    <p class={styles.sectionBody}>
-      本や記事、人、場所、知識、経験など、「ふ、と」に届けたいものがあれば教えてください。
-      <br />
-      「これを知ってほしい」「これが使えるよ」でも構いません。
-    </p>
+  <ResearchSection ariaLabel="いま、考えていること" id="lab-ideas">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、考えていること</h2>
+    <div class={styles.ideaList}>
+      {
+        ideas.map((idea) => (
+          <div class={styles.idea}>
+            <p class={styles.ideaCategory}>{idea.category}</p>
+            <h3 class={styles.ideaTitle}>{themeLabels[idea.slug]}</h3>
+            <p class={styles.ideaDescription}>{idea.description}</p>
+            <div class={styles.ideaLink}>
+              <ArrowLink href={`/participate?theme=${idea.slug}#lab-contribute`} label="ふと思い出したことを寄せる" />
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </ResearchSection>
 
-    <form class={styles.form} method="POST" action={contactFormEndpoint} data-contribution-form>
+  <ResearchSection ariaLabel="ふと思い出したことを寄せる" id="lab-contribute">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ふと思い出したことを寄せる</h2>
+    <p class={styles.themeNote} data-lab-theme-note data-theme-labels={JSON.stringify(themeLabels)} hidden />
+
+    <form class={styles.form} method="POST" action={contactFormEndpoint} data-lab-form>
       <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <input type="hidden" name="_subject" value="ふ、と｜何かを持ち寄る" />
-      <input type="hidden" name="public_ok" value="no" data-contribution-public-ok-value />
+      <input type="hidden" name="_subject" value="ふ、と｜実験室 ふと思い出したこと" />
+      <input type="hidden" name="theme" value="実験室" data-lab-theme-field />
+      <input type="hidden" name="public_ok" value="no" data-lab-public-ok-value />
 
       <div class={styles.field}>
-        <label class={styles.label} for="contribution-target"
-          >持ち寄りたいものの名前 / URL <span class={styles.required}>必須</span></label
+        <label class={styles.label} for="lab-message"
+          >何をふと思い出しましたか？ <span class={styles.required}>必須</span></label
         >
-        <input class={styles.input} type="text" id="contribution-target" name="target" required />
+        <p class={styles.helper}>出来事、本、場所、誰かの言葉、経験、感覚など、自由に書いてください。</p>
+        <textarea class={styles.textarea} id="lab-message" name="message" rows="5" required />
       </div>
 
       <div class={styles.field}>
-        <label class={styles.label} for="contribution-note"
-          >どんなものか、なぜ「ふ、と」に届けたいと思ったか <span class={styles.optional}>任意</span></label
+        <label class={styles.label} for="lab-context"
+          >どんなときに思い出しましたか？ <span class={styles.optional}>任意</span></label
         >
-        <textarea class={styles.textarea} id="contribution-note" name="note" rows="4"></textarea>
+        <p class={styles.helper}>
+          本を読んでいたとき、誰かと話していたとき、イベントに参加したとき、散歩していたときなど。
+        </p>
+        <input class={styles.input} type="text" id="lab-context" name="context" />
       </div>
 
       <div class={styles.field}>
-        <label class={styles.label} for="contribution-name">お名前 <span class={styles.optional}>任意</span></label>
-        <input class={styles.input} type="text" id="contribution-name" name="name" autocomplete="name" />
+        <label class={styles.label} for="lab-name">お名前 <span class={styles.optional}>任意</span></label>
+        <input class={styles.input} type="text" id="lab-name" name="name" autocomplete="name" />
       </div>
 
       <div class={styles.field}>
-        <label class={styles.label} for="contribution-email"
-          >メールアドレス <span class={styles.optional}>任意</span></label
-        >
-        <input class={styles.input} type="email" id="contribution-email" name="email" autocomplete="email" />
+        <label class={styles.label} for="lab-email">メールアドレス <span class={styles.optional}>任意</span></label>
+        <input class={styles.input} type="email" id="lab-email" name="email" autocomplete="email" />
       </div>
 
       <div class={styles.checkboxField}>
-        <input class={styles.checkbox} type="checkbox" id="contribution-public-ok" data-contribution-public-ok-checkbox />
-        <label class={styles.checkboxLabel} for="contribution-public-ok"
-          >この内容を、サイト上でみんなにも共有してよい</label
-        >
+        <input class={styles.checkbox} type="checkbox" id="lab-public-ok" data-lab-public-ok-checkbox />
+        <label class={styles.checkboxLabel} for="lab-public-ok">この内容を、サイト上でみんなにも共有してよい</label>
       </div>
       <p class={styles.privacyNote}>
         チェックの有無にかかわらず、お名前やメールアドレスをサイト上で公開することはありません。内容を確認のうえ、運営がサイトに掲載します。
@@ -198,48 +181,71 @@ const visibleContributions = contributions.filter((c) => c.visible);
         送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
       </p>
 
-      <button class={styles.submit} type="submit">持ち寄る <span aria-hidden="true">→</span></button>
-      <p class={styles.status} data-contribution-status role="status" aria-live="polite"></p>
+      <button class={styles.submit} type="submit">ふと思い出したことを寄せる <span aria-hidden="true">→</span></button>
+      <p class={styles.status} data-lab-status role="status" aria-live="polite" />
     </form>
   </ResearchSection>
 
   <ResearchSection ariaLabel="持ち寄られたもの" id="contributions">
     <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>持ち寄られたもの</h2>
-    <p class={styles.sectionBody}>
-      ここに持ち寄られたもののうち、
-      <br />
-      公開してよいものを紹介しています。
-    </p>
     {
       visibleContributions.length > 0 ? (
-        <div class={styles.contributionList}>
-          {visibleContributions.map((item) => (
-            <div class={styles.contributionItem}>
-              <p class={styles.contributionLabel}>{contributionTypeLabels[item.type]}</p>
-              <h3 class={styles.contributionTitle}>{item.title}</h3>
-              {item.note && <p class={styles.contributionBody}>{item.note}</p>}
-              {item.url && (
-                <div class={styles.contributionLink}>
-                  <ArrowLink href={item.url} label="見る" external />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+        <>
+          <p class={styles.sectionBody}>
+            ここに持ち寄られたもののうち、
+            <br />
+            公開してよいものを紹介しています。
+          </p>
+          <div class={styles.contributionList}>
+            {visibleContributions.map((item) => (
+              <div class={styles.contributionItem}>
+                <p class={styles.contributionLabel}>{contributionTypeLabels[item.type]}</p>
+                <h3 class={styles.contributionTitle}>{item.title}</h3>
+                {item.note && <p class={styles.contributionBody}>{item.note}</p>}
+                {item.url && (
+                  <div class={styles.contributionLink}>
+                    <ArrowLink href={item.url} label="見る" external />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
-        <p class={styles.contributionEmpty}>
-          まだ紹介できるものがありません。届いたものから、少しずつここに加えていきます。
-        </p>
+        <div class={styles.contributionEmptyState}>
+          <p class={styles.contributionEmpty}>いま考えていることを読んで、ふと思い出したことがあれば寄せてください。</p>
+          <p class={styles.contributionEmptyCategories}>本 / 記事 / 場所 / 経験 / 誰かの言葉</p>
+          <div class={styles.contributionEmptyLink}>
+            <ArrowLink href="/participate#lab-contribute" label="ふと思い出したことを寄せる" />
+          </div>
+        </div>
       )
     }
   </ResearchSection>
 </DefaultLayout>
 
 <script>
-  const form = document.querySelector<HTMLFormElement>("[data-contribution-form]");
-  const status = document.querySelector<HTMLElement>("[data-contribution-status]");
-  const publicOkCheckbox = document.querySelector<HTMLInputElement>("[data-contribution-public-ok-checkbox]");
-  const publicOkValue = document.querySelector<HTMLInputElement>("[data-contribution-public-ok-value]");
+  const form = document.querySelector<HTMLFormElement>("[data-lab-form]");
+  const status = document.querySelector<HTMLElement>("[data-lab-status]");
+  const publicOkCheckbox = document.querySelector<HTMLInputElement>("[data-lab-public-ok-checkbox]");
+  const publicOkValue = document.querySelector<HTMLInputElement>("[data-lab-public-ok-value]");
+  const themeField = document.querySelector<HTMLInputElement>("[data-lab-theme-field]");
+  const themeNote = document.querySelector<HTMLElement>("[data-lab-theme-note]");
+
+  // URLの?theme=に応じて、隠しフィールドの値と、フォーム上部の確認
+  // テキストを設定する(2026-09-13、Decision Log 0139)。値が無い/
+  // 対応表に無い場合は、隠しフィールドは既定値("実験室")のまま、
+  // 確認テキストは表示しない。
+  const themeSlug = new URLSearchParams(location.search).get("theme");
+  if (themeSlug && themeNote) {
+    const themeLabels = JSON.parse(themeNote.dataset.themeLabels ?? "{}") as Record<string, string>;
+    const themeLabel = themeLabels[themeSlug];
+    if (themeLabel) {
+      if (themeField) themeField.value = themeLabel;
+      themeNote.textContent = `「${themeLabel}」について送ります。`;
+      themeNote.hidden = false;
+    }
+  }
 
   if (form && status) {
     form.addEventListener("submit", async (event) => {
