@@ -1,39 +1,39 @@
 /**
- * functions/api/notebooks/[slug]/entries.ts
+ * worker/index.ts
  * ------------------------------------------------------------
- * 「実験室」ノート(交換ノート)への書き込みを永続化するCloudflare
- * Pages Function(2026-09-13、Decision Log 0141。IPハッシュのHMAC化・
- * Preview/Production D1分離は2026-09-13、Decision Log 0142でレビュー
- * 反映)。
+ * 「実験室」ノート(交換ノート)のAPIを処理するCloudflare Workerの
+ * エントリポイント(2026-09-13、Decision Log 0141・0142ではCloudflare
+ * Pages Functions前提だったが、実際の本番環境はPagesではなく
+ * Custom Domain `futoing.com` を持つCloudflare Worker
+ * `futo-site`(Workers Builds連携)だったため、Decision Log 0143で
+ * Worker + Workers Static Assets + D1構成へ変更した)。
  *
- * このファイルはAstroのビルド対象外(Cloudflare Pagesがdist/と並行して
- * 自動検出・デプロイする)。Astro本体は`output: "static"`のまま維持し、
- * Cloudflare固有機能への依存はこのAPI部分だけに限定している
- * (tsconfig.jsonの`include`はsrc配下のみのため、`npx astro check`は
- * このファイルを型チェックしない。`@cloudflare/workers-types`を新規
- * 依存として追加せず、必要最小限の型をこのファイル内で手書きしている)。
+ * ルーティング:
+ * - `/api/notebooks/:slug/entries` (GET/POST) … このWorkerが処理する。
+ * - それ以外 … `env.ASSETS`(Workers Static Assets、Astroの`dist/`)へ
+ *   フォールバックする。`wrangler.toml`の`assets.run_worker_first`を
+ *   `["/api/*"]`に限定しているため、実際には`/api/*`以外のリクエストは
+ *   Cloudflare側のルーティングの時点でこのWorkerを経由せず直接assetsへ
+ *   配信される(このWorkerの`fetch`は基本的に`/api/*`のみを受け取る)。
+ *   下記のASSETSフォールバックは、それでも到達した場合の保険。
  *
- * - GET  /api/notebooks/:slug/entries  … 公開済み(visible)の書き込みを
- *   時系列順で返す。
- * - POST /api/notebooks/:slug/entries … 新しい書き込みを保存する。
- *   名前・メールアドレス・アカウントは保存しない。非公開化(hidden)は
- *   管理API・管理画面を用意せず、`wrangler d1 execute --remote`または
- *   Cloudflareダッシュボード経由の手動SQLで行う運用にしている
- *   (Decision Log 0141参照)。
+ * サイト全体をSSR化するものではない。Astro本体は`output: "static"`の
+ * ままで、このWorkerは`/api/*`だけを処理する薄いレイヤーとして追加した
+ * (Decision Log 0143参照)。
+ *
+ * @cloudflare/workers-typesを新規依存として追加せず、必要最小限の型を
+ * このファイル内で手書きしている(tsconfig.jsonの`include`はsrc配下の
+ * みのため、`npx astro check`はこのファイルを型チェックしない)。
  *
  * 【IPハッシュについて】生IPは保存しない。連投判定用に、Cloudflare
- * Pages Secret(`IP_HASH_SECRET`、クライアントには一切露出しない)を
- * 鍵にしたHMAC-SHA256でハッシュ化してから保存する(単純なSHA-256
- * ハッシュはIPv4アドレス空間が小さく総当たりで復元されうるため、
- * secretを鍵に使うHMACへ変更した。Decision Log 0142参照)。
- * `IP_HASH_SECRET`が設定されていない場合は、弱いハッシュにフォール
- * バックせず500を返す(fail closed)。
+ * Workerのsecret(`IP_HASH_SECRET`、クライアントには一切露出しない)を
+ * 鍵にしたHMAC-SHA256でハッシュ化してから保存する。`IP_HASH_SECRET`が
+ * 設定されていない場合は、弱いハッシュにフォールバックせず500を返す
+ * (fail closed)。
  * ------------------------------------------------------------
  */
 
-// --- Cloudflare Pages Functions / D1 の最小限の型宣言 -----------------
-// @cloudflare/workers-typesを追加依存にせず、このファイルで使う分だけ
-// 手書きしている(プロジェクト全体の依存最小化の方針に合わせた)。
+// --- Cloudflare Workers / D1 の最小限の型宣言 -------------------------
 interface D1Result<T = unknown> {
   results: T[];
   success: boolean;
@@ -50,17 +50,17 @@ interface D1Database {
   prepare(query: string): D1PreparedStatement;
 }
 
-interface Env {
-  DB: D1Database;
-  /** 連投判定用IPハッシュのHMAC鍵。Cloudflare PagesのSecretとして
-   * Production/Previewそれぞれに設定する(クライアントへは露出しない)。 */
-  IP_HASH_SECRET: string;
+/** Workers Static Assetsのbinding(`env.ASSETS`)の最小限の型。 */
+interface Fetcher {
+  fetch(request: Request): Promise<Response>;
 }
 
-interface PagesFunctionContext<P extends Record<string, string> = Record<string, string>> {
-  request: Request;
-  env: Env;
-  params: P;
+interface Env {
+  DB: D1Database;
+  ASSETS: Fetcher;
+  /** 連投判定用IPハッシュのHMAC鍵。Cloudflare Workerのsecretとして
+   * Production/Previewそれぞれに設定する(クライアントへは露出しない)。 */
+  IP_HASH_SECRET: string;
 }
 
 // --- 定数 ------------------------------------------------------------
@@ -128,8 +128,7 @@ function isValidUrl(value: string): boolean {
 /**
  * IPアドレスをそのまま保存せず、secretを鍵にしたHMAC-SHA256でハッシュ化
  * してから保存する。鍵の無い単純なSHA-256/MD5等は、IPv4アドレス空間が
- * 約43億通りしかなく総当たりで元のIPへ復元されうるため使わない
- * (2026-09-13、Decision Log 0142)。
+ * 約43億通りしかなく総当たりで元のIPへ復元されうるため使わない。
  */
 async function hashIp(ip: string, secret: string): Promise<string> {
   const key = await crypto.subtle.importKey(
@@ -145,30 +144,28 @@ async function hashIp(ip: string, secret: string): Promise<string> {
     .join("");
 }
 
-export const onRequestGet = async (context: PagesFunctionContext<{ slug: string }>): Promise<Response> => {
-  const { slug } = context.params;
+async function handleGetEntries(slug: string, env: Env): Promise<Response> {
   if (!VALID_SLUGS.has(slug)) {
     return json({ error: "notebook not found" }, 404);
   }
 
-  const { results } = await context.env.DB.prepare(
+  const { results } = await env.DB.prepare(
     "SELECT id, body, context, url, created_at FROM entries WHERE notebook_slug = ?1 AND status = 'visible' ORDER BY created_at ASC",
   )
     .bind(slug)
     .all<EntryRow>();
 
   return json({ entries: results.map(toPublicEntry) });
-};
+}
 
-export const onRequestPost = async (context: PagesFunctionContext<{ slug: string }>): Promise<Response> => {
-  const { slug } = context.params;
+async function handlePostEntries(slug: string, request: Request, env: Env): Promise<Response> {
   if (!VALID_SLUGS.has(slug)) {
     return json({ error: "notebook not found" }, 404);
   }
 
   let payload: Record<string, unknown>;
   try {
-    payload = await context.request.json();
+    payload = await request.json();
   } catch {
     return json({ error: "invalid request body" }, 400);
   }
@@ -217,18 +214,18 @@ export const onRequestPost = async (context: PagesFunctionContext<{ slug: string
     rawUrl = trimmed;
   }
 
-  const ipHashSecret = context.env.IP_HASH_SECRET;
+  const ipHashSecret = env.IP_HASH_SECRET;
   if (!ipHashSecret) {
     // secret未設定のまま弱いハッシュへフォールバックしない(fail
-    // closed)。Cloudflare Pages側でIP_HASH_SECRETが未設定
+    // closed)。Cloudflare Worker側でIP_HASH_SECRETが未設定
     // (Production/Preview双方に必要)。
     return json({ error: "server misconfigured" }, 500);
   }
 
-  const ip = context.request.headers.get("CF-Connecting-IP") ?? "unknown";
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
   const ipHash = await hashIp(ip, ipHashSecret);
 
-  const recentPost = await context.env.DB.prepare(
+  const recentPost = await env.DB.prepare(
     `SELECT id FROM entries WHERE ip_hash = ?1 AND created_at > datetime('now', ?2) LIMIT 1`,
   )
     .bind(ipHash, `-${RATE_LIMIT_WINDOW_SECONDS} seconds`)
@@ -237,7 +234,7 @@ export const onRequestPost = async (context: PagesFunctionContext<{ slug: string
     return json({ error: "please wait a moment before posting again" }, 429);
   }
 
-  const dailyCount = await context.env.DB.prepare(
+  const dailyCount = await env.DB.prepare(
     `SELECT COUNT(*) as count FROM entries WHERE ip_hash = ?1 AND created_at > datetime('now', '-1 day')`,
   )
     .bind(ipHash)
@@ -249,7 +246,7 @@ export const onRequestPost = async (context: PagesFunctionContext<{ slug: string
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
 
-  await context.env.DB.prepare(
+  await env.DB.prepare(
     "INSERT INTO entries (id, notebook_slug, body, context, url, created_at, status, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'visible', ?7)",
   )
     .bind(id, slug, rawBody, rawContext, rawUrl, createdAt, ipHash)
@@ -261,4 +258,22 @@ export const onRequestPost = async (context: PagesFunctionContext<{ slug: string
     },
     201,
   );
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    const match = url.pathname.match(/^\/api\/notebooks\/([^/]+)\/entries\/?$/);
+
+    if (match) {
+      const slug = match[1];
+      if (request.method === "GET") return handleGetEntries(slug, env);
+      if (request.method === "POST") return handlePostEntries(slug, request, env);
+      return json({ error: "method not allowed" }, 405);
+    }
+
+    // `/api/*`以外は静的assetsへ(通常はwrangler.tomlのrun_worker_first
+    // により、このWorkerに到達する前にassetsへ直接ルーティングされる)。
+    return env.ASSETS.fetch(request);
+  },
 };

@@ -9,7 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "pages:dev": "astro build && wrangler pages dev dist",
+    "worker:dev": "astro build && wrangler dev",
     "d1:migrate:local": "wrangler d1 execute futo-lab-notebooks --local --file=./migrations/0001_init.sql",
     "d1:migrate:preview": "wrangler d1 execute futo-lab-notebooks-preview --remote --file=./migrations/0001_init.sql",
     "d1:migrate:production": "wrangler d1 execute futo-lab-notebooks-production --remote --file=./migrations/0001_init.sql"
