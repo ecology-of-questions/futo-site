@@ -1,7 +1,20 @@
 # 0143. 実験室ノート永続化をCloudflare Pages FunctionsからWorker + Static Assets + D1へ変更
 
 - 日付: 2026-09-13
-- 状態: 採用
+- 状態: 採用(named environment設計 → Decision Log 0144で修正)
+
+**2026-09-13追記(重要):** この節の「D1環境分離とWorkers Buildsの
+実際のコマンドとの整合」節で設計した`[env.preview]`・
+`[env.production]`は、`name`を明示していなかったため、実際には
+`futo-site-preview`・`futo-site-production`という**別のWorker**を
+対象にしてしまう欠陥があった(Custom Domainの付いた既存Worker
+`futo-site`とは一致しない)。マージ前レビューでプロジェクトオーナーが
+指摘し、Decision Log 0144で`name = "futo-site"`を明示する形に修正した。
+「Production用ビルド設定に`CLOUDFLARE_ENV=production`を追加する」
+という本節の指示も0144で撤回されている(トップレベル=Productionに
+変更したため不要になった)。この節は削除せず、検討過程の記録として残す。
+最新の設定・手順は0144を参照。
+
 - 関連: Decision Log 0141・0142(この決定は0141・0142の実装方式を置き換える。
   データモデル・API仕様・スパム対策・非表示運用など「何を作るか」の
   決定内容自体は0141・0142のまま変わらない。変わるのは「Cloudflareの
