@@ -268,16 +268,6 @@ async function handlePostEntries(slug: string, request: Request, env: Env): Prom
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-
-    // 一時的な診断用エンドポイント(2026-09-14、Decision Log 0145)。
-    // レスポンスヘッダーを直接見られない環境(iPhone Safari等)からも
-    // ブラウザで直接開いて確認できるようにするためだけのもの。
-    // NOTEBOOK_ENVの値だけを返し、D1の内容・ID・secret・IPアドレス等は
-    // 一切含まない。確認が終わり次第、このエンドポイントごと削除する。
-    if (url.pathname === "/api/debug/notebook-env" && request.method === "GET") {
-      return json({ environment: env.NOTEBOOK_ENV ?? "unset" });
-    }
-
     const match = url.pathname.match(/^\/api\/notebooks\/([^/]+)\/entries\/?$/);
 
     if (match) {
