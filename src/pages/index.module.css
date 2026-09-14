@@ -32,6 +32,18 @@
  * Introを追加した。「研究断面をすべて見る→」リンクの余白は、
  * 「持ち寄る」パネルのリンクと共通の用途になったため、.panelLinkを
  * より汎用的な.sectionLinkに改名した。
+ *
+ * 【ファーストビュー再設計に伴うスタイル追加(2026-09-14、Decision Log
+ * 0149)】スクロール不要な範囲(Hero・3つの主要入口・いま動いている
+ * こと)は、他セクションが使う<ResearchSection>(padding-block:
+ * space-6という大きな余白)を経由せず、この3区画専用の.hero/
+ * .entryNav/.nowSection以下で余白を独自に管理している(1画面に収める
+ * ため、既存セクションより詰めた余白にする必要があったため)。
+ * スクロール後の内容は、引き続き<ResearchSection>の余白をそのまま
+ * 使う。「研究の本棚3冊」プレビュー用に.bookshelfHeading以下を追加した
+ * (BookshelfFullList.module.cssの.cover(data-tone毎の仮カバー配色)を
+ * 同じ考え方でこのファイルにも複製している。プロジェクト全体で
+ * ページごとにスタイルを独立させる既存の方針を踏襲)。
  * ------------------------------------------------------------
  */
 
@@ -201,4 +213,255 @@
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+}
+
+/* -----------------------------
+ * ファーストビュー: Hero(2026-09-14新設、Decision Log 0149)。
+ * 見出し1行+説明1文のみのコンパクトな構成。長いResearch Statement
+ * 全文はここには置かず、スクロール後の<ResearchStatement>に委ねる。
+ * ----------------------------- */
+.hero {
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding-inline);
+  padding-top: var(--space-3);
+}
+
+.heroHeading {
+  /* 「気づいたら、そこに問いがある」の文字だけをサブセット化した
+     --font-hero-heading(Klee One、tokens.css参照)を引き続き使う。
+     句点「。」はこのサブセットに含まれないため、tokenのフォント
+     スタック( "Klee One", var(--font-body) )により自動的に
+     --font-bodyへフォールバックする(tokens.cssに明記された、意図
+     された挙動)。 */
+  font-family: var(--font-hero-heading);
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-hero-heading);
+  font-weight: 600;
+  margin: 0;
+}
+
+.heroLead {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+  max-width: 32rem;
+}
+
+/* -----------------------------
+ * ファーストビュー: 3つの主要入口(2026-09-14新設、Decision Log
+ * 0149)。カード風の影・枠線・角丸は使わず、細い罫線とラベル+短い
+ * 説明だけで「編集された目次」のように見せる。Header.astroの
+ * ナビゲーション(研究断面/本棚/実験室)と同じ順序。
+ * ----------------------------- */
+.entryNav {
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding-inline);
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-accent-beige);
+}
+
+.entryItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  border-top: 1px solid var(--color-accent-beige);
+  text-decoration: none;
+  color: inherit;
+}
+
+.entryLabel {
+  flex-shrink: 0;
+  min-width: 5.5em;
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.entryDescription {
+  flex: 1;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryArrow {
+  flex-shrink: 0;
+  display: inline-block;
+  color: var(--color-accent-blue);
+  transition: transform var(--transition-base);
+}
+
+.entryItem:hover .entryArrow,
+.entryItem:focus-visible .entryArrow {
+  transform: translateX(4px);
+}
+
+/* -----------------------------
+ * ファーストビュー: いま動いていること(2026-09-14新設、Decision Log
+ * 0149)。実験室(/participate)の3冊のノートを、ノートごと短い説明
+ * 1行つきでコンパクトに表示する。データはsrc/data/labNotebooks.tsを
+ * /participate・/participate/[slug]と共有し、二重管理しない。
+ * ----------------------------- */
+.nowSection {
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding-inline);
+  margin-top: var(--space-4);
+}
+
+.nowHeading {
+  margin: 0;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.nowList {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nowItem {
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.nowItem:last-child {
+  border-bottom: 1px solid var(--color-accent-beige);
+}
+
+.nowItemLink {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-block: var(--space-2);
+  text-decoration: none;
+  color: inherit;
+}
+
+.nowItemTitle {
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.nowItemDescription {
+  /* 1行に収める(ファーストビューの高さ予算のため)。全文はノート
+     詳細ページ(/participate/[slug])で読める。 */
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+/* -----------------------------
+ * スクロール後: 研究の本棚3冊(2026-09-14、Decision Log 0149で復活。
+ * Decision Log 0125でHomeから一度削除したプレビューを、featured:
+ * trueの本から3冊のみ表示する形で再設置した)。書影は/bookshelf本体
+ * (BookshelfFullList.module.css)と同じ、小さな書影+仮カバー(tone)の
+ * 考え方をこのページ用に複製している。
+ * ----------------------------- */
+.bookshelfHeading {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0;
+}
+
+.bookshelfIntro {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+}
+
+.bookshelfList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bookshelfItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.bookshelfCover {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  width: 3.5rem;
+  aspect-ratio: 3 / 4;
+  padding: var(--space-1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bookshelfCoverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bookshelfCover[data-tone="warm"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
+  );
+}
+
+.bookshelfCover[data-tone="moss"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
+  );
+}
+
+.bookshelfCover[data-tone="sky"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
+  );
+}
+
+.bookshelfCoverTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+
+.bookshelfInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--space-1);
+}
+
+.bookshelfTitle {
+  font-size: var(--fs-base);
+  font-weight: 500;
+}
+
+.bookshelfAuthor {
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
 }
