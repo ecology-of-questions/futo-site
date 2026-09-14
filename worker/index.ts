@@ -81,6 +81,7 @@ const MAX_CONTEXT_LENGTH = 200;
 // 上限にする(Cloudflare Turnstile等の追加認証基盤は、この規模では
 // 過剰と判断し導入していない)。
 const RATE_LIMIT_WINDOW_SECONDS = 60;
+const RATE_LIMIT_DAILY_WINDOW_SECONDS = 24 * 60 * 60;
 const RATE_LIMIT_DAILY_MAX = 20;
 
 interface EntryRow {
@@ -230,19 +231,27 @@ async function handlePostEntries(slug: string, request: Request, env: Env): Prom
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
   const ipHash = await hashIp(ip, ipHashSecret);
 
+  // created_atはnew Date().toISOString()(例: "2026-09-14T05:05:56.746Z")で
+  // 保存しているが、SQLiteのdatetime('now', ...)は"2026-09-14 05:05:56"
+  // のように空白区切りの文字列を返す。この2つを文字列としてそのまま
+  // 比較すると、"T"(0x54)が空白(0x20)より大きいため、日付部分が
+  // 一致する限り常にcreated_at側が大きいと判定されてしまい、実際の
+  // 経過時間に関わらず「直近の投稿」とみなされ続けるバグがあった
+  // (2026-09-14、Decision Log 0148で発見・修正)。unixepoch()で
+  // どちらも秒単位の数値に正規化してから比較する。
   const recentPost = await env.DB.prepare(
-    `SELECT id FROM entries WHERE ip_hash = ?1 AND created_at > datetime('now', ?2) LIMIT 1`,
+    `SELECT id FROM entries WHERE ip_hash = ?1 AND unixepoch(created_at) > unixepoch('now') - ?2 LIMIT 1`,
   )
-    .bind(ipHash, `-${RATE_LIMIT_WINDOW_SECONDS} seconds`)
+    .bind(ipHash, RATE_LIMIT_WINDOW_SECONDS)
     .first();
   if (recentPost) {
     return json({ error: "please wait a moment before posting again" }, 429);
   }
 
   const dailyCount = await env.DB.prepare(
-    `SELECT COUNT(*) as count FROM entries WHERE ip_hash = ?1 AND created_at > datetime('now', '-1 day')`,
+    `SELECT COUNT(*) as count FROM entries WHERE ip_hash = ?1 AND unixepoch(created_at) > unixepoch('now') - ?2`,
   )
-    .bind(ipHash)
+    .bind(ipHash, RATE_LIMIT_DAILY_WINDOW_SECONDS)
     .first<{ count: number }>();
   if ((dailyCount?.count ?? 0) >= RATE_LIMIT_DAILY_MAX) {
     return json({ error: "daily post limit reached" }, 429);
