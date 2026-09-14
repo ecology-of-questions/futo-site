@@ -1,9 +1,22 @@
 # 0145. Preview D1混入の報告を受けた調査と診断用ヘッダーの追加
 
 - 日付: 2026-09-14
-- 状態: 採用
+- 状態: 採用(実行基盤の結論 → Decision Log 0146で更新)
 - 関連: Decision Log 0141〜0144(この決定は0144までの実装に対する
   バグ報告への対応。D1・API仕様等の設計自体は変わらない)
+
+**2026-09-14追記(実機確認結果):** この節で追加した
+`X-Notebook-Env`ヘッダー・`/api/debug/notebook-env`を使い、実際の
+Preview Version URLで実機確認した結果、`GET /api/debug/notebook-env`
+は正しく`{"environment":"preview"}`を返す一方、そのPreview Version
+URLからの投稿は**Production D1に保存され、Preview D1には保存されな
+かった**ことをCloudflare D1 Consoleで確認した。これは「同一Workerの
+Versionごとに`vars`は切り替わるが、D1等のresource bindingは
+Versionごとに安全に分離できない」というCloudflare Workers Versions
+機能側の制約であると判断し、Decision Log 0146でPreview専用の別Worker
+(`futo-site-preview`)へ切り替えた。この節の調査手順・診断コード
+自体は無駄ではなく、この結論に至るための重要な材料だったため、
+削除せず残す。
 
 ## Decision
 
