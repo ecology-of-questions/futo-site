@@ -1,16 +1,23 @@
 ## wrangler.toml
 ## ------------------------------------------------------------
 ## 「実験室」ノートの書き足し(交換ノート)機能専用のCloudflare Worker
-## 設定(2026-09-13、Decision Log 0141・0142ではPages Functions前提
-## だったが、実際の本番環境確認によりDecision Log 0143でWorker +
-## Workers Static Assets + D1構成へ変更。Decision Log 0144で、
-## named environmentの命名仕様を踏まえて構成を再修正した)。
+## 設定。
+##   - Decision Log 0141・0142: 当初Cloudflare Pages Functions前提。
+##   - Decision Log 0143: 実際の本番環境確認によりWorker + Workers
+##     Static Assets + D1構成へ変更。
+##   - Decision Log 0144: named environmentの命名仕様(nameを明示
+##     しないと別Workerになる)を踏まえて構成を再修正。
+##   - Decision Log 0146: 「同一WorkerのVersionごとにD1 bindingだけ
+##     差し替える」方式を実機検証した結果、Preview Version経由の
+##     書き込みがProduction D1へ保存される事象を確認したため、
+##     Preview専用の別Worker(`futo-site-preview`)に分離した。
 ##
 ## 本番の`futoing.com`はCloudflare Worker `futo-site`のCustom Domain
 ## であり、Cloudflare Pagesではない。このWorkerはGitHub連携の
 ## Workers Buildsでデプロイされている(Production: `npx wrangler
-## deploy`、Preview: `npx wrangler versions upload`)。既存のWorker名
-## `futo-site`・Custom Domainはそのまま使う(Pagesへの移行はしない)。
+## deploy`、Preview: `npx wrangler versions upload --env preview`)。
+## 既存のWorker名`futo-site`・Custom Domainはそのまま使う(Pagesへの
+## 移行はしない)。
 ##
 ## Astro本体は`output: "static"`のポータブルな静的サイトのまま維持し、
 ## Cloudflare固有機能への依存は、この交換ノート機能の永続化・API部分
@@ -23,37 +30,52 @@
 ## 【重要: named environmentとWorker名について】
 ## Cloudflareの仕様では、`[env.X]`という named environment は、
 ## `name`を明示的に指定しない限り、実際にデプロイされるWorker名を
-## `<トップレベルのname>-X`(例: `futo-site-preview`)に自動的に
-## 変えてしまう(「legacy environments」と呼ばれる挙動)。これに
-## 気づかず`[env.preview]`・`[env.production]`を追加すると、
-## Custom Domainが付いた既存Worker`futo-site`とは別の、
-## 存在しない・Custom Domainの無いWorkerを対象にしてしまう
-## (`node_modules/wrangler`の`unstable_readConfig({env: "production"})`
-## で実際に検証し確認した。Decision Log 0144参照)。そのため、
-## 各`[env.X]`ブロックには必ず`name = "futo-site"`を明示し、
-## どの環境でも同じWorker`futo-site`を対象にするようにしている。
+## `<トップレベルのname>-X`に自動的に変えてしまう(「legacy
+## environments」と呼ばれる挙動、`unstable_readConfig`で実測確認済み。
+## Decision Log 0144参照)。今回はこれを逆に利用し、Previewを意図的に
+## 別Workerにしている。
 ##
-## 【環境の構成(Decision Log 0144)】
+## 【重要: 同一Worker上のVersionではD1 bindingを安全に分離できない】
+## Decision Log 0144の時点では、同一Worker`futo-site`のまま
+## `[env.preview]`のnameだけ`futo-site`に揃え、D1 bindingだけを
+## Preview用に差し替える方式を採用していた。`wrangler versions
+## upload --env preview`でアップロードしたPreview Versionは、
+## `/api/debug/notebook-env`(vars由来の値)では正しく`"preview"`を
+## 返す一方、実際のD1書き込みはProduction D1に保存されることを
+## Cloudflare D1 Consoleで実機確認した(2026-09-14、Decision Log
+## 0145・0146)。すなわち、Cloudflare WorkersのVersions機能は
+## vars(環境変数)はVersionごとに切り替わるが、D1等のresource
+## bindingはWorker本体に紐づき、Versionごとには安全に分離できない
+## (プラットフォーム側の制約)。そのため、Preview用に完全に別の
+## Worker(`futo-site-preview`)を用意する構成に変更した
+## (Decision Log 0146)。
+##
+## 【環境の構成(Decision Log 0146時点)】
 ## - トップレベル(env未指定) = Production。既存Worker`futo-site`と
 ##   完全に一致させ、D1もPRODUCTION用データベースを直接指定する。
 ##   Workers BuildsのProduction deploy(`npx wrangler deploy`、
 ##   `--env`もCLOUDFLARE_ENVも指定しない)は、この設定をそのまま使う
-##   ため、Production側のCloudflareダッシュボード設定は今回
-##   一切変更不要。
+##   ため、Production側のCloudflareダッシュボード設定は変更不要。
 ## - [env.production] … トップレベルと同一内容(name・D1とも)を
-##   念のため明示的に複製している。仮にProduction側のビルド設定に
-##   `CLOUDFLARE_ENV=production`が設定されていても(または将来
-##   設定されても)、トップレベルと同じWorker・同じD1になるための
-##   保険。
+##   念のため明示的に複製している(保険)。
 ## - [env.preview]    … Cloudflare Workers BuildsのPreviewビルド用。
-##   `name`はトップレベルと同じ`futo-site`(別Workerにしない)。
-##   D1のみPreview専用データベースに差し替える。
+##   `name = "futo-site-preview"`で、Productionとは物理的に別の
+##   Workerになる。Custom Domainは付けず、workers.devのみで運用する。
+##   D1はPreview専用データベースを指定する。
 ##
-## Preview用ビルドが誤ってProduction D1(トップレベル)を使わない
-## ようにするには、Preview側のビルド設定で明示的に
-## `CLOUDFLARE_ENV=preview`(またはデプロイコマンドに`--env preview`
-## を追加)を設定する必要がある。これは省略できない、必ず行う
-## Cloudflareダッシュボード側の作業(Decision Log 0144参照)。
+## `futo-site-preview`はこのwrangler.tomlをコミットしただけでは
+## 自動的には作成されない。`wrangler versions upload`は既存の
+## Workerにしかバージョンを追加できない(存在しないWorkerに対しては
+## `You cannot upload a new version of a Worker that does not yet
+## exist. Please run the \`deploy\` command first.`のエラーになる。
+## `wrangler`本体のソースで確認済み)。そのため、初回のみ
+## `wrangler deploy --env preview`(フルデプロイ)を1回実行して
+## `futo-site-preview`を作成する必要がある。手順はDecision Log 0146
+## 参照。
+##
+## `futo-site-preview`はProductionとは別のWorkerリソースのため、
+## secret(`IP_HASH_SECRET`)もProductionとは共有されない。
+## `futo-site-preview`側にも個別に設定する必要がある。
 ## ------------------------------------------------------------
 name = "futo-site"
 main = "worker/index.ts"
@@ -94,9 +116,9 @@ binding = "DB"
 database_name = "futo-lab-notebooks-production"
 database_id = "1afa0d52-675c-4aac-a417-82ed42a272f9"
 
-# --- [env.preview](同じWorker futo-site、D1のみPreview用に差し替え) --
+# --- [env.preview](Production とは別のWorker。workers.devのみ) ------
 [env.preview]
-name = "futo-site"
+name = "futo-site-preview"
 main = "worker/index.ts"
 compatibility_date = "2024-09-13"
 
