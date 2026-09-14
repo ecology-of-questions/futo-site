@@ -162,6 +162,12 @@ Preview環境で投稿すると、fail closed設計(Decision Log 0141・0142)
 
 ## 診断コードの扱い
 
+**2026-09-14追記:** `futo-site-preview`の初回binding不一致(原因調査と
+実機確認の顛末はDecision Log 0147参照)を解消した後、`GET /api/debug/
+notebook-env`は指示により削除した。`X-Notebook-Env`レスポンス
+ヘッダー(Decision Log 0145)は、secretを含まない軽量な確認手段として
+引き続き残している。
+
 `GET /api/debug/notebook-env`は、Preview分離の実機確認が完了する
 まで残す(プロジェクトオーナーの指示どおり)。今回、`futo-site`と
 `futo-site-preview`が完全に別Workerになったため、以前のような
