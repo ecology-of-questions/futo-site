@@ -61,6 +61,11 @@ interface Env {
   /** 連投判定用IPハッシュのHMAC鍵。Cloudflare Workerのsecretとして
    * Production/Previewそれぞれに設定する(クライアントへは露出しない)。 */
   IP_HASH_SECRET: string;
+  /** どのwrangler環境(env未指定=production/production/preview)で
+   * 解決されたかを示す非secretな診断用var。`X-Notebook-Env`レスポンス
+   * ヘッダとして返し、Cloudflare側で実際にどの環境設定が使われたかを
+   * 外部から確認できるようにする(2026-09-14、Decision Log 0145)。 */
+  NOTEBOOK_ENV?: string;
 }
 
 // --- 定数 ------------------------------------------------------------
@@ -267,9 +272,15 @@ export default {
 
     if (match) {
       const slug = match[1];
-      if (request.method === "GET") return handleGetEntries(slug, env);
-      if (request.method === "POST") return handlePostEntries(slug, request, env);
-      return json({ error: "method not allowed" }, 405);
+      let response: Response;
+      if (request.method === "GET") response = await handleGetEntries(slug, env);
+      else if (request.method === "POST") response = await handlePostEntries(slug, request, env);
+      else response = json({ error: "method not allowed" }, 405);
+
+      // どのwrangler環境が実際に使われたかを外部から確認できるように
+      // する診断用ヘッダ(secretではない)。Decision Log 0145参照。
+      response.headers.set("X-Notebook-Env", env.NOTEBOOK_ENV ?? "unset");
+      return response;
     }
 
     // `/api/*`以外は静的assetsへ(通常はwrangler.tomlのrun_worker_first
