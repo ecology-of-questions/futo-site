@@ -1,6 +1,9 @@
 # build output
 dist/
 
+# Cloudflare Wrangler local state (D1 emulation, caches) — never commit
+.wrangler/
+
 # generated types
 .astro/
 
@@ -13,6 +16,9 @@ npm-debug.log*
 # environment variables
 .env
 .env.production
+
+# Cloudflare Pages Functions local secrets (never commit; see .dev.vars.example)
+.dev.vars
 
 # macOS
 .DS_Store

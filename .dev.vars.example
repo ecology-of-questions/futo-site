@@ -1,0 +1,12 @@
+# .dev.vars.example
+# ------------------------------------------------------------
+# ローカル開発(`npm run pages:dev`)で使うCloudflare Pages Secretの
+# ひな形(2026-09-13、Decision Log 0142)。このファイルをコピーして
+# `.dev.vars`という名前で保存すると、`wrangler pages dev`が自動的に
+# 読み込む。`.dev.vars`自体は.gitignoreでコミット対象外にしている。
+#
+# 本番・PreviewのIP_HASH_SECRETは、Cloudflareダッシュボードの
+# Pagesプロジェクト設定(Settings > Environment variables)から
+# Secretとして設定する。ローカル用の値と本番用の値は別にすること。
+# ------------------------------------------------------------
+IP_HASH_SECRET=local-dev-only-change-me
