@@ -13,19 +13,37 @@
  * - Decision Log 0139: 「実験室」に改称。「いま、考えていること」
  *   3件+共通の「ふと思い出したことを寄せる」フォーム+「持ち寄られた
  *   もの」一覧、という構成に変更。
- * - Decision Log 0140(このコミット): 「いま、つくっていることを
- *   ひらく3冊のノート」という構造に変更。3件を単なる一覧項目ではなく
- *   「ノートの表紙」として見せ、それぞれ`/participate/[slug]`という
- *   専用ページ(共通テンプレート、`src/pages/participate/[slug].astro`)
- *   に遷移する。各ノート内で「ふ、と」自身の記録・訪問者が書き残した
- *   ことが同じ時系列として積み重なる(交換ノートのような構成)ため、
- *   このページの「共通フォーム」「持ち寄られたもの」一覧は不要になり
- *   削除した(旧`src/data/contributions.ts`・
- *   `src/types/contributions.ts`は他に参照箇所が無くなったため削除
- *   した)。書き足すUIは各ノート詳細ページ側に実装している。
+ * - Decision Log 0140: 「いま、つくっていることをひらく3冊のノート」
+ *   という構造に変更。3件を「ノートの表紙」(色面tone+category/title)
+ *   として見せ、それぞれ`/participate/[slug]`という専用ページに
+ *   遷移する構成にした。
  *
- * データは`src/data/labNotebooks.ts`(`/participate`・
- * `/participate/[slug]`が共有、二重管理しない)。
+ * 【v0.1公開仕様に合わせた刷新(2026-09-16、Decision Log 0155)】
+ * 「説明カードが並ぶページではなく、いま実際に試していることに、
+ * ふらっと触れられる場所」という指示に基づき、表紙一覧(色面tone+
+ * category/titleの「表紙」グリッド)を、余白・文字・細い罫線+
+ * ノートごとに異なる抽象的な「痕跡」(インラインSVG、装飾要素)で
+ * 見せるリストに作り替えた。3冊とも同じ見た目の「カード」にせず、
+ * 各ノートの性質(実験/アプリ/企画)に合わせて異なる線の形にしている
+ * (架空の写真・生成画像ではなく、既存のtokens.cssのトーンのみで
+ * 構成した装飾)。
+ *
+ * 本文(冒頭のHero説明)は、旧3段落
+ * (「ここでは、ツールや企画を〜」「まだ形になる前から〜」「読んで、
+ * ふと思い出したことがあれば〜」)から、v0.1仕様書が示した1文
+ * 「考えるために、つくったり、試したりする場所。」に差し替えた
+ * (書き足し方の説明は、各ノート詳細ページの共通説明文
+ * `commonNotebookDescription`に既にあるため、ここでは繰り返さない
+ * 判断)。
+ *
+ * データは引き続き`src/data/labNotebooks.ts`(`/participate`・
+ * `/participate/[slug]`が共有、二重管理しない)。「音の道」を含む
+ * 3冊とも、実在するnotebook(`/participate/[slug]`で実際に読み書き
+ * できる)として同じ扱いで表示する。Miro board等の外部資産は
+ * repository内に存在しないため(2026-09-16確認)、「音の道」専用の
+ * 埋め込み・探究マップ体験は実装していない(Decision Log 0155参照)。
+ * `/participate/[slug]`(ノート詳細)自体・Worker/D1連携は変更して
+ * いない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -33,11 +51,22 @@ import ResearchSection from "@components/ResearchSection.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./participate.module.css";
 import { labNotebooks } from "@/data/labNotebooks";
+
+/** ノートごとの抽象的な「痕跡」(インラインSVG、装飾要素、aria-hidden)。
+    写真・生成画像は使わず、細い線のみで構成する。すべて同じ見た目に
+    ならないよう、ノートの性質(実験/アプリ/企画)に合わせて形を変えて
+    いる。labNotebooks.ts側にデータを増やさず、このページのみで完結
+    させる(装飾情報のため)。 */
+const traces: Record<string, string> = {
+  "oto-no-michi": `<svg viewBox="0 0 120 40" aria-hidden="true"><path d="M4 30 Q 20 6 36 22 T 68 18 T 100 28 T 116 10" /><circle cx="4" cy="30" r="2" /></svg>`,
+  fieldnote: `<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="8" y="6" width="38" height="48" rx="2" /><line x1="16" y1="20" x2="38" y2="20" /><line x1="16" y1="30" x2="38" y2="30" /><line x1="16" y1="40" x2="30" y2="40" /></svg>`,
+  "research-fragments": `<svg viewBox="0 0 60 44" aria-hidden="true"><rect x="4" y="18" width="34" height="22" /><rect x="13" y="10" width="34" height="22" /><rect x="22" y="2" width="34" height="22" /></svg>`,
+};
 ---
 
 <DefaultLayout
   title="実験室 ｜ ふ、と"
-  description="「ふ、と」がいまつくっているものを、3冊のノートとしてひらいています。"
+  description="「ふ、と」がいま実際に試していることに、ふらっと触れられる場所。"
   theme="night"
 >
   <NightBackground />
@@ -45,32 +74,31 @@ import { labNotebooks } from "@/data/labNotebooks";
   <ResearchSection ariaLabel="Lab" id="lab-hero">
     <p class={styles.eyebrow}>LAB</p>
     <h1 class={styles.heading}>実験室</h1>
-    <div class={styles.body}>
-      <p>ここでは、ツールや企画を、考えたり、つくったり、試したりしています。</p>
-      <p>まだ形になる前から、その過程をノートとしてひらいています。</p>
-      <p>読んで、ふと思い出したことがあれば、書き足してもらえたらうれしいです。</p>
-    </div>
+    <p class={styles.lead}>考えるために、つくったり、試したりする場所。</p>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="いま、つくっていること" id="lab-notebooks">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、つくっていること</h2>
-    <div class={styles.notebookGrid}>
+  <ResearchSection ariaLabel="いま、ひらいている実験" id="lab-experiments">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、ひらいている実験</h2>
+    <ul class={styles.experimentList}>
       {
         labNotebooks.map((notebook) => (
-          <a class={styles.notebook} href={`/participate/${notebook.slug}`} aria-label={`「${notebook.title}」のノートをひらく`}>
-            <span class={styles.cover} data-tone={notebook.tone}>
-              <span class={styles.coverCategory}>{notebook.category}</span>
-              <span class={styles.coverTitle}>{notebook.title}</span>
-            </span>
-            <span class={styles.notebookInfo}>
-              <span class={styles.notebookDescription}>{notebook.description}</span>
-              <span class={styles.notebookLink}>
-                ノートをひらく <span class={styles.notebookLinkArrow} aria-hidden="true">→</span>
+          <li class={styles.experimentItem}>
+            <a
+              class={styles.experimentLink}
+              href={`/participate/${notebook.slug}`}
+              aria-label={`「${notebook.title}」の実験を見る`}
+            >
+              <p class={styles.experimentLabel}>{notebook.category}</p>
+              <h3 class={styles.experimentTitle}>{notebook.title}</h3>
+              <p class={styles.experimentDescription}>{notebook.description}</p>
+              <span class={styles.experimentTrace} set:html={traces[notebook.slug]} />
+              <span class={styles.experimentReadMore}>
+                実験を見る <span class={styles.experimentArrow} aria-hidden="true">→</span>
               </span>
-            </span>
-          </a>
+            </a>
+          </li>
         ))
       }
-    </div>
+    </ul>
   </ResearchSection>
 </DefaultLayout>
