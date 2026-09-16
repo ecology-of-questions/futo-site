@@ -184,3 +184,181 @@
     margin-inline: auto;
   }
 }
+
+/* -----------------------------
+ * v0.1公開仕様に合わせた追加(2026-09-16、Decision Log 0152)。
+ * 目次(Desktop sticky sidebar / Mobile折りたたみ)・「この断面の
+ * そばにあるもの」・前後の断面ナビゲーションを追加した。
+ * ----------------------------- */
+
+/* 本文+Desktop目次の2カラムグリッド。Mobile幅は1カラム(目次は
+   .tocMobileが別途、この外側に表示される)。 */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr 14rem;
+    align-items: start;
+    gap: var(--space-6);
+  }
+}
+
+/* Mobile用の折りたたみ目次(標準の<details>、追加JS不要)。既定で
+   閉じておく。 */
+.tocMobile {
+  margin-top: var(--space-3);
+}
+
+@media (min-width: 900px) {
+  .tocMobile {
+    display: none;
+  }
+}
+
+.tocSummary {
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+
+/* Desktop用のsticky目次。「sticky可だが主張を弱くする」指示のため、
+   小さく淡い文字色に留める。 */
+.tocDesktop {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .tocDesktop {
+    display: block;
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-3));
+  }
+}
+
+.tocLabel {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+/* .tocMobile/.tocDesktop共通のリスト見た目。 */
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-heading);
+}
+
+.tocList a {
+  color: var(--color-ink-muted);
+  text-decoration: none;
+}
+
+.tocList a:hover,
+.tocList a:focus-visible {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
+}
+
+/* この断面のそばにあるもの。カードUIにはせず、Topの.entryItem等と
+   同じ「細い罫線区切りの行」で見せる。 */
+.related {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.relatedHeading {
+  margin: 0;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.relatedList {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-2);
+}
+
+.relatedItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-block: var(--space-2);
+  border-top: 1px solid var(--color-accent-beige);
+  text-decoration: none;
+  color: inherit;
+}
+
+.relatedItem:first-child {
+  border-top: none;
+}
+
+.relatedLabel {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.relatedTitle {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: 500;
+}
+
+.relatedLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+}
+
+/* 前後の断面ナビゲーション。大きなボタンにはせず、静かなテキスト
+   リンクのみ。 */
+.reviewNav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.reviewNavSide[data-align="end"] {
+  margin-left: auto;
+}
+
+.reviewNavLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+  text-decoration: none;
+}
+
+.reviewNavLink:hover,
+.reviewNavLink:focus-visible {
+  text-decoration: underline;
+}

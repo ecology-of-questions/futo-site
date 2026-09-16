@@ -50,6 +50,11 @@
  * 【「持ち寄る」→「実験室」に表記変更(2026-09-13、Decision Log
  * 0139)】`/participate`のページ内容を「実験室」に作り替えたことに
  * 伴い、Footerのラベルも揃えた(遷移先・項目数・順序は変更なし)。
+ *
+ * 【サイト名の表記統一(2026-09-16、Decision Log 0152)】Top・About等
+ * v0.1刷新済みのページでは「公開研究室ふ、と」(かぎ括弧なし)に
+ * 統一されている一方、Footerのみ「公開研究室「ふ、と」」(かぎ括弧
+ * あり)のままだったため、表記をサイト全体と揃えた。
  * ------------------------------------------------------------
  */
 import styles from "./Footer.module.css";
@@ -57,7 +62,7 @@ import styles from "./Footer.module.css";
 
 <footer class={styles.footer}>
   <div class={styles.inner}>
-    <p class={styles.siteName}>公開研究室「ふ、と」</p>
+    <p class={styles.siteName}>公開研究室ふ、と</p>
 
     <nav class={styles.nav} aria-label="フッターナビゲーション">
       <a class={styles.link} href="/participate">実験室</a>

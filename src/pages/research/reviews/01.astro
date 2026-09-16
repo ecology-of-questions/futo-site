@@ -56,6 +56,13 @@
  * 古典資料の3群、subheading+listで構成)。既存の本文・図・見出し・
  * URLはこの追記では一切変更していない。
  *
+ * 【v0.1公開仕様に合わせた拡張(2026-09-16、Decision Log 0152)】
+ * ResearchReviewArticleに目次・「この断面のそばにあるもの」・前後
+ * ナビゲーションを追加したことに伴い、`researchReviews.ts`の
+ * `getReviewNavigation("01")`/`getRelatedContent()`で前後記事・関連
+ * コンテンツを解決し、propsとして渡すようにした。本文
+ * (`sections`)・タイトル・サブタイトル自体は変更していない。
+ *
  * 02以降を追加する際は、このファイルと同じ構造で
  * `src/pages/research/reviews/02.astro` 等を追加し、
  * ResearchReviewArticleコンポーネントを再利用する想定。
@@ -84,6 +91,10 @@ import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchReviewArticle from "@components/ResearchReviewArticle.astro";
 import NightBackground from "@components/NightBackground.astro";
 import type { ReviewSection } from "@/types/researchReview";
+import { getReviewNavigation, getRelatedContent } from "@/data/researchReviews";
+
+const { entry, prev, next } = getReviewNavigation("01");
+const { relatedBooks, relatedNotebooks } = getRelatedContent(entry);
 
 const sections: ReviewSection[] = [
   {
@@ -350,5 +361,9 @@ const sections: ReviewSection[] = [
     title="研究断面01"
     subtitle="『ふと』という日本語──身体、知覚、記憶、思考を横断する言葉"
     sections={sections}
+    relatedBooks={relatedBooks}
+    relatedNotebooks={relatedNotebooks}
+    prev={prev}
+    next={next}
   />
 </DefaultLayout>
