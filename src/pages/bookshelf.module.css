@@ -37,43 +37,54 @@
 }
 
 /* -----------------------------
- * 本棚に本を持ち寄る(2026-09-11、Decision Log 0137)
- * participate.module.cssの「何かを持ち寄る」セクション
- * (.sectionHeading/.sectionRule/.sectionBody/.form等)と同じ見た目・
- * 構造をこのページ専用に複製している(既存ページと同様、ページごとに
- * styleを独立させる方針を踏襲)。
+ * 本を持ち寄る(2026-09-16、v0.1公開仕様に合わせて刷新、Decision Log
+ * 0154)。以前は見出し(.sectionHeading)+説明文(.sectionBody)+常時
+ * 展開のフォームだったが、「参加を強く要求しない静かな導線」という
+ * 指示により、1行の呼びかけ(.contributePrompt)+トグルボタン
+ * (.contributeToggle)で開く構成にした。フォーム自体
+ * (.form以下、フィールド構成・Formspreeエンドポイント・honeypot)は
+ * 変更していない。
  * ----------------------------- */
-.sectionRule {
+.contribute {
+  padding-top: var(--space-4);
   border-top: 1px solid var(--color-accent-beige);
-  padding-top: var(--space-5);
 }
 
-.sectionHeading {
-  font-size: var(--fs-xl);
-  line-height: var(--lh-heading);
-  font-weight: 500;
+.contributePrompt {
   margin: 0;
-}
-
-.sectionBody {
-  margin: var(--space-2) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+  color: var(--color-ink-muted);
 }
 
-.sectionBody p {
-  margin: 0 0 var(--space-2);
+.contributeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font: inherit;
+  font-size: var(--fs-base);
+  color: var(--color-accent-blue);
+  background: none;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  padding: 0 0 1px;
+  cursor: pointer;
 }
 
-.sectionBody p:last-child {
-  margin-bottom: 0;
+.contributeToggle:hover,
+.contributeToggle:focus-visible {
+  text-decoration: underline;
+}
+
+.contributePanel {
+  margin-top: var(--space-4);
 }
 
 .form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  margin-top: var(--space-4);
   max-width: 32rem;
 }
 

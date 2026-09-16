@@ -1,0 +1,165 @@
+/**
+ * BookActions.module.css
+ * ------------------------------------------------------------
+ * BookActions.astro(本1冊ぶんの購入リンク・この本から生まれた記録・
+ * 一緒に読みたい)のスタイル。旧BookshelfFullList.module.cssの
+ * 「本ごとのアクション」「一緒に読みたい(展開パネル)」を、コンポーネント
+ * 分割に伴いそのまま移設した(2026-09-16、Decision Log 0154)。見た目・
+ * 挙動は変更していない。
+ * ------------------------------------------------------------
+ */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.actionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+  background: none;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  padding: 0 0 1px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.actionLink:hover,
+.actionLink:focus-visible {
+  text-decoration: underline;
+}
+
+.actionArrow {
+  display: inline-block;
+  transition: transform var(--transition-base);
+}
+
+.readTogetherPanel {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.readTogetherHeading {
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+  margin: 0;
+}
+
+.readTogetherIntro {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.readTogetherForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  max-width: 28rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+}
+
+.required,
+.optional {
+  color: var(--color-ink-muted);
+}
+
+.input,
+.textarea {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-ink-on-surface);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-2);
+  transition: border-color var(--transition-base);
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 1px;
+  border-color: var(--color-accent-blue);
+}
+
+.textarea {
+  resize: vertical;
+  line-height: var(--lh-body);
+}
+
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.readTogetherSubmit {
+  align-self: flex-start;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--color-accent-blue);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-accent-blue);
+  border-radius: 2px;
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
+}
+
+.readTogetherSubmit:hover,
+.readTogetherSubmit:focus-visible {
+  background-color: var(--color-accent-blue);
+  color: var(--color-surface);
+}
+
+.readTogetherSubmit:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.readTogetherPrivacyNote {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.privacyLink {
+  color: var(--color-accent-blue);
+  text-decoration: underline;
+}

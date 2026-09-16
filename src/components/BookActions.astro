@@ -1,0 +1,171 @@
+---
+/**
+ * BookActions.astro
+ * ------------------------------------------------------------
+ * 役割: 本1冊ぶんの「購入リンク・この本から生まれた記録・一緒に読みたい」
+ * を表示する。旧`BookshelfFullList.astro`(2026-08-15〜2026-09-16の
+ * 「研究の本棚」全冊リスト)が1つのフラットな一覧の中に直接持っていた
+ * 各行のアクション部分を、v0.1公開仕様に合わせた再設計
+ * (`BookshelfShelf.astro`、Decision Log 0154)にあたって切り出した。
+ * 「いま読んでいる」(Hero表示)と、それ以外のstatus別セクション
+ * (コンパクトな行表示)の両方から、見た目・挙動を変えずに呼び出す
+ * ため(架空の機能追加ではなく、既存の「一緒に読みたい」等を新しい
+ * レイアウトでも同じように使えるようにするための分割)。
+ *
+ * ロジック(購入リンクの組み立て・Amazonアソシエイト開示・
+ * 「一緒に読みたい」のFormspree送信・honeypot)は、旧
+ * `BookshelfFullList.astro`から実質的に変更していない。
+ * ------------------------------------------------------------
+ */
+import styles from "./BookActions.module.css";
+import type { BookEntry } from "@/types/bookshelf";
+import { contactFormEndpoint } from "@/config/site";
+
+interface Props {
+  book: BookEntry;
+  purchaseHref?: string;
+  purchaseLabel: string;
+  isAffiliate: boolean;
+}
+
+const { book, purchaseHref, purchaseLabel, isAffiliate } = Astro.props;
+---
+
+<div class={styles.actions}>
+  {
+    purchaseHref && (
+      <a
+        class={styles.actionLink}
+        href={purchaseHref}
+        target="_blank"
+        rel={isAffiliate ? "noopener noreferrer sponsored" : "noopener noreferrer"}
+      >
+        {purchaseLabel} <span class={styles.actionArrow} aria-hidden="true">→</span>
+      </a>
+    )
+  }
+  {
+    book.relatedUrl && (
+      <a class={styles.actionLink} href={book.relatedUrl}>
+        この本から生まれた記録 <span class={styles.actionArrow} aria-hidden="true">→</span>
+      </a>
+    )
+  }
+  <button
+    type="button"
+    class={styles.actionLink}
+    data-toggle-trigger
+    aria-expanded="false"
+    aria-controls={`read-together-panel-${book.id}`}
+  >
+    一緒に読みたい <span class={styles.actionArrow} aria-hidden="true">→</span>
+  </button>
+</div>
+
+<div id={`read-together-panel-${book.id}`} class={styles.readTogetherPanel} data-read-together-panel hidden>
+  <h3 class={styles.readTogetherHeading}>一緒に読みたい</h3>
+  <p class={styles.readTogetherIntro}>
+    「この本を一緒に読みたい」と思ったことを知らせるためのフォームです。
+    <br />
+    読書会への参加申込ではありません。
+  </p>
+  <p class={styles.readTogetherIntro}>
+    同じ本が気になっている人が集まったときに、
+    <br />
+    こちらから連絡することがあります。
+  </p>
+
+  <form class={styles.readTogetherForm} method="POST" action={contactFormEndpoint} data-read-together-form>
+    <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
+    <input type="hidden" name="_subject" value="ふ、と 研究の本棚 一緒に読みたい" />
+    <input type="hidden" name="book_id" value={book.id} />
+    <input type="hidden" name="book_title" value={book.title} />
+
+    <div class={styles.field}>
+      <label class={styles.label} for={`read-together-email-${book.id}`}
+        >メールアドレス <span class={styles.required}>必須</span></label
+      >
+      <input
+        class={styles.input}
+        type="email"
+        id={`read-together-email-${book.id}`}
+        name="email"
+        autocomplete="email"
+        required
+      />
+    </div>
+
+    <div class={styles.field}>
+      <label class={styles.label} for={`read-together-name-${book.id}`}
+        >お名前 <span class={styles.optional}>任意</span></label
+      >
+      <input class={styles.input} type="text" id={`read-together-name-${book.id}`} name="name" autocomplete="name" />
+    </div>
+
+    <div class={styles.field}>
+      <label class={styles.label} for={`read-together-note-${book.id}`}
+        >この本で気になっていること <span class={styles.optional}>任意</span></label
+      >
+      <textarea class={styles.textarea} id={`read-together-note-${book.id}`} name="note" rows="3" />
+    </div>
+
+    <button class={styles.readTogetherSubmit} type="submit"
+      >送る <span aria-hidden="true">→</span></button
+    >
+
+    <p class={styles.status} data-read-together-status role="status" aria-live="polite" />
+
+    <p class={styles.readTogetherPrivacyNote}>
+      送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a
+      >に基づいて管理します。
+    </p>
+  </form>
+</div>
+
+<script>
+  const toggles = document.querySelectorAll<HTMLButtonElement>("[data-toggle-trigger]");
+  toggles.forEach((trigger) => {
+    const targetId = trigger.getAttribute("aria-controls");
+    const panel = targetId ? document.getElementById(targetId) : null;
+    if (!panel) return;
+
+    trigger.addEventListener("click", () => {
+      const expanded = trigger.getAttribute("aria-expanded") === "true";
+      trigger.setAttribute("aria-expanded", expanded ? "false" : "true");
+      panel.hidden = expanded;
+    });
+  });
+
+  const readTogetherForms = document.querySelectorAll<HTMLFormElement>("[data-read-together-form]");
+  readTogetherForms.forEach((form) => {
+    const status = form.querySelector<HTMLElement>("[data-read-together-status]");
+    if (!status) return;
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      submitButton?.setAttribute("disabled", "true");
+      status.textContent = "送信中...";
+
+      try {
+        const response = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        });
+
+        if (response.ok) {
+          status.textContent = "知らせました。ありがとうございます。";
+          form.reset();
+        } else {
+          status.textContent = "送信に失敗しました。時間をおいて、もう一度お試しください。";
+        }
+      } catch {
+        status.textContent = "送信に失敗しました。時間をおいて、もう一度お試しください。";
+      } finally {
+        submitButton?.removeAttribute("disabled");
+      }
+    });
+  });
+</script>

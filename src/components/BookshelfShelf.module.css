@@ -1,0 +1,259 @@
+/**
+ * BookshelfShelf.module.css
+ * ------------------------------------------------------------
+ * BookshelfShelf.astro(v0.1公開仕様の「研究の本棚」本体、Decision Log
+ * 0154)のスタイル。旧BookshelfFullList.module.cssから、行リスト
+ * (.row以下)・仮カバーのtone配色(.cover)は実質的にそのまま引き継ぎ、
+ * フィルター用スタイル(.filters/.filterButton)は削除、「いま読んで
+ * いる」Hero区画(.hero以下)を新設した。
+ * ------------------------------------------------------------
+ */
+
+/* -----------------------------
+ * いま読んでいる(Hero)。ページ上部で最も大きく見せる。カードグリッド
+ * にはせず、横並びの書影+キャプションを1つの単位として、棚のように
+ * 並べる。mobileで本数が増えた場合は横スクロールする(carousel UI・
+ * pagination dotは使わず、素のoverflow-xに任せる。自動スクロールも
+ * しない)。
+ * ----------------------------- */
+.hero {
+  margin-top: var(--space-4);
+}
+
+.heroHeading {
+  margin: 0;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.heroShelf {
+  display: flex;
+  gap: var(--space-4);
+  margin: var(--space-3) 0 0;
+  padding: 0 0 var(--space-3);
+  list-style: none;
+  overflow-x: auto;
+  /* 「棚」であることを示す、書影の下端に沿った1本の罫線(棚板)。
+     本棚だけ他ページより少し物質感を持たせる、という指示への対応
+     (装飾しすぎない範囲で、細い罫線のみ)。 */
+  border-bottom: 1px solid var(--color-accent-beige);
+}
+
+.heroItem {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  width: 7rem;
+}
+
+.heroSpine {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  padding: var(--space-2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.heroSpineImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.heroSpine[data-tone="warm"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
+  );
+}
+
+.heroSpine[data-tone="moss"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
+  );
+}
+
+.heroSpine[data-tone="sky"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
+  );
+}
+
+.heroSpineTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+
+.heroCaptionTitle {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+}
+
+.heroCaptionAuthor {
+  margin: 2px 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+/* 【「持ち寄られた本」ラベル】.statusLabel相当が無いHero区画では、
+   タイトル行に直接添える。新しい色・バッジ枠は作らず、通常の文字の
+   まま情報だけ足す(旧BookshelfFullList.module.cssの.contributedTagと
+   同じ考え方)。 */
+.contributedTag {
+  font-weight: 400;
+  color: var(--color-ink-muted);
+}
+
+/* -----------------------------
+ * いま読んでいる以外のstatus別セクション。実データが1冊以上ある
+ * status(bookStatusLabels)のみ、呼び出し側(BookshelfShelf.astro)が
+ * 描画する。
+ * ----------------------------- */
+.section {
+  margin-top: var(--space-5);
+}
+
+.sectionRule {
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-4);
+}
+
+.sectionHeading {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.list {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+}
+
+.row {
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-accent-beige);
+}
+
+.row:first-child {
+  padding-top: 0;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.rowMain {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+/* 「小さな書影」。Heroの.heroSpineと同じtone配色・優先順位
+   (image→externalCoverUrl→仮カバー)だが、行に収まるサイズに縮小
+   している。 */
+.cover {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  width: 3.5rem;
+  aspect-ratio: 3 / 4;
+  padding: var(--space-1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.coverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover[data-tone="warm"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
+  );
+}
+
+.cover[data-tone="moss"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
+  );
+}
+
+.cover[data-tone="sky"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
+  );
+}
+
+.coverTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  line-height: var(--lh-heading);
+}
+
+.author {
+  margin: 2px 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.reason {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+/* 【Amazonアソシエイト開示文言】実際にアソシエイトタグ付きリンクを
+   表示する場合のみ描画される(BookshelfShelf.astroのhasAffiliate
+   Disclosure参照)。一覧全体に対する注記のため末尾に1つだけ置く。 */
+.affiliateDisclosure {
+  margin: var(--space-5) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}

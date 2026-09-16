@@ -14,12 +14,12 @@
  * 話したい・贈る・関連記録リンクを**すべて**集約する正式な本体ページと
  * 位置づけた。`/participate`は「本をプレゼントする」(旧「本から
  * 関わる」、2026-09-11にDecision Log 0128で改称)という短い入口
- * (featured本のみ+本体ページへのリンク)を残すのみになった。
+ * (featured本のみ+本体ページへのリンク)を残すのみになった(2026-09-11
+ * 追記: この入口自体、後日のHP公開前チェックで/participateから削除
+ * 済み。現時点で`/bookshelf`がbookshelf.tsの唯一の表示先)。
  *
  * 本データは`src/data/bookshelf.ts`(唯一のデータソース、Home・
- * `/participate`と共有)、一覧UIは`BookshelfFullList.astro`(旧
- * `/participate`専用のParticipateBookshelf.astro、Decision Log 0116を
- * そのまま移設)を使う。見出し・導入文はDecision Log 0111時点のまま
+ * `/participate`と共有)。見出し・導入文はDecision Log 0111時点のまま
  * 変更していない。
  *
  * 【トップページからプレビューを撤去(2026-09-11、Decision Log 0125)】
@@ -28,41 +28,34 @@
  * `/participate`との共有関係は変更していない。ヘッダー「本棚」からの
  * 導線は引き続きこのページへつながる。
  *
- * 【贈る導線をAmazonほしい物リストに一本化(2026-09-11、Decision Log
- * 0130)】`BookshelfFullList.astro`側の変更に伴い、「手元にある本を
- * 贈る」(お問い合わせ経由)を廃止したため、`contactHref` propを渡す
- * 必要がなくなった。
- *
- * 【HP公開版に向けて「話したい」「プレゼントする」を保留(2026-09-11、
- * Decision Log 0133)】`BookshelfFullList.astro`側の変更に伴い、
- * このページは当面「『ふ、と』が何を読んでいて、何を読みたいと
- * 思っているかを見る場所」に限定される。BOOKSHELF・「研究の本棚」・
- * 見出し文・フィルター・タイトル/著者/status/読みたい理由/image・
- * canonical bookshelf data(`src/data/bookshelf.ts`、6冊すべて)は
- * このページで変更していない。
- *
  * 【「本棚に本を持ち寄る」機能の追加(2026-09-11、Decision Log 0137)】
  * プロジェクトオーナーの指示により、訪問者が本を提案できるフォームを
  * 追加した。ページ名は引き続き「研究の本棚」のまま(「みんなの本棚」
- * という名称は使わない指示)。冒頭文に、持ち寄られた本も加わりながら
- * 育っていく旨の1文を追加した以外、既存の見出し・一覧(filters+
- * BookshelfFullList)は変更していない。新設のフォームは、既存の一覧の
- * 後に独立した`<ResearchSection>`として追加した(「本棚を見てから、
- * 自分も持ち寄る」という順序。/participateの「何かを持ち寄る」
- * フォームと同じFormspreeエンドポイント・honeypot・fetch送信の
- * 仕組みをそのまま再利用している)。
+ * という名称は使わない指示)。
  *
  * フォームからの送信は自動掲載しない。「ふ、と」側で内容を確認し、
  * 掲載を決めた本だけ、`src/data/bookshelf.ts`に運営が手動で追加し
  * `contributed: true`を付ける(`/participate`の「持ち寄られたもの」と
  * 同じ、DB/CMSを使わない手動運用)。掲載された本には
- * `BookshelfFullList.astro`側で「持ち寄られた本」という控えめな
- * ラベルを表示する(Decision Log 0137)。
+ * `BookshelfShelf.astro`側で「持ち寄られた本」という控えめなラベルを
+ * 表示する(Decision Log 0137)。
+ *
+ * 【v0.1公開仕様に合わせた全面刷新(2026-09-16、Decision Log 0154)】
+ * 「本のカード一覧ではなく、いまの探究のそばに実際に置かれている本が
+ * 見える場所」という指示に基づき、本の一覧表示を旧`BookshelfFullList`
+ * (フィルターボタン+status混在の1列リスト)から`BookshelfShelf`
+ * (「いま読んでいる」を主役にしたHero区画+status別のコンパクトな
+ * セクション)に置き換えた。導入文(冒頭2文)は既存のまま変更していない
+ * (「説明は短くする。既存コピーがあれば再優先する」という指示に
+ * 対応)。「本棚に本を持ち寄る」フォームは、既存のフィールド構成・
+ * Formspreeエンドポイント・honeypotを一切変更せず、見出し+説明文の
+ * 大きなセクションから、1行の呼びかけ+トグルボタンで開く「静かな
+ * 導線」に変更した(指示された文言候補をそのまま使用)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
-import BookshelfFullList from "@components/BookshelfFullList.astro";
+import BookshelfShelf from "@components/BookshelfShelf.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./bookshelf.module.css";
 import { books } from "@/data/bookshelf";
@@ -82,68 +75,94 @@ import { contactFormEndpoint } from "@/config/site";
       <p>読んでいる本、これから読みたい本。</p>
       <p>この本棚は、誰かが持ち寄ってくれた本も加わりながら、少しずつ育っていきます。</p>
     </div>
-    <BookshelfFullList books={books} />
+    <BookshelfShelf books={books} />
   </ResearchSection>
 
-  <ResearchSection ariaLabel="本棚に本を持ち寄る" id="contribute-book">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>本棚に本を持ち寄る</h2>
-    <p class={styles.sectionBody}>
-      「ふ、と」を思い出した本や、なぜか気になった本があれば教えてください。
-      <br />
-      「研究と近い」と説明できなくても大丈夫です。
-    </p>
+  <ResearchSection ariaLabel="本を持ち寄る" id="contribute-book">
+    <div class={styles.contribute}>
+      <p class={styles.contributePrompt}>この本も、と思い出したものがありますか。</p>
+      <button
+        type="button"
+        class={styles.contributeToggle}
+        data-contribute-toggle
+        aria-expanded="false"
+        aria-controls="contribute-book-panel"
+      >
+        本を持ち寄る <span aria-hidden="true">→</span>
+      </button>
 
-    <form class={styles.form} method="POST" action={contactFormEndpoint} data-book-contribution-form>
-      <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <input type="hidden" name="_subject" value="ふ、と｜本棚に本を持ち寄る" />
+      <div id="contribute-book-panel" class={styles.contributePanel} data-contribute-panel hidden>
+        <form class={styles.form} method="POST" action={contactFormEndpoint} data-book-contribution-form>
+          <input
+            type="text"
+            name="_gotcha"
+            class={styles.honeypot}
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
+          />
+          <input type="hidden" name="_subject" value="ふ、と｜本棚に本を持ち寄る" />
 
-      <div class={styles.fieldRow}>
-        <div class={styles.field}>
-          <label class={styles.label} for="book-title"
-            >本のタイトル <span class={styles.required}>必須</span></label
-          >
-          <input class={styles.input} type="text" id="book-title" name="title" required />
-        </div>
-        <div class={styles.field}>
-          <label class={styles.label} for="book-author">著者名 <span class={styles.optional}>任意</span></label>
-          <input class={styles.input} type="text" id="book-author" name="author" />
-        </div>
+          <div class={styles.fieldRow}>
+            <div class={styles.field}>
+              <label class={styles.label} for="book-title"
+                >本のタイトル <span class={styles.required}>必須</span></label
+              >
+              <input class={styles.input} type="text" id="book-title" name="title" required />
+            </div>
+            <div class={styles.field}>
+              <label class={styles.label} for="book-author">著者名 <span class={styles.optional}>任意</span></label>
+              <input class={styles.input} type="text" id="book-author" name="author" />
+            </div>
+          </div>
+
+          <div class={styles.field}>
+            <label class={styles.label} for="book-reason"
+              >この本を、ふ、とに持ち寄ろうと思ったきっかけ <span class={styles.required}>必須</span></label
+            >
+            <textarea class={styles.textarea} id="book-reason" name="reason" rows="4" required></textarea>
+          </div>
+
+          <div class={styles.fieldRow}>
+            <div class={styles.field}>
+              <label class={styles.label} for="book-name">お名前 <span class={styles.optional}>任意</span></label>
+              <input class={styles.input} type="text" id="book-name" name="name" autocomplete="name" />
+            </div>
+            <div class={styles.field}>
+              <label class={styles.label} for="book-email"
+                >メールアドレス <span class={styles.optional}>任意</span></label
+              >
+              <input class={styles.input} type="email" id="book-email" name="email" autocomplete="email" />
+            </div>
+          </div>
+
+          <button class={styles.submit} type="submit">送る <span aria-hidden="true">→</span></button>
+          <p class={styles.status} data-book-contribution-status role="status" aria-live="polite"></p>
+
+          <p class={styles.privacyNote}>
+            送っていただいた本は、「ふ、と」で確認したうえで本棚に掲載することがあります。
+          </p>
+          <p class={styles.privacyNote}>
+            送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
+          </p>
+        </form>
       </div>
-
-      <div class={styles.field}>
-        <label class={styles.label} for="book-reason"
-          >この本を、ふ、とに持ち寄ろうと思ったきっかけ <span class={styles.required}>必須</span></label
-        >
-        <textarea class={styles.textarea} id="book-reason" name="reason" rows="4" required></textarea>
-      </div>
-
-      <div class={styles.fieldRow}>
-        <div class={styles.field}>
-          <label class={styles.label} for="book-name">お名前 <span class={styles.optional}>任意</span></label>
-          <input class={styles.input} type="text" id="book-name" name="name" autocomplete="name" />
-        </div>
-        <div class={styles.field}>
-          <label class={styles.label} for="book-email"
-            >メールアドレス <span class={styles.optional}>任意</span></label
-          >
-          <input class={styles.input} type="email" id="book-email" name="email" autocomplete="email" />
-        </div>
-      </div>
-
-      <button class={styles.submit} type="submit">本を持ち寄る <span aria-hidden="true">→</span></button>
-      <p class={styles.status} data-book-contribution-status role="status" aria-live="polite"></p>
-
-      <p class={styles.privacyNote}>
-        送っていただいた本は、「ふ、と」で確認したうえで本棚に掲載することがあります。
-      </p>
-      <p class={styles.privacyNote}>
-        送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
-      </p>
-    </form>
+    </div>
   </ResearchSection>
 </DefaultLayout>
 
 <script>
+  const contributeToggle = document.querySelector<HTMLButtonElement>("[data-contribute-toggle]");
+  const contributePanel = document.querySelector<HTMLElement>("[data-contribute-panel]");
+
+  if (contributeToggle && contributePanel) {
+    contributeToggle.addEventListener("click", () => {
+      const expanded = contributeToggle.getAttribute("aria-expanded") === "true";
+      contributeToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+      contributePanel.hidden = expanded;
+    });
+  }
+
   const form = document.querySelector<HTMLFormElement>("[data-book-contribution-form]");
   const status = document.querySelector<HTMLElement>("[data-book-contribution-status]");
 
