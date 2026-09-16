@@ -1,21 +1,19 @@
-/* 【ページヘッダーの分離(2026-09-05)】ページタイトル(h1)と各セクション
-   見出し(h2)が同じ見た目になっており、ページの入口が弱いという指摘を
-   受け、ページ冒頭(Eyebrow・h1・Lead)を2カラムの外に独立したヘッダー
-   として切り出した。 */
-.pageHeader {
-  margin-bottom: var(--space-4);
-}
-
-@media (min-width: 900px) {
-  .pageHeader {
-    margin-bottom: var(--space-5);
-  }
-}
+/**
+ * about.module.css
+ * ------------------------------------------------------------
+ * 【v0.1公開仕様に合わせた全面差し替え(2026-09-16、Decision Log
+ * 0151)】旧内容(Eyebrow/pageTitle/leadという3区画のページヘッダー+
+ * 「01/02/03」番号つき2カラムブロック+循環図)のスタイルは、about.astro
+ * の本文構成が単一の見出し+8段落の連続した文章に変わったことに伴い、
+ * すべて置き換えた。カードUI・大きな装飾は使わず、細い罫線とごく小さな
+ * 抽象図形(.dash)のみで構成している。過去の変遷はgit履歴を参照。
+ * ------------------------------------------------------------
+ */
 
 .eyebrow {
-  /* 他ページで使う<SectionTitle>(h2)と同じ見た目だが、このページの
-     先頭見出しをh1にするため、見出し要素ではなくpにしている
-     (このページのみの対応。<SectionTitle>自体は変更していない)。 */
+  /* SectionTitle.module.cssの.titleと同じ見た目。このページの先頭見出し
+     をh1にするため、見出し要素ではなくpにしている(このページのみの
+     対応。<SectionTitle>自体は変更していない)。 */
   margin: 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
@@ -25,183 +23,48 @@
   color: var(--color-ink-muted);
 }
 
-.pageTitle {
-  /* ページ内で最も強い文字。セクション見出し(.subheading、fs-lg)より
-     明確に大きく、不透明度も下げない。 */
+/* ごく小さな抽象図形(v0.1仕様「装飾は細い罫線や、ごく小さな抽象図形
+   程度」への対応)。Eyebrowの下に置く、短い罫線1本のみ。 */
+.dash {
+  display: block;
+  width: 2rem;
+  height: 1px;
+  margin-top: var(--space-2);
+  background-color: var(--color-accent-beige);
+}
+
+.heading {
   margin: var(--space-2) 0 0;
-  font-size: var(--fs-xl);
+  font-size: var(--fs-2xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-}
-
-.lead {
-  /* 元は1つ目のセクション本文だった最初の段落。ページの要約として
-     ヘッダー側に移し、本文(fs-base)よりわずかに大きいLeadサイズに
-     する。 */
-  margin: var(--space-3) 0 0;
-  font-size: var(--fs-lg);
-  line-height: var(--lh-body);
-  max-width: 36rem;
-}
-
-/* 【2カラム化(2026-09-04、Decision Log 0094)】3区画すべてが同じ
-   見た目で連続し、区切りが分かりにくいという指摘を受け、Desktop幅
-   では各区画を「左: 番号+見出し / 右: 本文」の2カラムに分け、
-   区画同士の境界に細い罫線を入れた。Mobile幅では縦積みにする。
-   【セクション間の余白を拡大(2026-09-05)】同じセクション内(見出しと
-   本文)の間隔は変えず、セクション同士の間だけDesktop 64px・
-   Mobile 40pxに広げた。 */
-.block {
-  padding-block: var(--space-4);
-}
-
-.block:first-child {
-  padding-top: 0;
-}
-
-.block + .block {
-  border-top: 1px solid var(--color-accent-beige);
-}
-
-@media (min-width: 900px) {
-  .block {
-    display: grid;
-    grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
-    gap: var(--space-4);
-    align-items: start;
-    padding-block: var(--space-5);
-  }
-
-  /* .block:first-child(0,2,0)は.block(0,1,0)より詳細度が高いため、
-     ここで再指定しなくてもfirst-childのpadding-topは常に0のまま
-     (padding-bottomのみvar(--space-5)が効く)。 */
-}
-
-.blockLabel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.number {
-  /* ResearchReviewListの番号表示と同じ、小さく淡いMeta扱い。 */
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-.subheading {
-  /* ページタイトル(.pageTitle、fs-xl・不透明)より明確に小さく、
-     やや淡くする。 */
-  margin: 0;
-  font-size: var(--fs-lg);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  color: var(--color-ink-muted);
+  max-width: 24rem;
 }
 
 .body {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  margin-top: var(--space-3);
+  margin-top: var(--space-4);
   font-size: var(--fs-base);
   line-height: var(--lh-body);
-  /* Desktop幅で1行67文字前後まで伸びて読みにくいという指摘を受け、
-     読みやすい行幅の上限を設定した(2026-09-04、Decision Log
-     0089)。ResearchReviewArticle.module.cssの.paragraphと同じ
-     36rem。 */
+  /* PCで本文幅を広げすぎない(v0.1仕様)。ResearchReviewArticle.
+     module.cssの.paragraph・旧about.module.cssの.bodyと同じ36rem。 */
   max-width: 36rem;
-}
-
-@media (min-width: 900px) {
-  .body {
-    margin-top: 0;
-  }
 }
 
 .body p {
   margin: 0;
 }
 
-/* 【循環図(2026-09-05改訂)】「観察する→気づく→…→また観察する」を
-   縦の矢印リストで表示していたが、「また観察する」で終わってしまい、
-   本文にある「この循環を通して」(最後が最初に戻る)という内容が
-   伝わらないという指摘を受け、円周上に語を並べる循環図にした。
-   さらに7項目では詰まって見えるという指摘を受け、5項目
-   (観察する/気づく/記録する/対話する/つくる・試す)に整理し、円の
-   中心に「問いの生態系」を追加した(装飾要素、aria-hidden。本文の
-   文章が情報源)。 */
-.cycleWrap {
-  margin-top: var(--space-4);
-  padding-inline: 4rem;
-  padding-block: 1.5rem;
+/* Research Statementへの静かな導線。大きなCTAにはしない(v0.1仕様)。 */
+.statementLink {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-accent-beige);
+  max-width: 36rem;
 }
 
-.cycle {
-  position: relative;
-  width: 100%;
-  max-width: 17rem;
-  aspect-ratio: 1;
-  margin-inline: auto;
-}
-
-@media (min-width: 900px) {
-  .cycleWrap {
-    padding-inline: 3.5rem;
-  }
-
-  .cycle {
-    max-width: 18rem;
-  }
-}
-
-.cycleRing {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.cycleRing circle {
-  fill: none;
-  stroke: var(--color-accent-beige);
-  stroke-width: 0.6;
-}
-
-.cycleArrow {
-  position: absolute;
-  transform: translate(-50%, -50%) rotate(var(--cycle-rotate));
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  opacity: 0.4;
-}
-
-.cycleLabel {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  white-space: nowrap;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  opacity: 0.75;
-}
-
-.cycleLabel[data-align="left"] {
-  transform: translate(0, -50%);
-}
-
-.cycleLabel[data-align="right"] {
-  transform: translate(-100%, -50%);
-}
-
-.cycleCenter {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-heading);
-  opacity: 0.55;
+.statementLink :global(a) {
+  margin-top: var(--space-1);
 }
