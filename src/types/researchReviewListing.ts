@@ -17,6 +17,15 @@
  * 【2026-08-17再追記】行の右側に余白が生まれていたため、
  * descriptionを2行までの要約として右側に復活させた
  * (Decision Log 0056)。
+ *
+ * 【関連コンテンツの参照フィールドを追加(2026-09-16、Decision Log
+ * 0152)】v0.1公開仕様の「この断面のそばにあるもの」(記事末尾の
+ * 関連リンク)に対応するため、`relatedBookIds`/`relatedNotebookSlugs`を
+ * 追加した。値は`src/data/bookshelf.ts`の`BookEntry.id`・
+ * `src/data/labNotebooks.ts`の`LabNotebook.slug`をそのまま参照する
+ * (タイトル等を複製しない)。本文中で実際に確認できる関連のみを
+ * 設定する運用とし、存在しない/削除された参照は
+ * `getRelatedContent()`(researchReviews.ts)側で自動的に除外される。
  * ------------------------------------------------------------
  */
 
@@ -32,6 +41,12 @@ export interface PublishedReviewEntry {
   /** 例: "2026.08.15 更新" */
   updatedLabel: string;
   href: string;
+  /** 記事末尾「この断面のそばにあるもの」に表示する、本文中で実際に
+      言及・引用している本(src/data/bookshelf.tsのBookEntry.id)。
+      関連が無い記事は省略する(架空の関連付けを作らない)。 */
+  relatedBookIds?: string[];
+  /** 同上、実験室のノート(src/data/labNotebooks.tsのLabNotebook.slug)。 */
+  relatedNotebookSlugs?: string[];
 }
 
 export interface PlannedReviewEntry {

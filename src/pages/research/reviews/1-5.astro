@@ -39,12 +39,24 @@
  * 適用した。DefaultLayoutにtheme="night"を渡し、<NightBackground />
  * を配置している。01(研究断面01)は現時点では対象外のまま
  * (Decision Log 0063時点でも詳細ページは対象に含めていなかった)。
+ *
+ * 【v0.1公開仕様に合わせた拡張(2026-09-16、Decision Log 0152)】
+ * 01.astroと同様、`getReviewNavigation("1.5")`/`getRelatedContent()`で
+ * 前後記事・関連コンテンツを解決してpropsとして渡すようにした。本文
+ * を確認した限り、bookshelf.tsの本との一致は見つからなかったため、
+ * `relatedBookIds`は設定していない(実験室の「研究断面をひらく」
+ * ノートのみ関連として表示される)。本文・タイトル・サブタイトルは
+ * 変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchReviewArticle from "@components/ResearchReviewArticle.astro";
 import NightBackground from "@components/NightBackground.astro";
 import type { ReviewSection } from "@/types/researchReview";
+import { getReviewNavigation, getRelatedContent } from "@/data/researchReviews";
+
+const { entry, prev, next } = getReviewNavigation("1.5");
+const { relatedBooks, relatedNotebooks } = getRelatedContent(entry);
 
 const sections: ReviewSection[] = [
   {
@@ -390,5 +402,9 @@ const sections: ReviewSection[] = [
     title="研究断面1.5"
     subtitle="なぜ私たちは、ある瞬間に「ふと」気づくのか──その手前にある経験と時間"
     sections={sections}
+    relatedBooks={relatedBooks}
+    relatedNotebooks={relatedNotebooks}
+    prev={prev}
+    next={next}
   />
 </DefaultLayout>

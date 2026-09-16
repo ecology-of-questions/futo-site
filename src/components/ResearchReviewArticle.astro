@@ -25,6 +25,34 @@
  * 配置する方式に落ち着いた(Decision Log 0041)。個々のブロックの
  * 描画はReviewContentBlock.astroに切り出し、セクション直下と
  * RowBlock内の両方から再利用している。
+ *
+ * 【v0.1公開仕様に合わせた拡張(2026-09-16、Decision Log 0152)】
+ * 「本文を主役にした2カラム(中央: 本文/右: 小さな目次、sticky可だが
+ * 主張を弱くする)」「記事末尾に『この断面のそばにあるもの』」
+ * 「前後の断面への静かなナビゲーション」という指示に基づき、以下を
+ * 追加した。既存の`sections`の描画ロジック(ReviewContentBlockへの
+ * 委譲)自体は変更していない。
+ *
+ * - 目次: `sections`の`heading`から自動生成する(記事ごとに手で
+ *   書かない。02以降を追加しても自動的に追従する)。各`<section>`に
+ *   `id={`section-${i}`}`を振り、目次はそこへのページ内リンクにする。
+ *   Desktop幅(900px〜)は本文の右に小さくstickyで表示し(指示どおり
+ *   「主張を弱くする」ため、控えめなfs-smの淡い文字色)、Mobile幅は
+ *   `<details>`(標準HTML、追加JS不要)で折りたたみ、既定で閉じておく。
+ *   同じ目次を2箇所(Desktop用/Mobile用)に書き出し、CSSの
+ *   メディアクエリで表示を切り替えている(片方は常に`display: none`
+ *   になるため、フォーカス可能なリンクが重複して残らないよう
+ *   `tabindex="-1"`と`aria-hidden`は使わず、非表示側は`hidden`属性を
+ *   JSなしで付けられないため、視覚的な`display: none`のみで対応した。
+ *   スクリーンリーダーには両方の目次が存在として伝わるが、内容が
+ *   完全に同一のナビゲーションであるため実害は小さいと判断した)。
+ * - この断面のそばにあるもの: `relatedBooks`/`relatedNotebooks`
+ *   propsが両方空の場合、セクションごと非表示にする(架空の関連付け
+ *   を作らない指示への対応。データはpage側でresearchReviews.tsの
+ *   `getRelatedContent()`が解決し、このコンポーネントは受け取った
+ *   ものをそのまま描画するだけ)。
+ * - 前後の断面: `prev`/`next`propsが無い場合(最初/最後の記事)は
+ *   該当する側のリンクを表示しない。
  * ------------------------------------------------------------
  */
 import ResearchSection from "./ResearchSection.astro";
@@ -32,17 +60,34 @@ import SectionTitle from "./SectionTitle.astro";
 import ReviewContentBlock from "./ReviewContentBlock.astro";
 import styles from "./ResearchReviewArticle.module.css";
 import type { ReviewSection } from "@/types/researchReview";
+import type { BookEntry } from "@/types/bookshelf";
+import type { LabNotebook } from "@/types/labNotebook";
+import type { ReviewNavEntry } from "@/data/researchReviews";
 
 interface Props {
-  /** SectionTitleとして表示する英語ラベル(例: "Research Review") */
   sectionLabel: string;
-  /** 例: "研究断面01" */
   title: string;
   subtitle?: string;
   sections: ReviewSection[];
+  relatedBooks?: BookEntry[];
+  relatedNotebooks?: LabNotebook[];
+  prev?: ReviewNavEntry;
+  next?: ReviewNavEntry;
 }
 
-const { sectionLabel, title, subtitle, sections } = Astro.props;
+const {
+  sectionLabel,
+  title,
+  subtitle,
+  sections,
+  relatedBooks = [],
+  relatedNotebooks = [],
+  prev,
+  next,
+} = Astro.props;
+
+const toc = sections.map((section, i) => ({ id: `section-${i}`, heading: section.heading }));
+const hasRelated = relatedBooks.length > 0 || relatedNotebooks.length > 0;
 ---
 
 <ResearchSection ariaLabel={title}>
@@ -50,24 +95,105 @@ const { sectionLabel, title, subtitle, sections } = Astro.props;
   <h1 class={styles.title}>{title}</h1>
   {subtitle && <p class={styles.subtitle}>{subtitle}</p>}
 
-  <div class={styles.article}>
+  {
+    toc.length > 1 && (
+      <details class={styles.tocMobile}>
+        <summary class={styles.tocSummary}>目次</summary>
+        <ol class={styles.tocList}>
+          {toc.map((item) => (
+            <li>
+              <a href={`#${item.id}`}>{item.heading}</a>
+            </li>
+          ))}
+        </ol>
+      </details>
+    )
+  }
+
+  <div class={styles.layout}>
+    <div class={styles.article}>
+      {
+        sections.map((section, i) => (
+          <section class={styles.section} id={`section-${i}`}>
+            <h2 class={styles.sectionHeading}>{section.heading}</h2>
+            {section.blocks.map((block) =>
+              block.type === "row" ? (
+                <div class={styles.row}>
+                  {block.items.map((item) => (
+                    <ReviewContentBlock block={item} />
+                  ))}
+                </div>
+              ) : (
+                <ReviewContentBlock block={block} />
+              ),
+            )}
+          </section>
+        ))
+      }
+    </div>
+
     {
-      sections.map((section) => (
-        <section class={styles.section}>
-          <h2 class={styles.sectionHeading}>{section.heading}</h2>
-          {section.blocks.map((block) =>
-            block.type === "row" ? (
-              <div class={styles.row}>
-                {block.items.map((item) => (
-                  <ReviewContentBlock block={item} />
-                ))}
-              </div>
-            ) : (
-              <ReviewContentBlock block={block} />
-            ),
-          )}
-        </section>
-      ))
+      toc.length > 1 && (
+        <nav class={styles.tocDesktop} aria-label="目次">
+          <p class={styles.tocLabel}>目次</p>
+          <ol class={styles.tocList}>
+            {toc.map((item) => (
+              <li>
+                <a href={`#${item.id}`}>{item.heading}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
     }
   </div>
+
+  {
+    hasRelated && (
+      <div class={styles.related}>
+        <h2 class={styles.relatedHeading}>この断面のそばにあるもの</h2>
+        <div class={styles.relatedList}>
+          {relatedBooks.map((book) => (
+            <a class={styles.relatedItem} href="/bookshelf">
+              <p class={styles.relatedLabel}>本棚</p>
+              <p class={styles.relatedTitle}>『{book.title}』</p>
+              <span class={styles.relatedLink}>
+                本棚を見る <span aria-hidden="true">→</span>
+              </span>
+            </a>
+          ))}
+          {relatedNotebooks.map((notebook) => (
+            <a class={styles.relatedItem} href={`/participate/${notebook.slug}`}>
+              <p class={styles.relatedLabel}>実験室</p>
+              <p class={styles.relatedTitle}>{notebook.title}</p>
+              <span class={styles.relatedLink}>
+                実験室で見る <span aria-hidden="true">→</span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  {
+    (prev || next) && (
+      <nav class={styles.reviewNav} aria-label="前後の断面">
+        <span class={styles.reviewNavSide}>
+          {prev && (
+            <a class={styles.reviewNavLink} href={prev.href}>
+              <span aria-hidden="true">←</span> 前の断面
+            </a>
+          )}
+        </span>
+        <span class={styles.reviewNavSide} data-align="end">
+          {next && (
+            <a class={styles.reviewNavLink} href={next.href}>
+              次の断面 <span aria-hidden="true">→</span>
+            </a>
+          )}
+        </span>
+      </nav>
+    )
+  }
 </ResearchSection>
