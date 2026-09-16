@@ -101,6 +101,17 @@
  * 観察したこと、まだ考えきれていないことも含めた研究ノートです。」)は
  * 変更していない。研究断面の記事自体・一覧の見出し「研究断面」・
  * 各記事タイトルは変更していない。
+ *
+ * 【「次に考えていること」(構想中の02・03)を非表示に(2026-09-16、
+ * Decision Log 0153)】v0.1公開仕様の「現在実際に公開されている研究
+ * 断面だけを見せる」という方針により、構想中エントリの一覧
+ * (ResearchReviewListの`planned`セクション)を非表示にした。指示に
+ * 従い、`plannedReviews`自体(`researchReviews.ts`)は削除していない
+ * (02・03が実際に公開された際、`publishedReviews`に追加すれば従来
+ * 通り一覧に反映される)。ResearchReviewList.astro側の
+ * `planned.length > 0 && (...)`という既存の条件分岐をそのまま利用し、
+ * このページから`planned`に空配列を渡すことでセクションごと非表示に
+ * した(コンポーネント自体の変更は不要だった)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -108,7 +119,7 @@ import ResearchSection from "@components/ResearchSection.astro";
 import ResearchReviewList from "@components/ResearchReviewList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./research.module.css";
-import { publishedReviews, plannedReviews } from "@/data/researchReviews";
+import { publishedReviews } from "@/data/researchReviews";
 ---
 
 <DefaultLayout title="Research ｜ ふ、と" theme="night">
@@ -121,6 +132,11 @@ import { publishedReviews, plannedReviews } from "@/data/researchReviews";
         <p>その時点で考えていることを、研究の断面として残しています。読んだこと、観察したこと、まだ考えきれていないことも含めた研究ノートです。</p>
       </div>
     </div>
-    <ResearchReviewList published={publishedReviews} planned={plannedReviews} />
+    {
+      /* v0.1公開仕様により「次に考えていること」(構想中の02・03)は
+         非表示にする。plannedReviews自体はresearchReviews.tsに残して
+         いるが、ここでは意図的に渡さない(Decision Log 0153)。 */
+    }
+    <ResearchReviewList published={publishedReviews} planned={[]} />
   </ResearchSection>
 </DefaultLayout>
