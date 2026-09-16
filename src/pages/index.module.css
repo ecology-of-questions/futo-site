@@ -3,150 +3,365 @@
  * ------------------------------------------------------------
  * Home専用のページレベルスタイル。
  *
- * Desktop幅の「夜空」背景(紺+光の粒)は、以前はこのファイルに
- * 直接実装していたが(2026-08-15 Decision Log 0024、2026-09-03
- * Decision Log 0059/0060)、/research・/about・/contactにも
- * 揃える指示を受けてNightBackground.astroへ切り出した
- * (2026-09-03、Decision Log 0063)。
- *
- * 【トップページ再設計(2026-09-10、Decision Log 0111)】プロジェクト
- * オーナーの指示により、「いま、取り組んでいること」「研究の本棚」
- * 「一緒に試す」の3セクション見出しに細い上罫線(.sectionRule)を
- * 追加した。「一緒に試す」は、これまで独立区画として淡い背景面
- * (.openPracticePanel)を敷いていたが、他の平場のセクションと同じ
- * 扱いに戻し、代わりに新設した「研究便り」「研究を支える」の2つを
- * まとめて1つの背景面(.panel)に収める構成にした。
- *
- * 【トップページを4層構成に整理(2026-09-11、Decision Log 0125)】
- * 「研究の本棚」プレビュー・「一緒に試す」の独立セクションをトップ
- * から削除したため、それぞれ専用だった.bookshelfHeading/
- * .bookshelfIntro/.openPracticeHeading/.openPracticeBody/
- * .openPracticeLinksを削除した。「持ち寄る」の下に置くリンクの
- * 余白は、旧.bookshelfLink(本棚プレビュー用)を.panelLinkに改名して
- * 引き続き使っている(.panel内の2つのpanelSection共通で使う余白の
- * ため)。
- *
- * 【「いま考えていること」→「研究断面」に改称(2026-09-11、Decision
- * Log 0127)】見出し・class名を.currentWorkHeadingから
- * .researchReviewsHeadingに変更し、短い説明文用の.researchReviews
- * Introを追加した。「研究断面をすべて見る→」リンクの余白は、
- * 「持ち寄る」パネルのリンクと共通の用途になったため、.panelLinkを
- * より汎用的な.sectionLinkに改名した。
- *
- * 【ファーストビュー再設計に伴うスタイル追加(2026-09-14、Decision Log
- * 0149)】スクロール不要な範囲(Hero・3つの主要入口・いま動いている
- * こと)は、他セクションが使う<ResearchSection>(padding-block:
- * space-6という大きな余白)を経由せず、この3区画専用の.hero/
- * .entryNav/.nowSection以下で余白を独自に管理している(1画面に収める
- * ため、既存セクションより詰めた余白にする必要があったため)。
- * スクロール後の内容は、引き続き<ResearchSection>の余白をそのまま
- * 使う。「研究の本棚3冊」プレビュー用に.bookshelfHeading以下を追加した
- * (BookshelfFullList.module.cssの.cover(data-tone毎の仮カバー配色)を
- * 同じ考え方でこのファイルにも複製している。プロジェクト全体で
- * ページごとにスタイルを独立させる既存の方針を踏襲)。
- * ------------------------------------------------------------
- */
+ * 【v0.1公開仕様に合わせたTop全面刷新(2026-09-16、Decision Log 0150)】
+ * 以前のバージョン(Decision Log 0111〜0149、編集的な再設計→4層構成→
+ * ファーストビュー再設計)のスタイルは、この刷新に伴いすべて置き換えた。
+ * 新しいTopはHero(抽象モーション)/3つの主要入口(領域ごとに異なる
+ * 「物質」)/「この場所について」への静かな導線/研究便りの小さな入口、
+ * という4区画のみで構成する。過去の変遷はgit履歴を参照。
+ * ----------------------------- */
 
-/* 「研究断面」の見出し直前に置く、細い横罫線。
-   ResearchSectionが各セクションにpadding-block: space-6を
-   持たせているため、セクション内の最初の要素として配置するだけで
-   上部の余白と揃う。 */
-.sectionRule {
-  border-top: 1px solid var(--color-accent-beige);
-  padding-top: var(--space-5);
+/* -----------------------------
+ * Hero: 抽象モーション+見出し+リード文。
+ * モバイルでHero自体が画面を占有しすぎないよう、モーション領域は
+ * 低めの高さ(28svh程度)に抑える。写真・外部アセットは使わず、
+ * 既存トークンのcolor-mixのみで3枚の帯を表現する。
+ * ----------------------------- */
+.hero {
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding-inline);
+  padding-top: var(--space-3);
 }
 
-.researchReviewsHeading {
-  /* 「いま、取り組んでいること」→「いま考えていること」→「研究断面」
-     セクションの見出し(2026-08-17、Decision Log 0057。文言は
-     2026-09-11のDecision Log 0125・0127で改訂)。ResearchStatementの
-     .heading等と揃え、fs-xlの控えめな見出しサイズにする。 */
-  font-size: var(--fs-xl);
-  line-height: var(--lh-heading);
+.heroMotion {
+  position: relative;
+  height: 28svh;
+  min-height: 8rem;
+  max-height: 14rem;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.heroPanel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30%;
+  left: 35%;
+  border-radius: 2px;
+  animation-duration: 2.4s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  animation-iteration-count: 1;
+}
+
+.heroPanelA {
+  background: color-mix(in srgb, var(--color-accent-beige) 70%, var(--color-paper));
+  animation-name: heroOpenA;
+}
+
+.heroPanelB {
+  background: color-mix(in srgb, var(--color-accent-green) 45%, var(--color-paper));
+  animation-name: heroOpenB;
+  animation-delay: 0.15s;
+}
+
+.heroPanelC {
+  background: color-mix(in srgb, var(--color-accent-blue) 25%, var(--color-paper));
+  animation-name: heroOpenC;
+  animation-delay: 0.3s;
+}
+
+@keyframes heroOpenA {
+  from {
+    left: 35%;
+  }
+  to {
+    left: 0%;
+  }
+}
+
+@keyframes heroOpenB {
+  from {
+    left: 35%;
+  }
+  to {
+    left: 35%;
+  }
+}
+
+@keyframes heroOpenC {
+  from {
+    left: 35%;
+  }
+  to {
+    left: 70%;
+  }
+}
+
+/* 中央に生まれる余白/光。帯が開き終わる頃合いにゆっくり浮かび上がる。 */
+.heroGlow {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 40%;
+  height: 60%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-paper) 100%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  animation: heroGlowIn 1.8s ease-out 1.4s forwards;
+}
+
+@keyframes heroGlowIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* prefers-reduced-motion: reduceでは、アニメーションさせず最終状態
+   (開いた状態)を直接描画する。 */
+@media (prefers-reduced-motion: reduce) {
+  .heroPanel,
+  .heroGlow {
+    animation: none;
+  }
+  .heroPanelA {
+    left: 0%;
+  }
+  .heroPanelB {
+    left: 35%;
+  }
+  .heroPanelC {
+    left: 70%;
+  }
+  .heroGlow {
+    opacity: 1;
+  }
+}
+
+.heroHeading {
+  /* --font-hero-heading(Klee One)は「気づいたら、そこに問いがある」の
+     文字だけをサブセット化した自己ホストフォントで、この見出し
+     (「公開研究室ふ、と」)の文字はほとんど含まれていない。含まれない
+     文字ごとに--font-bodyへフォールバックすると、1つの見出しの中で
+     字形の異なる2つの書体が混在して見えてしまうため、この見出しには
+     使わず、通常の--font-bodyをそのまま使う。 */
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-hero-heading);
   font-weight: 500;
-  margin: 0;
 }
 
-.researchReviewsIntro {
+.heroLead {
   margin: var(--space-2) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
   color: var(--color-ink-muted);
+  max-width: 32rem;
 }
 
-.sectionLink {
+/* -----------------------------
+ * 3つの主要入口(研究断面/実験室/本棚)。カード風に統一せず、
+ * 領域ごとに異なる「物質」(紙面/線・痕跡/背表紙)で見せる。
+ * ----------------------------- */
+.entries {
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding-inline);
   margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
-/* 「持ち寄る」「研究便り」をまとめて収める背景面(2026-09-10新設、
-   2026-09-11に2つのpanelSectionの順序を持ち寄る→研究便りへ変更、
-   Decision Log 0125)。以前「一緒に試す」に使っていた
-   .openPracticePanelと同じ考え方(地の背景に対してごく淡く区別
-   できる面、Decision Log 0094・0104)をそのまま踏襲している。
-   カード的な影・太い枠線・大きな角丸は使わず、静かなトーンを保つ。 */
-.panel {
-  background-color: color-mix(in srgb, var(--color-ink) 5%, var(--color-paper));
-  border-radius: 4px;
-  padding: var(--space-4);
-}
-
-@media (min-width: 600px) {
-  .panel {
-    padding: var(--space-5);
+@media (min-width: 900px) {
+  .entries {
+    flex-direction: row;
+    align-items: stretch;
   }
 }
 
-.panelSection + .panelSection {
-  margin-top: var(--space-5);
-  padding-top: var(--space-5);
+.entry {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  padding-top: var(--space-3);
   border-top: 1px solid var(--color-accent-beige);
 }
 
-.panelHeading {
-  font-size: var(--fs-xl);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: 0;
+@media (min-width: 900px) {
+  .entry {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
-.panelBody {
+.entryLabel {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.entryDescription {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+}
+
+.entryLink {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+
+/* 研究断面: 「紙面」。実データ(最新の研究断面の説明文)を、
+   引用のような左罫線つきの組版で見せる(ResearchStatement.module.css
+   の.quoteと同じ考え方)。 */
+.entryQuote {
   margin: var(--space-2) 0 0;
+  padding-left: var(--space-2);
+  border-left: 1px solid var(--color-accent-beige);
+  font-family: var(--font-body);
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+  font-style: normal;
 }
 
-.panelBody p {
-  margin: 0;
+/* 実験室: 「線・痕跡」。手描きの軌跡のような1本の曲線をSVGで表現する
+   (装飾要素、aria-hidden)。 */
+.entryTrace {
+  display: block;
+  width: 100%;
+  max-width: 12rem;
+  height: auto;
+  margin-bottom: var(--space-2);
 }
 
-/* 「研究便り」のメール登録フォーム(2026-09-10新設)。Contactページの
-   input/送信ボタンと見た目を揃える(contact.module.cssの.input/.submit
-   と同じトークンを使用)が、フォームがこの1ページに閉じているため、
-   スタイル自体は重複定義している(共通化するほどの再利用箇所がまだ
-   ないため)。 */
+.entryTrace path {
+  fill: none;
+  stroke: var(--color-ink-muted);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.entryTrace circle {
+  fill: var(--color-ink-muted);
+}
+
+/* 本棚: 「背表紙」。BookshelfFullList.module.css/participate.module.css
+   と同じcolor-mixのtone(warm/moss/sky)を、行の先頭に収まる小さな
+   背表紙として複製している(ページごとにスタイルを独立させる既存の
+   方針を踏襲)。 */
+.entrySpines {
+  display: flex;
+  gap: var(--space-1);
+  align-items: flex-end;
+  margin-bottom: var(--space-2);
+}
+
+.spine {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  aspect-ratio: 2 / 5;
+  padding: var(--space-1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.spine[data-tone="warm"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
+  );
+}
+
+.spine[data-tone="moss"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
+  );
+}
+
+.spine[data-tone="sky"] {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
+    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
+  );
+}
+
+.spineTitle {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+
+/* -----------------------------
+ * 「この場所について」への静かな導線。大きなCTAにしない。
+ * ----------------------------- */
+.closing {
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding-inline);
+  margin-top: var(--space-5);
+}
+
+.closingLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-base);
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-accent-beige);
+  padding-bottom: 2px;
+}
+
+/* -----------------------------
+ * 研究便りの小さな入口。大きなメール登録フォームにしない
+ * (ラベル+コンパクトな1行フォームのみ、背景面・見出しは使わない)。
+ * ----------------------------- */
+.newsletter {
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding-inline);
+  margin-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+.newsletterLabel {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
 .newsletterForm {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  max-width: 28rem;
-}
-
-@media (min-width: 480px) {
-  .newsletterForm {
-    flex-direction: row;
-  }
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+  max-width: 24rem;
 }
 
 .newsletterInput {
   flex: 1;
+  min-width: 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   color: var(--color-ink-on-surface);
   background-color: var(--color-surface);
   border: 1px solid var(--color-accent-beige);
   border-radius: 2px;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-1);
   transition: border-color var(--transition-base);
 }
 
@@ -157,13 +372,14 @@
 }
 
 .newsletterSubmit {
+  flex-shrink: 0;
   font-family: var(--font-sans);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   color: var(--color-accent-blue);
   background-color: var(--color-surface);
   border: 1px solid var(--color-accent-blue);
   border-radius: 2px;
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-1) var(--space-2);
   cursor: pointer;
   transition:
     background-color var(--transition-base),
@@ -182,26 +398,11 @@
 }
 
 .newsletterStatus {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-1) 0 0;
   min-height: 1.2em;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
-}
-
-/* 【2026-09-11、/privacyへのリンクを含む注記を追加(Decision Log
-   0135)】contact.module.css/participate.module.cssの.privacyNote/
-   .privacyLinkと同じ見た目。 */
-.privacyNote {
-  margin: var(--space-2) 0 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-.privacyLink {
-  color: var(--color-accent-blue);
-  text-decoration: underline;
 }
 
 .honeypot {
@@ -213,255 +414,4 @@
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
-}
-
-/* -----------------------------
- * ファーストビュー: Hero(2026-09-14新設、Decision Log 0149)。
- * 見出し1行+説明1文のみのコンパクトな構成。長いResearch Statement
- * 全文はここには置かず、スクロール後の<ResearchStatement>に委ねる。
- * ----------------------------- */
-.hero {
-  max-width: var(--content-max-width);
-  margin-inline: auto;
-  padding-inline: var(--content-padding-inline);
-  padding-top: var(--space-3);
-}
-
-.heroHeading {
-  /* 「気づいたら、そこに問いがある」の文字だけをサブセット化した
-     --font-hero-heading(Klee One、tokens.css参照)を引き続き使う。
-     句点「。」はこのサブセットに含まれないため、tokenのフォント
-     スタック( "Klee One", var(--font-body) )により自動的に
-     --font-bodyへフォールバックする(tokens.cssに明記された、意図
-     された挙動)。 */
-  font-family: var(--font-hero-heading);
-  font-size: var(--fs-3xl);
-  line-height: var(--lh-hero-heading);
-  font-weight: 600;
-  margin: 0;
-}
-
-.heroLead {
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-  color: var(--color-ink-muted);
-  max-width: 32rem;
-}
-
-/* -----------------------------
- * ファーストビュー: 3つの主要入口(2026-09-14新設、Decision Log
- * 0149)。カード風の影・枠線・角丸は使わず、細い罫線とラベル+短い
- * 説明だけで「編集された目次」のように見せる。Header.astroの
- * ナビゲーション(研究断面/本棚/実験室)と同じ順序。
- * ----------------------------- */
-.entryNav {
-  max-width: var(--content-max-width);
-  margin-inline: auto;
-  padding-inline: var(--content-padding-inline);
-  margin-top: var(--space-3);
-  display: flex;
-  flex-direction: column;
-  border-bottom: 1px solid var(--color-accent-beige);
-}
-
-.entryItem {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding-block: var(--space-2);
-  border-top: 1px solid var(--color-accent-beige);
-  text-decoration: none;
-  color: inherit;
-}
-
-.entryLabel {
-  flex-shrink: 0;
-  min-width: 5.5em;
-  font-size: var(--fs-base);
-  font-weight: 600;
-}
-
-.entryDescription {
-  flex: 1;
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-.entryArrow {
-  flex-shrink: 0;
-  display: inline-block;
-  color: var(--color-accent-blue);
-  transition: transform var(--transition-base);
-}
-
-.entryItem:hover .entryArrow,
-.entryItem:focus-visible .entryArrow {
-  transform: translateX(4px);
-}
-
-/* -----------------------------
- * ファーストビュー: いま動いていること(2026-09-14新設、Decision Log
- * 0149)。実験室(/participate)の3冊のノートを、ノートごと短い説明
- * 1行つきでコンパクトに表示する。データはsrc/data/labNotebooks.tsを
- * /participate・/participate/[slug]と共有し、二重管理しない。
- * ----------------------------- */
-.nowSection {
-  max-width: var(--content-max-width);
-  margin-inline: auto;
-  padding-inline: var(--content-padding-inline);
-  margin-top: var(--space-4);
-}
-
-.nowHeading {
-  margin: 0;
-  font-size: var(--fs-lg);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-}
-
-.nowList {
-  display: flex;
-  flex-direction: column;
-  margin: var(--space-2) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.nowItem {
-  border-top: 1px solid var(--color-accent-beige);
-}
-
-.nowItem:last-child {
-  border-bottom: 1px solid var(--color-accent-beige);
-}
-
-.nowItemLink {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-block: var(--space-2);
-  text-decoration: none;
-  color: inherit;
-}
-
-.nowItemTitle {
-  font-size: var(--fs-base);
-  font-weight: 600;
-}
-
-.nowItemDescription {
-  /* 1行に収める(ファーストビューの高さ予算のため)。全文はノート
-     詳細ページ(/participate/[slug])で読める。 */
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-/* -----------------------------
- * スクロール後: 研究の本棚3冊(2026-09-14、Decision Log 0149で復活。
- * Decision Log 0125でHomeから一度削除したプレビューを、featured:
- * trueの本から3冊のみ表示する形で再設置した)。書影は/bookshelf本体
- * (BookshelfFullList.module.css)と同じ、小さな書影+仮カバー(tone)の
- * 考え方をこのページ用に複製している。
- * ----------------------------- */
-.bookshelfHeading {
-  font-size: var(--fs-xl);
-  line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: 0;
-}
-
-.bookshelfIntro {
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-  color: var(--color-ink-muted);
-}
-
-.bookshelfList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin: var(--space-4) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.bookshelfItem {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-}
-
-.bookshelfCover {
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-end;
-  width: 3.5rem;
-  aspect-ratio: 3 / 4;
-  padding: var(--space-1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.bookshelfCoverImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.bookshelfCover[data-tone="warm"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
-  );
-}
-
-.bookshelfCover[data-tone="moss"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
-  );
-}
-
-.bookshelfCover[data-tone="sky"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
-  );
-}
-
-.bookshelfCoverTitle {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  line-height: 1.3;
-  color: var(--color-ink);
-}
-
-.bookshelfInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-top: var(--space-1);
-}
-
-.bookshelfTitle {
-  font-size: var(--fs-base);
-  font-weight: 500;
-}
-
-.bookshelfAuthor {
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
 }
