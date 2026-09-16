@@ -13,31 +13,82 @@
  * - Decision Log 0139: 「実験室」に改称。「いま、考えていること」
  *   3件+共通の「ふと思い出したことを寄せる」フォーム+「持ち寄られた
  *   もの」一覧、という構成に変更。
- * - Decision Log 0140(このコミット): 「いま、つくっていることを
- *   ひらく3冊のノート」という構造に変更。3件を単なる一覧項目ではなく
- *   「ノートの表紙」として見せ、それぞれ`/participate/[slug]`という
- *   専用ページ(共通テンプレート、`src/pages/participate/[slug].astro`)
- *   に遷移する。各ノート内で「ふ、と」自身の記録・訪問者が書き残した
- *   ことが同じ時系列として積み重なる(交換ノートのような構成)ため、
- *   このページの「共通フォーム」「持ち寄られたもの」一覧は不要になり
- *   削除した(旧`src/data/contributions.ts`・
- *   `src/types/contributions.ts`は他に参照箇所が無くなったため削除
- *   した)。書き足すUIは各ノート詳細ページ側に実装している。
+ * - Decision Log 0140: 「いま、つくっていることをひらく3冊のノート」
+ *   という構造に変更。3件を「ノートの表紙」(色面tone+category/title)
+ *   として見せ、それぞれ`/participate/[slug]`という専用ページに
+ *   遷移する構成にした。
+ * - Decision Log 0155(2026-09-16): v0.1公開仕様に合わせ、表紙一覧を
+ *   細い罫線区切りのリスト+ノートごとの抽象的な「痕跡」(インライン
+ *   SVG)に作り替えた。見出しは「いま、ひらいている実験」、CTAは
+ *   「実験を見る」としていた。
  *
- * データは`src/data/labNotebooks.ts`(`/participate`・
- * `/participate/[slug]`が共有、二重管理しない)。
+ * 【状態表現の修正(2026-09-16、Decision Log 0156)】Decision Log 0155の
+ * 「いま、ひらいている実験」という見出し・「実験を見る」というCTAは、
+ * 実態(3冊とも、notebookという書き込み機能自体は実在するが、
+ * Fieldnote本体・音の道β・研究断面展示企画そのものが公開稼働して
+ * いるわけではない)より完成・稼働している印象を与えてしまうという
+ * 指摘を受けた。見出しを「いま、考えていること」、CTAを「ノートを
+ * 見る →」に修正し、各ノートの説明文も「〜について考えています」
+ * 「〜を試すための方法を考えています」という、完成・稼働を示唆しない
+ * 現在地に合う表現に書き換えた。
+ *
+ * この書き換えは、ランディング専用の上書き文言として`participate.astro`
+ * 内(`landingDescriptions`)にのみ持たせ、`labNotebooks.ts`の
+ * `description`(ノート詳細ページの本文でも使う、より汎用的な説明文)
+ * 自体は変更していない。`labNotebooks.ts`・`/participate/[slug]`・
+ * Worker/D1連携は今回も一切変更していない。
+ *
+ * 一覧の描画は`LabNotebookList.astro`(Decision Log 0156で新設)に
+ * 切り出した。「いま、考えていること」(現状、全3冊)と、将来追加する
+ * 「いま、ひらいている実験」(実際に公開可能な音の道β/Miro等が
+ * できた際、そのnotebookのslugを`liveExperimentSlugs`に加えるだけで
+ * 独立したセクションとして現れる)の両方から、同じコンポーネントを
+ * 再利用できる構造にしてある。現時点では`liveExperimentSlugs`は空の
+ * ため、「いま、ひらいている実験」セクション自体は描画されない。
+ *
+ * データは引き続き`src/data/labNotebooks.ts`(`/participate`・
+ * `/participate/[slug]`が共有、二重管理しない)。Miro board等の外部
+ * 資産はrepository内に存在しないため(2026-09-16確認、Decision Log
+ * 0155)、「音の道」専用の埋め込み・探究マップ体験は実装していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import NightBackground from "@components/NightBackground.astro";
+import LabNotebookList from "@components/LabNotebookList.astro";
 import styles from "./participate.module.css";
 import { labNotebooks } from "@/data/labNotebooks";
+
+/**
+ * 「いま、考えていること」のランディング専用の説明文。
+ * `labNotebooks.ts`の`description`(ノート詳細ページの本文でも使う、
+ * より汎用的な説明文)とは別に、「完成・稼働を示唆する表現を避け、
+ * 現在地に合う表現にする」という指示に沿って書き分けている。同じ
+ * 主題・同じ実データの範囲内での言い換えであり、新しい題材は加えて
+ * いない。`labNotebooks.ts`自体は変更していない。
+ */
+const landingDescriptions: Record<string, string> = {
+  "oto-no-michi":
+    "誰かがどこで立ち止まり、何に気づいたのか。その人の注意の道筋を、音から辿る方法を考えています。",
+  fieldnote:
+    "日常の小さな気づきを、記録するだけでなく、そこから考えたり、別の何かと出会ったりするための方法を考えています。",
+  "research-fragments": "書いてきた「研究断面」を、実際の場所でひらき、展示したり、話したりする企画を考えています。",
+};
+
+/**
+ * 将来、実際に公開可能な実験(例: 音の道βのMiro公開)ができた際は、
+ * そのnotebookのslugをここに加えるだけで、「いま、ひらいている実験」
+ * セクションが独立して現れる(LabNotebookListを再利用するため、
+ * 見た目・実装の追加は不要)。現時点では該当なし。
+ */
+const liveExperimentSlugs: string[] = [];
+const liveExperiments = labNotebooks.filter((notebook) => liveExperimentSlugs.includes(notebook.slug));
+const consideringNotebooks = labNotebooks.filter((notebook) => !liveExperimentSlugs.includes(notebook.slug));
 ---
 
 <DefaultLayout
   title="実験室 ｜ ふ、と"
-  description="「ふ、と」がいまつくっているものを、3冊のノートとしてひらいています。"
+  description="「ふ、と」がいま考えていること・試していることに、ふらっと触れられる場所。"
   theme="night"
 >
   <NightBackground />
@@ -45,32 +96,20 @@ import { labNotebooks } from "@/data/labNotebooks";
   <ResearchSection ariaLabel="Lab" id="lab-hero">
     <p class={styles.eyebrow}>LAB</p>
     <h1 class={styles.heading}>実験室</h1>
-    <div class={styles.body}>
-      <p>ここでは、ツールや企画を、考えたり、つくったり、試したりしています。</p>
-      <p>まだ形になる前から、その過程をノートとしてひらいています。</p>
-      <p>読んで、ふと思い出したことがあれば、書き足してもらえたらうれしいです。</p>
-    </div>
+    <p class={styles.lead}>考えるために、つくったり、試したりする場所。</p>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="いま、つくっていること" id="lab-notebooks">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、つくっていること</h2>
-    <div class={styles.notebookGrid}>
-      {
-        labNotebooks.map((notebook) => (
-          <a class={styles.notebook} href={`/participate/${notebook.slug}`} aria-label={`「${notebook.title}」のノートをひらく`}>
-            <span class={styles.cover} data-tone={notebook.tone}>
-              <span class={styles.coverCategory}>{notebook.category}</span>
-              <span class={styles.coverTitle}>{notebook.title}</span>
-            </span>
-            <span class={styles.notebookInfo}>
-              <span class={styles.notebookDescription}>{notebook.description}</span>
-              <span class={styles.notebookLink}>
-                ノートをひらく <span class={styles.notebookLinkArrow} aria-hidden="true">→</span>
-              </span>
-            </span>
-          </a>
-        ))
-      }
-    </div>
+  {
+    liveExperiments.length > 0 && (
+      <ResearchSection ariaLabel="いま、ひらいている実験" id="lab-experiments">
+        <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、ひらいている実験</h2>
+        <LabNotebookList notebooks={liveExperiments} descriptions={landingDescriptions} ctaLabel="実験を見る" />
+      </ResearchSection>
+    )
+  }
+
+  <ResearchSection ariaLabel="いま、考えていること" id="lab-notebooks">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、考えていること</h2>
+    <LabNotebookList notebooks={consideringNotebooks} descriptions={landingDescriptions} ctaLabel="ノートを見る" />
   </ResearchSection>
 </DefaultLayout>

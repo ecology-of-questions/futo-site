@@ -1,22 +1,23 @@
 /**
  * participate.module.css
  * ------------------------------------------------------------
- * /participate(実験室、ノート表紙一覧)専用のページレベルスタイル。
+ * /participate(実験室、ランディング)専用のページレベルスタイル。
  * index.module.cssの.sectionRule等と同じ考え方(細い罫線)をこの
  * ページ用に複製している(既存ページと同様、ページごとにstyleを
  * 独立させる方針を踏襲)。
  *
- * 【「いま、つくっていることをひらく3冊のノート」への作り替え
- * (2026-09-13、Decision Log 0140)】旧「いま、考えていること」の
- * 細い罫線一覧(.ideaList等)・共通フォーム(.form等)・「持ち寄られた
- * もの」一覧(.contributionList等)は、ノート詳細ページ
- * (`/participate/[slug]`、`[slug].module.css`)側に機能が移った
- * ため、このファイルからは削除した。かわりに、3冊のノートを
- * 「表紙」として見せる.notebookGrid以下のスタイルを追加した。
- * みすず書房のサイトのような「文字と余白を大切にする、検索結果一覧
- * ではなく気になったものをひらく感覚」を参考に、Webカード一覧・SNS
- * 投稿一覧には見えないよう、影・太い枠線・角丸は使わず、色面(tone)と
- * タイポグラフィだけで「表紙」を表現している。
+ * 【v0.1公開仕様に合わせた刷新(2026-09-16、Decision Log 0155)】
+ * 旧「表紙」グリッド(.notebookGrid/.cover以下、色面tone+category/
+ * titleを表紙として見せるカード風レイアウト)を削除し、余白・文字・
+ * 細い罫線+ノートごとの抽象的な「痕跡」(インラインSVG)で見せる
+ * リストに作り替えた。
+ *
+ * 【一覧の描画をLabNotebookList.astroへ切り出し(2026-09-16、
+ * Decision Log 0156)】「いま、ひらいている実験」(将来追加)と
+ * 「いま、考えていること」の両方から一覧を再利用できるようにする
+ * ため、旧`.experimentList`以下(一覧・痕跡SVGのスタイル)を
+ * `LabNotebookList.module.css`へ移設した。このファイルにはページ
+ * 冒頭(Hero)・セクション見出し共通のスタイルのみが残っている。
  * ------------------------------------------------------------
  */
 
@@ -37,19 +38,12 @@
   font-weight: 500;
 }
 
-.body {
-  margin-top: var(--space-3);
+.lead {
+  margin: var(--space-3) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
+  color: var(--color-ink-muted);
   max-width: 36rem;
-}
-
-.body p {
-  margin: 0 0 var(--space-2);
-}
-
-.body p:last-child {
-  margin-bottom: 0;
 }
 
 .sectionRule {
@@ -62,139 +56,4 @@
   line-height: var(--lh-heading);
   font-weight: 500;
   margin: 0;
-}
-
-/* -----------------------------
- * いま、つくっていること(ノートの表紙一覧、2026-09-13、Decision Log
- * 0140)。Mobileは縦積み、Desktop幅(700px〜)は3冊を横に並べる
- * (CurrentWorkList.module.cssと同じ「Mobile縦積み/Desktop横並び」の
- * 考え方を、3項目に適用したもの)。
- * ----------------------------- */
-.notebookGrid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  margin-top: var(--space-4);
-}
-
-@media (min-width: 700px) {
-  .notebookGrid {
-    flex-direction: row;
-    align-items: flex-start;
-    gap: var(--space-4);
-  }
-}
-
-.notebook {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  text-decoration: none;
-  color: inherit;
-}
-
-@media (min-width: 700px) {
-  .notebook {
-    flex: 1;
-    min-width: 0;
-  }
-}
-
-/* 「表紙」。書影のcolor-mixトーン(BookshelfFullList.module.cssと
-   同じ3色)を、本棚の小さな書影よりずっと大きいサイズで使い、
-   category/titleを表紙の文字として下寄せで載せる。 */
-.cover {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  width: 100%;
-  max-width: 16rem;
-  aspect-ratio: 3 / 4;
-  padding: var(--space-3);
-  border-radius: 2px;
-  transition: transform var(--transition-base);
-}
-
-@media (min-width: 700px) {
-  .cover {
-    max-width: none;
-  }
-}
-
-.notebook:hover .cover,
-.notebook:focus-visible .cover {
-  transform: translateY(-2px);
-}
-
-.cover[data-tone="warm"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
-  );
-}
-
-.cover[data-tone="moss"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
-  );
-}
-
-.cover[data-tone="sky"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
-  );
-}
-
-.coverCategory {
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-muted);
-}
-
-.coverTitle {
-  margin-top: var(--space-1);
-  font-size: var(--fs-xl);
-  font-weight: 500;
-  line-height: var(--lh-heading);
-  color: var(--color-ink);
-}
-
-.notebookInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.notebookDescription {
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-}
-
-.notebookLink {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--fs-sm);
-  color: var(--color-accent-blue);
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 1px;
-}
-
-.notebookLinkArrow {
-  display: inline-block;
-  transition: transform var(--transition-base);
-}
-
-.notebook:hover .notebookLinkArrow,
-.notebook:focus-visible .notebookLinkArrow {
-  transform: translateX(4px);
 }

@@ -1,0 +1,73 @@
+---
+/**
+ * LabNotebookList.astro
+ * ------------------------------------------------------------
+ * 役割: 実験室(/participate)ランディングの、ノート/実験の一覧行を
+ * 描画する。「いま、考えていること」(現状、全3冊がここに属する)と、
+ * 将来追加する「いま、ひらいている実験」(実際に公開可能な音の道β/
+ * Miro等ができた際、そのnotebookだけをこちらに移す)の両方から、
+ * 同じ見た目・同じロジックで呼び出せるようにするため切り出した
+ * (2026-09-16、Decision Log 0156)。
+ *
+ * カードUIにはせず、細い罫線区切りの縦リスト+ノートごとに異なる
+ * 抽象的な「痕跡」(インラインSVG、装飾要素)で見せる(Decision Log
+ * 0155を踏襲)。写真・生成画像は使わない。
+ *
+ * `descriptions`は、`labNotebooks.ts`の`description`(ノート詳細
+ * ページの本文でも使う、より汎用的な説明文)とは別に、ランディング
+ * 専用の短い説明文をこのページからpropsで渡す。理由:
+ * 「いま、考えていること」の説明文は「完成・稼働を示唆する表現を
+ * 避け、現在地に合う表現にする」という指示のもとに書き分けたもので、
+ * `labNotebooks.ts`(ノート詳細ページと共有)を変更すると詳細ページの
+ * 表示にも影響してしまうため、ランディングだけで完結する上書き値と
+ * して扱う(`labNotebooks.ts`・`[slug].astro`は変更していない)。
+ *
+ * `ctaLabel`は呼び出し元が指定する(「いま、考えていること」では
+ * 「ノートを見る」、将来の「いま、ひらいている実験」では「実験を
+ * 見る」を想定)。
+ * ------------------------------------------------------------
+ */
+import styles from "./LabNotebookList.module.css";
+import type { LabNotebook } from "@/types/labNotebook";
+
+interface Props {
+  notebooks: LabNotebook[];
+  descriptions: Record<string, string>;
+  ctaLabel: string;
+}
+
+const { notebooks, descriptions, ctaLabel } = Astro.props;
+
+/** ノートごとの抽象的な「痕跡」(装飾要素、aria-hidden)。写真・生成
+    画像は使わず、細い線のみで構成する。すべて同じ見た目にならない
+    よう、ノートの性質(実験/アプリ/企画)に合わせて形を変えている。
+    labNotebooks.ts側にデータを増やさず、このコンポーネント内で完結
+    させる(装飾情報のため)。 */
+const traces: Record<string, string> = {
+  "oto-no-michi": `<svg viewBox="0 0 120 40" aria-hidden="true"><path d="M4 30 Q 20 6 36 22 T 68 18 T 100 28 T 116 10" /><circle cx="4" cy="30" r="2" /></svg>`,
+  fieldnote: `<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="8" y="6" width="38" height="48" rx="2" /><line x1="16" y1="20" x2="38" y2="20" /><line x1="16" y1="30" x2="38" y2="30" /><line x1="16" y1="40" x2="30" y2="40" /></svg>`,
+  "research-fragments": `<svg viewBox="0 0 60 44" aria-hidden="true"><rect x="4" y="18" width="34" height="22" /><rect x="13" y="10" width="34" height="22" /><rect x="22" y="2" width="34" height="22" /></svg>`,
+};
+---
+
+<ul class={styles.list}>
+  {
+    notebooks.map((notebook) => (
+      <li class={styles.item}>
+        <a
+          class={styles.link}
+          href={`/participate/${notebook.slug}`}
+          aria-label={`「${notebook.title}」の${ctaLabel}`}
+        >
+          <p class={styles.label}>{notebook.category}</p>
+          <h3 class={styles.title}>{notebook.title}</h3>
+          <p class={styles.description}>{descriptions[notebook.slug] ?? notebook.description}</p>
+          <span class={styles.trace} set:html={traces[notebook.slug]} />
+          <span class={styles.readMore}>
+            {ctaLabel} <span class={styles.arrow} aria-hidden="true">→</span>
+          </span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
