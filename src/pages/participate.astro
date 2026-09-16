@@ -17,56 +17,78 @@
  *   という構造に変更。3件を「ノートの表紙」(色面tone+category/title)
  *   として見せ、それぞれ`/participate/[slug]`という専用ページに
  *   遷移する構成にした。
+ * - Decision Log 0155(2026-09-16): v0.1公開仕様に合わせ、表紙一覧を
+ *   細い罫線区切りのリスト+ノートごとの抽象的な「痕跡」(インライン
+ *   SVG)に作り替えた。見出しは「いま、ひらいている実験」、CTAは
+ *   「実験を見る」としていた。
  *
- * 【v0.1公開仕様に合わせた刷新(2026-09-16、Decision Log 0155)】
- * 「説明カードが並ぶページではなく、いま実際に試していることに、
- * ふらっと触れられる場所」という指示に基づき、表紙一覧(色面tone+
- * category/titleの「表紙」グリッド)を、余白・文字・細い罫線+
- * ノートごとに異なる抽象的な「痕跡」(インラインSVG、装飾要素)で
- * 見せるリストに作り替えた。3冊とも同じ見た目の「カード」にせず、
- * 各ノートの性質(実験/アプリ/企画)に合わせて異なる線の形にしている
- * (架空の写真・生成画像ではなく、既存のtokens.cssのトーンのみで
- * 構成した装飾)。
+ * 【状態表現の修正(2026-09-16、Decision Log 0156)】Decision Log 0155の
+ * 「いま、ひらいている実験」という見出し・「実験を見る」というCTAは、
+ * 実態(3冊とも、notebookという書き込み機能自体は実在するが、
+ * Fieldnote本体・音の道β・研究断面展示企画そのものが公開稼働して
+ * いるわけではない)より完成・稼働している印象を与えてしまうという
+ * 指摘を受けた。見出しを「いま、考えていること」、CTAを「ノートを
+ * 見る →」に修正し、各ノートの説明文も「〜について考えています」
+ * 「〜を試すための方法を考えています」という、完成・稼働を示唆しない
+ * 現在地に合う表現に書き換えた。
  *
- * 本文(冒頭のHero説明)は、旧3段落
- * (「ここでは、ツールや企画を〜」「まだ形になる前から〜」「読んで、
- * ふと思い出したことがあれば〜」)から、v0.1仕様書が示した1文
- * 「考えるために、つくったり、試したりする場所。」に差し替えた
- * (書き足し方の説明は、各ノート詳細ページの共通説明文
- * `commonNotebookDescription`に既にあるため、ここでは繰り返さない
- * 判断)。
+ * この書き換えは、ランディング専用の上書き文言として`participate.astro`
+ * 内(`landingDescriptions`)にのみ持たせ、`labNotebooks.ts`の
+ * `description`(ノート詳細ページの本文でも使う、より汎用的な説明文)
+ * 自体は変更していない。`labNotebooks.ts`・`/participate/[slug]`・
+ * Worker/D1連携は今回も一切変更していない。
+ *
+ * 一覧の描画は`LabNotebookList.astro`(Decision Log 0156で新設)に
+ * 切り出した。「いま、考えていること」(現状、全3冊)と、将来追加する
+ * 「いま、ひらいている実験」(実際に公開可能な音の道β/Miro等が
+ * できた際、そのnotebookのslugを`liveExperimentSlugs`に加えるだけで
+ * 独立したセクションとして現れる)の両方から、同じコンポーネントを
+ * 再利用できる構造にしてある。現時点では`liveExperimentSlugs`は空の
+ * ため、「いま、ひらいている実験」セクション自体は描画されない。
  *
  * データは引き続き`src/data/labNotebooks.ts`(`/participate`・
- * `/participate/[slug]`が共有、二重管理しない)。「音の道」を含む
- * 3冊とも、実在するnotebook(`/participate/[slug]`で実際に読み書き
- * できる)として同じ扱いで表示する。Miro board等の外部資産は
- * repository内に存在しないため(2026-09-16確認)、「音の道」専用の
- * 埋め込み・探究マップ体験は実装していない(Decision Log 0155参照)。
- * `/participate/[slug]`(ノート詳細)自体・Worker/D1連携は変更して
- * いない。
+ * `/participate/[slug]`が共有、二重管理しない)。Miro board等の外部
+ * 資産はrepository内に存在しないため(2026-09-16確認、Decision Log
+ * 0155)、「音の道」専用の埋め込み・探究マップ体験は実装していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import NightBackground from "@components/NightBackground.astro";
+import LabNotebookList from "@components/LabNotebookList.astro";
 import styles from "./participate.module.css";
 import { labNotebooks } from "@/data/labNotebooks";
 
-/** ノートごとの抽象的な「痕跡」(インラインSVG、装飾要素、aria-hidden)。
-    写真・生成画像は使わず、細い線のみで構成する。すべて同じ見た目に
-    ならないよう、ノートの性質(実験/アプリ/企画)に合わせて形を変えて
-    いる。labNotebooks.ts側にデータを増やさず、このページのみで完結
-    させる(装飾情報のため)。 */
-const traces: Record<string, string> = {
-  "oto-no-michi": `<svg viewBox="0 0 120 40" aria-hidden="true"><path d="M4 30 Q 20 6 36 22 T 68 18 T 100 28 T 116 10" /><circle cx="4" cy="30" r="2" /></svg>`,
-  fieldnote: `<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="8" y="6" width="38" height="48" rx="2" /><line x1="16" y1="20" x2="38" y2="20" /><line x1="16" y1="30" x2="38" y2="30" /><line x1="16" y1="40" x2="30" y2="40" /></svg>`,
-  "research-fragments": `<svg viewBox="0 0 60 44" aria-hidden="true"><rect x="4" y="18" width="34" height="22" /><rect x="13" y="10" width="34" height="22" /><rect x="22" y="2" width="34" height="22" /></svg>`,
+/**
+ * 「いま、考えていること」のランディング専用の説明文。
+ * `labNotebooks.ts`の`description`(ノート詳細ページの本文でも使う、
+ * より汎用的な説明文)とは別に、「完成・稼働を示唆する表現を避け、
+ * 現在地に合う表現にする」という指示に沿って書き分けている。同じ
+ * 主題・同じ実データの範囲内での言い換えであり、新しい題材は加えて
+ * いない。`labNotebooks.ts`自体は変更していない。
+ */
+const landingDescriptions: Record<string, string> = {
+  "oto-no-michi":
+    "誰かがどこで立ち止まり、何に気づいたのか。その人の注意の道筋を、音から辿る方法を考えています。",
+  fieldnote:
+    "日常の小さな気づきを、記録するだけでなく、そこから考えたり、別の何かと出会ったりするための方法を考えています。",
+  "research-fragments": "書いてきた「研究断面」を、実際の場所でひらき、展示したり、話したりする企画を考えています。",
 };
+
+/**
+ * 将来、実際に公開可能な実験(例: 音の道βのMiro公開)ができた際は、
+ * そのnotebookのslugをここに加えるだけで、「いま、ひらいている実験」
+ * セクションが独立して現れる(LabNotebookListを再利用するため、
+ * 見た目・実装の追加は不要)。現時点では該当なし。
+ */
+const liveExperimentSlugs: string[] = [];
+const liveExperiments = labNotebooks.filter((notebook) => liveExperimentSlugs.includes(notebook.slug));
+const consideringNotebooks = labNotebooks.filter((notebook) => !liveExperimentSlugs.includes(notebook.slug));
 ---
 
 <DefaultLayout
   title="実験室 ｜ ふ、と"
-  description="「ふ、と」がいま実際に試していることに、ふらっと触れられる場所。"
+  description="「ふ、と」がいま考えていること・試していることに、ふらっと触れられる場所。"
   theme="night"
 >
   <NightBackground />
@@ -77,28 +99,17 @@ const traces: Record<string, string> = {
     <p class={styles.lead}>考えるために、つくったり、試したりする場所。</p>
   </ResearchSection>
 
-  <ResearchSection ariaLabel="いま、ひらいている実験" id="lab-experiments">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、ひらいている実験</h2>
-    <ul class={styles.experimentList}>
-      {
-        labNotebooks.map((notebook) => (
-          <li class={styles.experimentItem}>
-            <a
-              class={styles.experimentLink}
-              href={`/participate/${notebook.slug}`}
-              aria-label={`「${notebook.title}」の実験を見る`}
-            >
-              <p class={styles.experimentLabel}>{notebook.category}</p>
-              <h3 class={styles.experimentTitle}>{notebook.title}</h3>
-              <p class={styles.experimentDescription}>{notebook.description}</p>
-              <span class={styles.experimentTrace} set:html={traces[notebook.slug]} />
-              <span class={styles.experimentReadMore}>
-                実験を見る <span class={styles.experimentArrow} aria-hidden="true">→</span>
-              </span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+  {
+    liveExperiments.length > 0 && (
+      <ResearchSection ariaLabel="いま、ひらいている実験" id="lab-experiments">
+        <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、ひらいている実験</h2>
+        <LabNotebookList notebooks={liveExperiments} descriptions={landingDescriptions} ctaLabel="実験を見る" />
+      </ResearchSection>
+    )
+  }
+
+  <ResearchSection ariaLabel="いま、考えていること" id="lab-notebooks">
+    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、考えていること</h2>
+    <LabNotebookList notebooks={consideringNotebooks} descriptions={landingDescriptions} ctaLabel="ノートを見る" />
   </ResearchSection>
 </DefaultLayout>

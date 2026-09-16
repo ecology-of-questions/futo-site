@@ -1,0 +1,113 @@
+/**
+ * LabNotebookList.module.css
+ * ------------------------------------------------------------
+ * LabNotebookList.astro(実験室ランディングのノート/実験一覧、
+ * Decision Log 0156)のスタイル。participate.module.cssにあった
+ * `.experimentList`以下を、コンポーネント分割に伴いそのまま移設した
+ * (見た目は変更していない)。
+ * ------------------------------------------------------------
+ */
+
+.list {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+}
+
+.item {
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.item:first-child {
+  border-top: none;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding-block: var(--space-4);
+  text-decoration: none;
+  color: inherit;
+}
+
+.label {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+.description {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+  max-width: 36rem;
+}
+
+/* ノートごとの抽象的な「痕跡」(装飾要素、aria-hidden)。写真・生成
+   画像は使わず、細い線のみで構成する。色は単色(--color-ink-muted)に
+   統一し、「クリエイティブ系AIサイト」のような派手な配色にはしない。 */
+.trace {
+  display: block;
+  width: 100%;
+  max-width: 7rem;
+  height: auto;
+  margin-top: var(--space-2);
+}
+
+.trace :global(svg) {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.trace :global(path),
+.trace :global(line) {
+  fill: none;
+  stroke: var(--color-ink-muted);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.trace :global(rect) {
+  fill: none;
+  stroke: var(--color-ink-muted);
+  stroke-width: 1;
+}
+
+.trace :global(circle) {
+  fill: var(--color-ink-muted);
+}
+
+.readMore {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+}
+
+.arrow {
+  display: inline-block;
+  transition: transform var(--transition-base);
+}
+
+.link:hover .arrow,
+.link:focus-visible .arrow {
+  transform: translateX(4px);
+}
