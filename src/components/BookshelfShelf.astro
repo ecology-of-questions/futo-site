@@ -1,0 +1,154 @@
+---
+/**
+ * BookshelfShelf.astro
+ * ------------------------------------------------------------
+ * 役割: 「研究の本棚」(/bookshelf)本体の表示。
+ *
+ * 【v0.1公開仕様への全面刷新(2026-09-16、Decision Log 0154)】旧
+ * `BookshelfFullList.astro`(2026-08-15〜、Decision Log 0116・0117・
+ * 0130・0133・0137・0138)を置き換えた。旧実装は「すべて/読書中/…」の
+ * フィルターボタン+status混在の縦1列リストという、カタログ的な構成
+ * だった。v0.1仕様は「本のカード一覧ではなく、いまの探究のそばに
+ * 実際に置かれている本が見える場所」を求めており、以下のように再設計
+ * した。
+ *
+ * - 「いま読んでいる」本(status: "reading")を、ページ上部に最も
+ *   大きく見せるHero区画にした。書影(仮カバー、tone色面)を横に並べ、
+ *   その下にタイトル・著者のキャプション一覧を添える。
+ * - それ以外のstatus("これから読む"/"読みたい"/"読了"/"贈って
+ *   いただいた")は、実データに存在するものだけをコンパクトな行
+ *   リストのセクションとして表示する。空のstatusはセクションごと
+ *   非表示にする(架空のセクションを作らない)。
+ * - フィルターボタン(すべて/読書中/…の5ボタン、vanilla JSでの
+ *   表示切替)は削除した。本の冊数が少なく(6冊)、既にstatusごとの
+ *   セクションに分かれているため、フィルターが無くても迷わず全体を
+ *   見渡せると判断した。
+ * - 本ごとのアクション(購入リンク・この本から生まれた記録・一緒に
+ *   読みたい)は、ロジック・挙動を変えずに`BookActions.astro`へ
+ *   切り出し、Hero・セクション行の両方から呼び出す。
+ *
+ * 書影は、実際の書影画像(`book.image`)→正規に取得した外部URL
+ * (`book.externalCoverUrl`)→仮カバー(tone、color-mixの色面)の優先
+ * 順位で表示する(この優先順位自体は旧実装から変更していない)。
+ * 現時点でrepository内に実際の書影画像assetは存在せず、6冊すべてが
+ * 仮カバー(tone)で表示される。生成画像・架空の背表紙は作っていない。
+ * ------------------------------------------------------------
+ */
+import styles from "./BookshelfShelf.module.css";
+import BookActions from "./BookActions.astro";
+import { bookStatusLabels, type BookStatus, type BookEntry } from "@/types/bookshelf";
+import { buildPurchaseUrl, isActiveAffiliateLink } from "@/config/site";
+
+interface Props {
+  books: BookEntry[];
+}
+
+const { books } = Astro.props;
+
+const tones = ["warm", "moss", "sky"] as const;
+const toneForIndex = (i: number) => tones[i % tones.length];
+
+const purchaseLabels = { amazon: "Amazonで見る", other: "購入する" } as const;
+
+function toRow(book: BookEntry, i: number) {
+  return {
+    book,
+    tone: book.tone ?? toneForIndex(i),
+    purchaseHref: buildPurchaseUrl(book),
+    purchaseLabel: purchaseLabels[book.purchaseProvider ?? "other"],
+    isAffiliate: isActiveAffiliateLink(book),
+  };
+}
+
+const rows = books.map(toRow);
+const reading = rows.filter((row) => row.book.status === "reading");
+
+/** 「いま読んでいる」以外のstatusのうち、実データが1冊以上あるものだけ
+    セクションとして表示する(bookStatusLabelsをそのまま見出しに使う)。 */
+const secondaryStatuses: BookStatus[] = ["queued", "wishlist", "finished", "gifted"];
+const secondaryGroups = secondaryStatuses
+  .map((status) => ({
+    status,
+    heading: bookStatusLabels[status],
+    rows: rows.filter((row) => row.book.status === status),
+  }))
+  .filter((group) => group.rows.length > 0);
+
+const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book));
+---
+
+{
+  reading.length > 0 && (
+    <div class={styles.hero}>
+      <h2 class={styles.heroHeading}>いま読んでいる</h2>
+      <ul class={styles.heroShelf}>
+        {reading.map(({ book, tone, purchaseHref, purchaseLabel, isAffiliate }) => (
+          <li class={styles.heroItem}>
+            <span class={styles.heroSpine} data-tone={tone}>
+              {book.image ? (
+                <img class={styles.heroSpineImage} src={book.image} alt={book.title} loading="lazy" />
+              ) : book.externalCoverUrl ? (
+                <img class={styles.heroSpineImage} src={book.externalCoverUrl} alt={book.title} loading="lazy" />
+              ) : (
+                <span class={styles.heroSpineTitle}>{book.title}</span>
+              )}
+            </span>
+            <p class={styles.heroCaptionTitle}>
+              {book.title}
+              {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
+            </p>
+            {book.author && <p class={styles.heroCaptionAuthor}>{book.author}</p>}
+            <BookActions book={book} purchaseHref={purchaseHref} purchaseLabel={purchaseLabel} isAffiliate={isAffiliate} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+{
+  secondaryGroups.map((group) => (
+    <div class={styles.section}>
+      <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>{group.heading}</h2>
+      <ul class={styles.list}>
+        {group.rows.map(({ book, tone, purchaseHref, purchaseLabel, isAffiliate }) => (
+          <li class={styles.row}>
+            <div class={styles.rowMain}>
+              <span class={styles.cover} data-tone={tone}>
+                {book.image ? (
+                  <img class={styles.coverImage} src={book.image} alt={book.title} loading="lazy" />
+                ) : book.externalCoverUrl ? (
+                  <img class={styles.coverImage} src={book.externalCoverUrl} alt={book.title} loading="lazy" />
+                ) : (
+                  <span class={styles.coverTitle}>{book.title}</span>
+                )}
+              </span>
+              <div class={styles.info}>
+                <p class={styles.title}>
+                  {book.title}
+                  {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
+                </p>
+                {book.author && <p class={styles.author}>{book.author}</p>}
+                {book.reason && <p class={styles.reason}>{book.reason}</p>}
+                <BookActions
+                  book={book}
+                  purchaseHref={purchaseHref}
+                  purchaseLabel={purchaseLabel}
+                  isAffiliate={isAffiliate}
+                />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  ))
+}
+
+{
+  hasAffiliateDisclosure && (
+    <p class={styles.affiliateDisclosure}>
+      Amazonのアソシエイトとして、「ふ、と」は適格販売により収入を得ています。
+    </p>
+  )
+}
