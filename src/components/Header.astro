@@ -77,6 +77,16 @@
  * フッターとの間が不自然に空白に見える不具合として顕在化した。
  * メニューを開いたままスクロールした場合は自動的に閉じるようにして、
  * この状態に陥らないようにした。
+ *
+ * 【v0.1公開仕様に合わせたナビゲーション再編(2026-09-16、Decision Log
+ * 0150)】プロジェクトオーナーから受け取ったv0.1実装仕様書
+ * (futo_v0.1_handoff)により、グローバルナビを「研究断面/実験室/本棚/
+ * この場所について」の4項目・この順序にする指示を受けた。
+ * - 順序を「研究断面/本棚/実験室」→「研究断面/実験室/本棚」に変更した
+ *   (実験室と本棚の表示順を入れ替え)。
+ * - 4項目目のラベルを「公開研究室ふ、と」→「この場所について」に変更
+ *   した。遷移先(`/about`)・項目数は変更していない(既存URLを維持する
+ *   方針のため)。
  * ------------------------------------------------------------
  */
 import styles from "./Header.module.css";
@@ -107,9 +117,9 @@ import styles from "./Header.module.css";
 
     <nav id="site-nav" class={styles.nav} aria-label="サイト内ナビゲーション" data-nav>
       <a class={styles.navLink} href="/research">研究断面</a>
-      <a class={styles.navLink} href="/bookshelf">本棚</a>
       <a class={styles.navLink} href="/participate">実験室</a>
-      <a class={styles.navLink} href="/about">公開研究室ふ、と</a>
+      <a class={styles.navLink} href="/bookshelf">本棚</a>
+      <a class={styles.navLink} href="/about">この場所について</a>
     </nav>
   </div>
 </header>

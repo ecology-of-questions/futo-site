@@ -11,229 +11,159 @@
  * 0016)。過去の変遷(全文掲載/抜粋掲載の切り替え)は複数回の
  * Decision Logにまたがっているため、直近の構成のみ以下に記す。
  *
- * 【トップページ再設計(2026-09-10、Decision Log 0111)】プロジェクト
- * オーナーから、「白ベースで余白の多い編集的なトップページ」への
- * 再設計指示(添付の理想イメージ・詳細な文案・デザインルール付き)を
- * 受けた。実装前に「変更対象ファイル・現在の構成・変更後の構成案・
- * 各セクションの変更前後の文章・新設セクション」の一覧を提示し、
- * 新設3セクション(研究の本棚・研究便り・研究を支える)がCLAUDE.mdの
- * Parking Lot(β公開まで新機能を増やさない方針)に抵触することを
- * 明示したうえで、プロジェクトオーナーに確認した。プロジェクトオーナー
- * は「3セクションとも今回実装する」と回答し、Parking Lotの方針転換を
- * 明示的に決定した(詳細はDecision Log 0111、CLAUDE.md/PROJECT.mdの
- * Parking Lot節参照)。
- *
- * 変更内容:
- * - Research Statementセクション: 全文(6段落)ではなく、冒頭2文の
- *   要約+「Research Statementを読む →」に変更。全文は独立ページ
- *   `/research-statement`として復活させた(2026-09-09、Decision Log
- *   0102で一度廃止していたもの)。
- * - 「研究の本棚」を新設。本の仮カード3件+一覧ページ`/bookshelf`。
- * - 「一緒に試す」: 本文を1文に短縮。独立区画としての背景面
- *   (Decision Log 0094)は撤去し、他の平場セクションと同じ扱いに
- *   戻した。
- * - 「研究便り」(メルマガ購読フォーム)・「研究を支える」(支援ページ
- *   への導線)を新設し、1つの背景面にまとめて配置した。
- * - 「いま、取り組んでいること」の見出し直前等、3セクションに細い
- *   上罫線を追加した。
- *
- * 【一部の変更を差し戻し(2026-09-10、Decision Log 0112)】上記の
- * 再設計案では、見出し末尾の句点「。」を復活させ(Decision Log 0108
- * で削除)、「Research｜問いの生態系」カードを復活させ(Decision Log
- * 0109で削除)、Headerの「ふ、とについて」表記への差し戻しも指示に
- * 含まれていた。プロジェクトオーナーから「(直近の変更である)
- * Decision Log 0108/0109の状態が正しい」との指摘を受け、この3点のみ
- * 元に戻した: 見出しは句点なし「気づいたら、そこに問いがある」の
- * まま、「問いの生態系」カードは表示せず「研究断面」1件のまま、
- * Headerは「公開研究室ふ、と」のまま。詳細はDecision Log 0112参照。
- *
- * 【「研究の本棚」のデータ元を一元化(2026-09-11、Decision Log 0117)】
- * `/participate`側で本棚UIが独自に拡張された結果、「研究の本棚」が
- * `/bookshelf`と`/participate`の2箇所に分裂したため、プロジェクト
- * オーナーの指示で`/bookshelf`を正式な本体ページと位置づけ、本データを
- * `src/data/bookshelf.ts`の1箇所に統合した。このページのプレビュー
- * (3件)は、以前はここに直接ハードコードしていたが、共有データから
- * `featured: true`の本を絞り込んで表示するよう変更した。見出し・
- * 導入文・カード自体の見た目(BookshelfList.astro)は変更していない。
- *
- * 【「研究を支える」→「関わる」に置き換え(2026-09-11、Decision Log
- * 0120)】プロジェクトオーナーの指示により、支援ページ(`/support`)を
- * 独立ページとして育てない方針に転換したため、このパネルを
- * 「関わる」(`/participate`へのリンク)に差し替えた。「研究便り」
- * パネルは変更していない。
- *
- * 【トップページを4層構成に整理(2026-09-11、Decision Log 0125)】
- * プロジェクトオーナーから、「初めて来た人が上から読むだけで、
- * 何を研究している場所か/今何を考えているか/自分も持ち込める場所か
- * が分かる」構成にする指示を受けた。トップページを「サイト内の
- * 全機能を紹介する場所」にしないという方針のもと、以下の4セクション
- * のみに絞った。
- *
- *   1. Research Statement(本文は変更なし)
- *   2. いま考えていること(旧「いま、取り組んでいること」。
- *      最新の研究断面1件のみを表示。データはsrc/data/
- *      researchReviews.tsから取得し、二重管理しない)
- *   3. 持ち寄る(旧「関わる」パネル。日本語表記を「持ち寄る」に
- *      変更、本文も1文に短縮。具体的な参加方法は列挙せず
- *      /participateへ委ねる)
- *   4. 研究便り(変更なし)
- *
- * 「研究の本棚」プレビュー・「一緒に試す」の独立セクションは
- * トップから削除した。どちらも機能・データ・独立ページ
- * (/bookshelf、お問い合わせ導線)自体は変更していない。ナビゲーション
- * からの入口(Header「本棚」等)もそのまま残している。
- * 「持ち寄る」「研究便り」は、引き続き1つの背景面(.panel)にまとめ、
- * 上記の順(持ち寄る→研究便り)に並べている。
- *
- * 【「いま考えていること」→「研究断面」に改称、最新2件表示に変更
- * (2026-09-11、Decision Log 0127)】プロジェクトオーナーの指示により、
- * 見出しをHeader/Footerの「研究断面」表記と一致させ、短い説明文
- * (「いま考えていること、試していることを記録しています。」)を追加、
- * 表示件数を最新1件→最新2件に変更した(現在公開済みの研究断面が
- * ちょうど2件のため、両方をトップから見つけられるようにする)。
- * 記事が増えても表示は常に最新2件のみとし、下に「研究断面をすべて
- * 見る→」を置いて既存の一覧ページ(/research)に委ねる。データは
- * 引き続きsrc/data/researchReviews.tsを共有し、二重管理しない。
- *
- * 以下、この変更より前の変遷(Hero統合・夜空背景・文章整理等)は、
+ * 2026-08-15〜2026-09-14の再設計の変遷(トップページ編集的再設計
+ * (Decision Log 0111)→4層構成への整理(0125)→研究断面2件表示(0127)→
+ * スマホのファーストビューでサイト全体像が分かる構成(0149))は、
  * このファイルのgit履歴および各Decision Logを参照。
  *
- * 【「持ち寄る」パネルを「実験室」に更新(2026-09-13、Decision Log
- * 0139)】`/participate`のページ内容を「実験室」に作り替えたことに
- * 伴い、見出し・本文・CTAを揃えた(見出し「持ち寄る」→「実験室」、
- * CTA「持ち寄る」→「実験室を見る」、本文は`/participate`のHero本文
- * 冒頭と同じ1文に差し替え)。レイアウト・背景面(.panel)・
- * リンク先(/participate)・Eyebrow「PARTICIPATE」・「研究便り」
- * パネルは変更していない。
+ * 【v0.1公開仕様に合わせたTop全面刷新(2026-09-16、Decision Log 0150)】
+ * プロジェクトオーナーから、2026年9月公開版 v0.1 実装仕様書
+ * (futo_v0.1_handoff、以下「v0.1仕様」)を受け取った。v0.1仕様は
+ * Topを含むサイト全体の再構成を指示しており、「現在の旧Top案
+ * (このファイルの直前の状態、Decision Log 0149)のレイアウトは
+ * そのままmergeせず、v0.1仕様で置き換える」という明示的な指示が
+ * あった。今回のコミットはそのTop部分の置き換えである。
+ *
+ * Decision Log 0149時点のTopは、ファーストビュー(Hero+3つの主要
+ * 入口+いま動いていること)とスクロール後(Research Statement全文+
+ * 研究断面2件+実験室のノート+研究の本棚3冊+研究便りフォーム)という
+ * 「サイト内の主要コンテンツをTopに集約する」構成だった。v0.1仕様は
+ * これと方向性が異なり、「Topはサイト内の全機能を紹介する場所に
+ * しない」という原則を徹底し、Topを
+ *
+ *   1. Hero(抽象モーション+コピー1文)
+ *   2. 3つの主要入口(研究断面/実験室/本棚。カード風に統一せず、
+ *      領域ごとに異なる「物質」(紙面/線・痕跡/背表紙)で見せる)
+ *   3. 「この場所について」への静かな導線
+ *   4. 研究便りの小さな入口
+ *
+ * という4区画のみに絞る指示だった。Research Statement全文・研究断面
+ * 一覧・実験室のノート一覧・本棚のプレビューは、いずれもTopから
+ * 外し、それぞれの本来のページ(/research-statement、/research、
+ * /participate、/bookshelf)に委ねた(これらのページ自体・データ・
+ * リンク先は変更していない。Header.astroの4項目のナビゲーションから
+ * 引き続き到達できる)。
+ *
+ * 3つの主要入口の短い説明文は、新しいコピーを作らず、それぞれの遷移先
+ * ページに既にある文言をそのまま引用している(v0.1仕様の「架空の
+ * コンテンツで画面を埋めない」という原則を、コピーにも適用した判断。
+ * 詳細はDecision Log 0150参照)。
+ *
+ *   - 研究断面: research.astroの見出し下の説明文の前半
+ *     (「その時点で考えていることを、研究の断面として残しています。」)
+ *     と、researchReviews.tsの最新エントリの説明文(実データ)。
+ *   - 実験室: participate.astroのHero本文の1文目
+ *     (「ここでは、ツールや企画を、考えたり、つくったり、試したり
+ *     しています。」)。
+ *   - 本棚: bookshelf.astroの見出し下の説明文
+ *     (「読んでいる本、これから読みたい本。」)と、bookshelf.tsの
+ *     先頭3冊(実データ、現在「読書中」の3冊)。
+ *
+ * Heroの抽象モーション(閉じた境界→ゆっくりひらく→余白が生まれる、
+ * という3段階)は、写真・外部アセットを使わず、既存のtokens.css の
+ * トーン(--color-accent-beige/--color-accent-green/--color-accent-blue
+ * のcolor-mix)のみで構成した3枚の帯がスライドして開く、CSSアニメー
+ * ションのみの表現。`prefers-reduced-motion: reduce`では、アニメー
+ * ションさせず最終状態(開いた状態)を直接描画する。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
-import ResearchStatement from "@components/ResearchStatement.astro";
-import ResearchSection from "@components/ResearchSection.astro";
-import sectionTitleStyles from "@components/SectionTitle.module.css";
-import ArrowLink from "@components/ArrowLink.astro";
-import CurrentWorkList from "@components/CurrentWorkList.astro";
 import NightBackground from "@components/NightBackground.astro";
 import styles from "./index.module.css";
-import type { CurrentWorkItem } from "@/types/currentWork";
 import { publishedReviews } from "@/data/researchReviews";
+import { books } from "@/data/bookshelf";
 import { contactFormEndpoint } from "@/config/site";
 
-/**
- * 「研究断面」セクションは、最新2件のみを表示する(2026-09-11、
- * Decision Log 0127。旧「いま考えていること」は最新1件のみだったが、
- * 現在公開済みの研究断面が2件になったため、2件ともトップから見つけ
- * られるよう表示件数を2件に変更した)。publishedReviewsは公開順
- * (古い→新しい)で並んでいるため、末尾から2件を取る。記事が増えても、
- * ここで表示するのは常に最新2件のみで、それ以外は`/research`
- * (既存の一覧ページ)に委ねる。
- *
- * 【並び順を公開順(01を上)に変更(2026-09-11、Decision Log 0136)】
- * 当初は取得した2件を新しい順(.reverse())に並べ替えていたため、
- * 研究断面01(2026.08.15)より1.5(2026.09.03)が上に表示されていた。
- * プロジェクトオーナーの指示により、01が上に来るよう並び順を
- * publishedReviews本来の公開順(古い→新しい)のまま表示するように
- * 変更した(`/research`一覧ページの並び順と揃う)。
- */
-const latestReviews = publishedReviews.slice(-2);
-const currentWorkItems: CurrentWorkItem[] = latestReviews.map((review) => ({
-  label: `研究断面 ${review.number}`,
-  title: review.title,
-  body: [review.description],
-  linkLabel: "読む",
-  linkHref: review.href,
-}));
+/** 研究断面の入口に使う最新1件(公開順の末尾)。researchReviews.tsは
+    「古い→新しい」の順で並んでいるため、末尾が最新になる(/research・
+    旧Topの「研究断面」表示と同じ取得方法)。 */
+const latestReview = publishedReviews[publishedReviews.length - 1];
+
+/** 本棚の入口に使う3冊。bookshelf.ts側の並び順・データは変更せず、
+    先頭3冊(現在は「読書中」の3冊)をそのまま使う。 */
+const bookshelfPreview = books.slice(0, 3);
+const previewTones = ["warm", "moss", "sky"] as const;
 ---
 
 <DefaultLayout title="ふ、と ｜ 世界を観察するための、研究と実践" theme="night">
   <NightBackground gradient />
 
-  <ResearchStatement
-    title="Research Statement"
-    heading="気づいたら、そこに問いがある"
-    headingLevel="h1"
-    paragraphs={[
-      [
-        "いつも歩く道で、ある日ふと、ずっとそこにあったはずの建物の存在に気づく。",
-      ],
-      [
-        "人と世界のあいだで問いが生まれ、育っていく過程を探っています。",
-      ],
-    ]}
-    linkLabel="Research Statementを読む"
-    linkHref="/research-statement"
-  />
-
-  <ResearchSection ariaLabel="研究断面" id="research-reviews">
-    <h2 class={`${styles.researchReviewsHeading} ${styles.sectionRule}`}>研究断面</h2>
-    <p class={styles.researchReviewsIntro}>いま考えていること、試していることを記録しています。</p>
-    <CurrentWorkList items={currentWorkItems} />
-    <div class={styles.sectionLink}>
-      <ArrowLink href="/research" label="研究断面をすべて見る" />
+  <section class={styles.hero} aria-label="Hero">
+    <div class={styles.heroMotion} aria-hidden="true">
+      <span class={`${styles.heroPanel} ${styles.heroPanelA}`}></span>
+      <span class={`${styles.heroPanel} ${styles.heroPanelB}`}></span>
+      <span class={`${styles.heroPanel} ${styles.heroPanelC}`}></span>
+      <span class={styles.heroGlow}></span>
     </div>
-  </ResearchSection>
+    <h1 class={styles.heroHeading}>公開研究室ふ、と</h1>
+    <p class={styles.heroLead}>
+      個人の探究をひらき、誰もがふらっと立ち寄り、<br />ともに探究を深められる場です。
+    </p>
+  </section>
 
-  <ResearchSection ariaLabel="実験室・研究便り" id="participate-newsletter">
-    <div class={styles.panel}>
-      <div class={styles.panelSection}>
-        <p class={sectionTitleStyles.title}>PARTICIPATE</p>
-        <h2 class={styles.panelHeading}>実験室</h2>
-        <p class={styles.panelBody}>まだどうつながるかわからないものを持ち寄ったり、誰かと一緒に試したりする場所です。</p>
-        <div class={styles.sectionLink}>
-          <ArrowLink href="/participate" label="実験室を見る" />
-        </div>
-      </div>
+  <div class={styles.entries}>
+    <a class={`${styles.entry} ${styles.entryResearch}`} href="/research">
+      <h2 class={styles.entryLabel}>研究断面</h2>
+      <blockquote class={styles.entryQuote}>{latestReview.description}</blockquote>
+      <p class={styles.entryDescription}>その時点で考えていることを、研究の断面として残しています。</p>
+      <span class={styles.entryLink}>読む <span aria-hidden="true">→</span></span>
+    </a>
 
-      <div class={styles.panelSection}>
-        <p class={sectionTitleStyles.title}>NEWSLETTER</p>
-        <h2 class={styles.panelHeading}>研究便り</h2>
-        <p class={styles.panelBody}>研究の更新や、最近気になっていることをメールでお届けします。</p>
-        <form
-          class={styles.newsletterForm}
-          method="POST"
-          action={contactFormEndpoint}
-          data-newsletter-form
-        >
-          <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-          <input type="hidden" name="_subject" value="ふ、と 研究便り 登録希望" />
-          <label class="sr-only" for="newsletter-email">メールアドレス</label>
-          <input
-            class={styles.newsletterInput}
-            type="email"
-            id="newsletter-email"
-            name="email"
-            placeholder="メールアドレス"
-            autocomplete="email"
-            required
-          />
-          <button class={styles.newsletterSubmit} type="submit">登録する</button>
-        </form>
-        <p class={styles.privacyNote}>
-          送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
-        </p>
-        <p class={styles.newsletterStatus} data-newsletter-status role="status" aria-live="polite"></p>
+    <a class={`${styles.entry} ${styles.entryLab}`} href="/participate">
+      <svg class={styles.entryTrace} viewBox="0 0 120 56" aria-hidden="true">
+        <path d="M4 40 C 22 8, 40 8, 52 26 S 78 46, 92 18" />
+        <circle cx="4" cy="40" r="2" />
+        <circle cx="92" cy="18" r="2" />
+      </svg>
+      <h2 class={styles.entryLabel}>実験室</h2>
+      <p class={styles.entryDescription}>ここでは、ツールや企画を、考えたり、つくったり、試したりしています。</p>
+      <span class={styles.entryLink}>実験室を見る <span aria-hidden="true">→</span></span>
+    </a>
+
+    <a class={`${styles.entry} ${styles.entryBookshelf}`} href="/bookshelf">
+      <div class={styles.entrySpines}>
+        {
+          bookshelfPreview.map((book, i) => (
+            <span class={styles.spine} data-tone={book.tone ?? previewTones[i % previewTones.length]}>
+              <span class={styles.spineTitle}>{book.title}</span>
+            </span>
+          ))
+        }
       </div>
-    </div>
-  </ResearchSection>
+      <h2 class={styles.entryLabel}>本棚</h2>
+      <p class={styles.entryDescription}>読んでいる本、これから読みたい本。</p>
+      <span class={styles.entryLink}>本棚を見る <span aria-hidden="true">→</span></span>
+    </a>
+  </div>
+
+  <div class={styles.closing}>
+    <a class={styles.closingLink} href="/about">この場所について <span aria-hidden="true">→</span></a>
+  </div>
+
+  <div class={styles.newsletter}>
+    <label class={styles.newsletterLabel} for="newsletter-email">研究便りを受け取る</label>
+    <form
+      class={styles.newsletterForm}
+      method="POST"
+      action={contactFormEndpoint}
+      data-newsletter-form
+    >
+      <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
+      <input type="hidden" name="_subject" value="ふ、と 研究便り 登録希望" />
+      <input
+        class={styles.newsletterInput}
+        type="email"
+        id="newsletter-email"
+        name="email"
+        placeholder="メールアドレス"
+        autocomplete="email"
+        required
+      />
+      <button class={styles.newsletterSubmit} type="submit">登録する <span aria-hidden="true">→</span></button>
+    </form>
+    <p class={styles.newsletterStatus} data-newsletter-status role="status" aria-live="polite"></p>
+  </div>
 </DefaultLayout>
-
-<style>
-  /* Tailwind等を導入していないため、視覚的に隠しつつスクリーン
-     リーダーには読ませる定番の.sr-onlyパターンをこの1箇所のためだけに
-     インラインで定義している(メール欄のラベルを視覚的には
-     placeholderに譲り、アクセシビリティ用のラベルとして残すため)。 */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-</style>
 
 <script>
   const form = document.querySelector<HTMLFormElement>("[data-newsletter-form]");
