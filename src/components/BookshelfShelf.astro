@@ -32,25 +32,6 @@
  * 順位で表示する(この優先順位自体は旧実装から変更していない)。
  * 現時点でrepository内に実際の書影画像assetは存在せず、6冊すべてが
  * 仮カバー(tone)で表示される。生成画像・架空の背表紙は作っていない。
- *
- * 【1冊ずつ表示+前へ/次へナビゲーションに変更(2026-09-17、Decision
- * Log 0165)】mobileで「いま読んでいる」「読みたい」の両方をスクロール
- * なしで見せる工夫として、プロジェクトオーナーの指示により、各グループ
- * (Hero・status別セクション)を「1冊だけ表示し、前へ/次へボタンで
- * 他の本に切り替える」形式に変更した。これは、Hero棚について
- * 「カルーセルUI・pagination dotは使わず、素のoverflow-xに任せる」と
- * していたDecision Log 0154の方針を、Hero棚に関してのみ上書きする
- * 判断(0154のその他の内容は変更していない)。
- *
- * 実装は汎用的な`data-carousel`/`data-carousel-item`/
- * `data-carousel-prev`/`data-carousel-next`/`data-carousel-status`の
- * data属性とvanilla JS(ページ末尾の<script>)で行い、Hero・各
- * status別セクションの両方から同じ仕組みを再利用している
- * (カルーセルごとに独立した状態を持つ)。JS未実行時は各グループの
- * 1冊目のみが見え、2冊目以降は`hidden`属性で隠れる(このページの
- * 「本棚に本を持ち寄る」パネル等、既存の`hidden`+JSでの開閉パターンと
- * 同じ考え方)。ページ内には1冊しかないグループの場合はナビゲーション
- * 自体を描画しない。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfShelf.module.css";
@@ -100,47 +81,27 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
   reading.length > 0 && (
     <div class={styles.hero}>
       <h2 class={styles.heroHeading}>いま読んでいる</h2>
-      <div data-carousel>
-        <ul class={styles.heroShelf}>
-          {reading.map(({ book, tone, purchaseHref, purchaseLabel, isAffiliate }, i) => (
-            <li class={styles.heroItem} data-carousel-item hidden={i !== 0}>
-              <span class={styles.heroSpine} data-tone={tone}>
-                {book.image ? (
-                  <img class={styles.heroSpineImage} src={book.image} alt={book.title} loading="lazy" />
-                ) : book.externalCoverUrl ? (
-                  <img class={styles.heroSpineImage} src={book.externalCoverUrl} alt={book.title} loading="lazy" />
-                ) : (
-                  <span class={styles.heroSpineTitle}>{book.title}</span>
-                )}
-              </span>
-              <p class={styles.heroCaptionTitle}>
-                {book.title}
-                {book.author && <span class={styles.heroCaptionAuthor}>・{book.author}</span>}
-                {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
-              </p>
-              <BookActions
-                book={book}
-                purchaseHref={purchaseHref}
-                purchaseLabel={purchaseLabel}
-                isAffiliate={isAffiliate}
-              />
-            </li>
-          ))}
-        </ul>
-        {reading.length > 1 && (
-          <div class={styles.carouselNav}>
-            <button type="button" class={styles.carouselButton} data-carousel-prev aria-label="前の本を見る">
-              <span aria-hidden="true">←</span> 前へ
-            </button>
-            <p class={styles.carouselStatus} data-carousel-status aria-live="polite">
-              {`1 / ${reading.length}`}
+      <ul class={styles.heroShelf}>
+        {reading.map(({ book, tone, purchaseHref, purchaseLabel, isAffiliate }) => (
+          <li class={styles.heroItem}>
+            <span class={styles.heroSpine} data-tone={tone}>
+              {book.image ? (
+                <img class={styles.heroSpineImage} src={book.image} alt={book.title} loading="lazy" />
+              ) : book.externalCoverUrl ? (
+                <img class={styles.heroSpineImage} src={book.externalCoverUrl} alt={book.title} loading="lazy" />
+              ) : (
+                <span class={styles.heroSpineTitle}>{book.title}</span>
+              )}
+            </span>
+            <p class={styles.heroCaptionTitle}>
+              {book.title}
+              {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
             </p>
-            <button type="button" class={styles.carouselButton} data-carousel-next aria-label="次の本を見る">
-              次へ <span aria-hidden="true">→</span>
-            </button>
-          </div>
-        )}
-      </div>
+            {book.author && <p class={styles.heroCaptionAuthor}>{book.author}</p>}
+            <BookActions book={book} purchaseHref={purchaseHref} purchaseLabel={purchaseLabel} isAffiliate={isAffiliate} />
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -149,62 +110,37 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
   secondaryGroups.map((group) => (
     <div class={styles.section}>
       <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>{group.heading}</h2>
-      <div data-carousel>
-        <ul class={styles.list}>
-          {group.rows.map(({ book, tone, purchaseHref, purchaseLabel, isAffiliate }, i) => (
-            <li class={styles.row} data-carousel-item hidden={i !== 0}>
-              <div class={styles.rowMain}>
-                <span class={styles.cover} data-tone={tone}>
-                  {book.image ? (
-                    <img class={styles.coverImage} src={book.image} alt={book.title} loading="lazy" />
-                  ) : book.externalCoverUrl ? (
-                    <img class={styles.coverImage} src={book.externalCoverUrl} alt={book.title} loading="lazy" />
-                  ) : (
-                    <span class={styles.coverTitle}>{book.title}</span>
-                  )}
-                </span>
-                <div class={styles.info}>
-                  <p class={styles.title}>
-                    {book.title}
-                    {book.author && <span class={styles.author}>・{book.author}</span>}
-                    {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
-                  </p>
-                  {book.reason && <p class={styles.reason}>{book.reason}</p>}
-                  <BookActions
-                    book={book}
-                    purchaseHref={purchaseHref}
-                    purchaseLabel={purchaseLabel}
-                    isAffiliate={isAffiliate}
-                  />
-                </div>
+      <ul class={styles.list}>
+        {group.rows.map(({ book, tone, purchaseHref, purchaseLabel, isAffiliate }) => (
+          <li class={styles.row}>
+            <div class={styles.rowMain}>
+              <span class={styles.cover} data-tone={tone}>
+                {book.image ? (
+                  <img class={styles.coverImage} src={book.image} alt={book.title} loading="lazy" />
+                ) : book.externalCoverUrl ? (
+                  <img class={styles.coverImage} src={book.externalCoverUrl} alt={book.title} loading="lazy" />
+                ) : (
+                  <span class={styles.coverTitle}>{book.title}</span>
+                )}
+              </span>
+              <div class={styles.info}>
+                <p class={styles.title}>
+                  {book.title}
+                  {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
+                </p>
+                {book.author && <p class={styles.author}>{book.author}</p>}
+                {book.reason && <p class={styles.reason}>{book.reason}</p>}
+                <BookActions
+                  book={book}
+                  purchaseHref={purchaseHref}
+                  purchaseLabel={purchaseLabel}
+                  isAffiliate={isAffiliate}
+                />
               </div>
-            </li>
-          ))}
-        </ul>
-        {group.rows.length > 1 && (
-          <div class={styles.carouselNav}>
-            <button
-              type="button"
-              class={styles.carouselButton}
-              data-carousel-prev
-              aria-label={`前の${group.heading}の本を見る`}
-            >
-              <span aria-hidden="true">←</span> 前へ
-            </button>
-            <p class={styles.carouselStatus} data-carousel-status aria-live="polite">
-              {`1 / ${group.rows.length}`}
-            </p>
-            <button
-              type="button"
-              class={styles.carouselButton}
-              data-carousel-next
-              aria-label={`次の${group.heading}の本を見る`}
-            >
-              次へ <span aria-hidden="true">→</span>
-            </button>
-          </div>
-        )}
-      </div>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   ))
 }
@@ -216,36 +152,3 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
     </p>
   )
 }
-
-<script>
-  // Hero(いま読んでいる)・status別セクション(読みたい等)、両方の
-  // [data-carousel]を同じロジックで動かす。カルーセルごとに独立した
-  // indexを持つ(グローバルな状態を共有しない)。
-  document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((carousel) => {
-    const items = Array.from(carousel.querySelectorAll<HTMLElement>("[data-carousel-item]"));
-    const prevButton = carousel.querySelector<HTMLButtonElement>("[data-carousel-prev]");
-    const nextButton = carousel.querySelector<HTMLButtonElement>("[data-carousel-next]");
-    const status = carousel.querySelector<HTMLElement>("[data-carousel-status]");
-
-    if (items.length <= 1) return;
-
-    let index = 0;
-
-    const render = () => {
-      items.forEach((item, i) => {
-        item.hidden = i !== index;
-      });
-      if (status) status.textContent = `${index + 1} / ${items.length}`;
-    };
-
-    prevButton?.addEventListener("click", () => {
-      index = (index - 1 + items.length) % items.length;
-      render();
-    });
-
-    nextButton?.addEventListener("click", () => {
-      index = (index + 1) % items.length;
-      render();
-    });
-  });
-</script>
