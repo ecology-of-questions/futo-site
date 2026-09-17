@@ -95,9 +95,9 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
             </span>
             <p class={styles.heroCaptionTitle}>
               {book.title}
+              {book.author && <span class={styles.heroCaptionAuthor}>・{book.author}</span>}
               {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
             </p>
-            {book.author && <p class={styles.heroCaptionAuthor}>{book.author}</p>}
             <BookActions book={book} purchaseHref={purchaseHref} purchaseLabel={purchaseLabel} isAffiliate={isAffiliate} />
           </li>
         ))}
@@ -126,9 +126,9 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
               <div class={styles.info}>
                 <p class={styles.title}>
                   {book.title}
+                  {book.author && <span class={styles.author}>・{book.author}</span>}
                   {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
                 </p>
-                {book.author && <p class={styles.author}>{book.author}</p>}
                 {book.reason && <p class={styles.reason}>{book.reason}</p>}
                 <BookActions
                   book={book}

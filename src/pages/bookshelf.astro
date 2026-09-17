@@ -51,6 +51,15 @@
  * Formspreeエンドポイント・honeypotを一切変更せず、見出し+説明文の
  * 大きなセクションから、1行の呼びかけ+トグルボタンで開く「静かな
  * 導線」に変更した(指示された文言候補をそのまま使用)。
+ *
+ * 【タイトル行の横並び化・1画面圧縮(2026-09-17、Decision Log 0164)】
+ * プロジェクトオーナーの指示により、`/participate`(Decision Log
+ * 0161・0163)と同じ考え方を`/bookshelf`にも適用した。見出し
+ * 「研究の本棚」の右横に導入文(`.note`)を並べる`.heroRow`を導入し、
+ * mobile・desktopとも、スクロールなしで「いま読んでいる」(Hero)と
+ * 「読みたい」の両方が見えることを目標に、`#bookshelf-hero`の
+ * padding-block、`BookshelfShelf.module.css`側の各余白を圧縮した。
+ * 詳細・実測値はDecision Log 0164参照。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -68,12 +77,14 @@ import { contactFormEndpoint } from "@/config/site";
   theme="night"
 >
   <NightBackground />
-  <ResearchSection ariaLabel="Bookshelf">
+  <ResearchSection ariaLabel="Bookshelf" id="bookshelf-hero">
     <p class={styles.eyebrow}>BOOKSHELF</p>
-    <h1 class={styles.heading}>研究の本棚</h1>
-    <div class={styles.note}>
-      <p>読んでいる本、これから読みたい本。</p>
-      <p>この本棚は、誰かが持ち寄ってくれた本も加わりながら、少しずつ育っていきます。</p>
+    <div class={styles.heroRow}>
+      <h1 class={styles.heading}>研究の本棚</h1>
+      <div class={styles.note}>
+        <p>読んでいる本、これから読みたい本。</p>
+        <p>この本棚は、誰かが持ち寄ってくれた本も加わりながら、少しずつ育っていきます。</p>
+      </div>
     </div>
     <BookshelfShelf books={books} />
   </ResearchSection>

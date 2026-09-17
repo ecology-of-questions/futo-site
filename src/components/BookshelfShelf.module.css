@@ -6,6 +6,12 @@
  * (.row以下)・仮カバーのtone配色(.cover)は実質的にそのまま引き継ぎ、
  * フィルター用スタイル(.filters/.filterButton)は削除、「いま読んで
  * いる」Hero区画(.hero以下)を新設した。
+ *
+ * 【1画面圧縮(2026-09-17、Decision Log 0164)】mobile・desktopとも
+ * スクロールなしで「いま読んでいる」(Hero)と「読みたい」の両方が
+ * 見えるようにする指示を受け、`/participate`(Decision Log 0161)と
+ * 同じ考え方で、既存のスペーシングトークンを基準にした`calc()`で
+ * 余白を圧縮した。書影のサイズ・フォントサイズ・文言は変更していない。
  * ------------------------------------------------------------
  */
 
@@ -17,7 +23,7 @@
  * しない)。
  * ----------------------------- */
 .hero {
-  margin-top: var(--space-4);
+  margin-top: var(--space-2);
 }
 
 .heroHeading {
@@ -29,9 +35,9 @@
 
 .heroShelf {
   display: flex;
-  gap: var(--space-4);
-  margin: var(--space-3) 0 0;
-  padding: 0 0 var(--space-3);
+  gap: var(--space-3);
+  margin: calc(var(--space-1) / 2) 0 0;
+  padding: 0 0 calc(var(--space-1) / 2);
   list-style: none;
   overflow-x: auto;
   /* 「棚」であることを示す、書影の下端に沿った1本の罫線(棚板)。
@@ -99,16 +105,20 @@
 }
 
 .heroCaptionTitle {
-  margin: var(--space-2) 0 0;
+  margin: calc(var(--space-1) / 2) 0 0;
   font-size: var(--fs-base);
   font-weight: 500;
   line-height: var(--lh-heading);
 }
 
+/* 0164: それまで著者名は独立した<p>(タイトルの下の別行)だったが、
+   1画面に収める密度を優先し、タイトルと同じ行に添えるinline要素に
+   変更した(book.contributedタグを同じ行に添える既存パターンと
+   揃えた)。 */
 .heroCaptionAuthor {
-  margin: 2px 0 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+  font-weight: 400;
   color: var(--color-ink-muted);
 }
 
@@ -127,12 +137,12 @@
  * 描画する。
  * ----------------------------- */
 .section {
-  margin-top: var(--space-5);
+  margin-top: var(--space-2);
 }
 
 .sectionRule {
   border-top: 1px solid var(--color-accent-beige);
-  padding-top: var(--space-4);
+  padding-top: var(--space-2);
 }
 
 .sectionHeading {
@@ -145,12 +155,12 @@
 
 .list {
   list-style: none;
-  margin: var(--space-3) 0 0;
+  margin: calc(var(--space-1) / 2) 0 0;
   padding: 0;
 }
 
 .row {
-  padding: var(--space-4) 0;
+  padding: calc(var(--space-1) / 2) 0;
   border-bottom: 1px solid var(--color-accent-beige);
 }
 
@@ -230,21 +240,28 @@
 
 .title {
   margin: 0;
-  font-size: var(--fs-lg);
+  /* 0164: 1画面に収める密度を優先し、fs-lg(20px)からHeroの
+     .heroCaptionTitleと揃うfs-base(16px)に詰めた。 */
+  font-size: var(--fs-base);
   font-weight: 500;
   line-height: var(--lh-heading);
 }
 
+/* 0164: heroCaptionAuthorと同様、独立した行からタイトルと同じ行の
+   inline要素に変更した。 */
 .author {
-  margin: 2px 0 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+  font-weight: 400;
   color: var(--color-ink-muted);
 }
 
 .reason {
-  margin: var(--space-1) 0 0;
-  font-size: var(--fs-base);
+  margin: calc(var(--space-1) / 2) 0 0;
+  /* 0164: fs-base(16px)からfs-smに詰めた。文字数の関係でmobile幅の
+     折り返し行数が減ることが多く、縦方向の圧縮効果が大きい
+     (/participateのDecision Log 0161と同じ判断)。 */
+  font-size: var(--fs-sm);
   line-height: var(--lh-body);
 }
 
