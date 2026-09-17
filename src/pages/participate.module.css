@@ -18,8 +18,27 @@
  * ため、旧`.experimentList`以下(一覧・痕跡SVGのスタイル)を
  * `LabNotebookList.module.css`へ移設した。このファイルにはページ
  * 冒頭(Hero)・セクション見出し共通のスタイルのみが残っている。
+ *
+ * 【1画面に収まる密度への圧縮(2026-09-17、Decision Log 0161)】
+ * Hero+一覧を1つの`<ResearchSection id="lab-hero">`に統合したのに
+ * 伴い、`#lab-hero`のpadding-block(既定は`ResearchSection.module.css`
+ * の`var(--space-6)`=96px上下)をこのページだけ上書きして詰めた。
+ * IDセレクタはCSS Modulesでもハッシュ化されないため、他ページの
+ * `ResearchSection`には影響しない。見出し(`.heading`)・lead
+ * (`.lead`)のmargin-topも同様に詰めた。フォントサイズ自体は
+ * 変更していない。
  * ------------------------------------------------------------
  */
+
+/* Hero+一覧をまとめた#lab-heroだけ、通常の96px上下パディングを圧縮する
+   (他ページのResearchSectionには影響しない、IDセレクタでの上書き)。
+   :global()が無いと、CSS Modules側がこのIDセレクタもクラス同様に
+   ハッシュ化してしまい、実際のDOMのid="lab-hero"(ハッシュされない
+   素の文字列)と一致せず、ルール自体がビルド後のCSSから消える
+   (2026-09-17、Decision Log 0162で発見・修正)。 */
+:global(#lab-hero) {
+  padding-block: calc(var(--space-1) / 2) var(--space-3);
+}
 
 .eyebrow {
   margin: 0;
@@ -32,23 +51,27 @@
 }
 
 .heading {
-  margin: var(--space-2) 0 0;
+  margin: calc(var(--space-1) / 2) 0 0;
   font-size: var(--fs-2xl);
   line-height: var(--lh-heading);
   font-weight: 500;
 }
 
 .lead {
-  margin: var(--space-3) 0 0;
+  margin: calc(var(--space-1) / 2) 0 0;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
   color: var(--color-ink-muted);
   max-width: 36rem;
 }
 
+.subsection {
+  margin-top: var(--space-2);
+}
+
 .sectionRule {
   border-top: 1px solid var(--color-accent-beige);
-  padding-top: var(--space-5);
+  padding-top: var(--space-3);
 }
 
 .sectionHeading {

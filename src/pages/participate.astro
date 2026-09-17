@@ -38,6 +38,19 @@
  * 自体は変更していない。`labNotebooks.ts`・`/participate/[slug]`・
  * Worker/D1連携は今回も一切変更していない。
  *
+ * 【「いま、考えていること」見出しを削除、1画面に収まる密度に圧縮
+ * (2026-09-17、Decision Log 0161)】プロジェクトオーナーの指示により、
+ * 「いま、考えていること」の見出し(と、その罫線+上部余白)を削除した。
+ * あわせて、Hero(LAB/実験室/lead)と一覧を2つの`<ResearchSection>`
+ * (それぞれpadding-block: var(--space-6) = 96px上下)に分けていた構成
+ * を1つに統合し、モバイル・デスクトップともスクロールなしで3項目
+ * (音の道/Fieldnote/研究断面をひらく)が見えることを目標に、余白を
+ * 大きく圧縮した(`#lab-hero`へのpadding-block上書き、
+ * `LabNotebookList.module.css`側の`.list`/`.link`/`.readMore`の
+ * margin・padding圧縮)。タイトル・モチーフ・説明文・categoryの
+ * フォントサイズ自体は変更していない(Decision Log 0160の状態を維持)。
+ * 詳細・実測値はDecision Log 0161参照。
+ *
  * 一覧の描画は`LabNotebookList.astro`(Decision Log 0156で新設)に
  * 切り出した。「いま、考えていること」(現状、全3冊)と、将来追加する
  * 「いま、ひらいている実験」(実際に公開可能な音の道β/Miro等が
@@ -97,19 +110,16 @@ const consideringNotebooks = labNotebooks.filter((notebook) => !liveExperimentSl
     <p class={styles.eyebrow}>LAB</p>
     <h1 class={styles.heading}>実験室</h1>
     <p class={styles.lead}>考えるために、つくったり、試したりする場所。</p>
-  </ResearchSection>
 
-  {
-    liveExperiments.length > 0 && (
-      <ResearchSection ariaLabel="いま、ひらいている実験" id="lab-experiments">
-        <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、ひらいている実験</h2>
-        <LabNotebookList notebooks={liveExperiments} descriptions={landingDescriptions} ctaLabel="実験を見る" />
-      </ResearchSection>
-    )
-  }
+    {
+      liveExperiments.length > 0 && (
+        <div class={styles.subsection}>
+          <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、ひらいている実験</h2>
+          <LabNotebookList notebooks={liveExperiments} descriptions={landingDescriptions} ctaLabel="実験を見る" />
+        </div>
+      )
+    }
 
-  <ResearchSection ariaLabel="いま、考えていること" id="lab-notebooks">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>いま、考えていること</h2>
     <LabNotebookList notebooks={consideringNotebooks} descriptions={landingDescriptions} ctaLabel="ノートを見る" />
   </ResearchSection>
 </DefaultLayout>
