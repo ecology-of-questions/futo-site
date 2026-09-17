@@ -13,12 +13,22 @@
  * パターンをそのまま流用した。
  *
  * 【「外部サービスの利用」セクションについて】お問い合わせ・「持ち寄る」・
- * 研究便り登録の3フォームすべてがsrc/config/site.tsの
+ * 一緒に読みたい・研究便り登録の4フォームすべてがsrc/config/site.tsの
  * `contactFormEndpoint`(Formspree)を参照していることをコードで確認
  * したうえで書いている。研究便り専用の別サービス(Mailchimp等)は
  * 使っていない。Analytics/Cookieの利用も、リポジトリ内を検索して
  * 該当コードが無いことを確認済みのため、このページには記載していない
  * (「利用していない場合は不要な記述を追加しない」という指示に沿う)。
+ *
+ * 【事実関係修正(2026-09-17、Decision Log 0158)】公開前QA
+ * (Decision Log 0157)で、上記4フォーム中「一緒に読みたい」
+ * (`BookActions.astro`)がこのページに明記されていなかった点、および
+ * `/participate/[slug]`の交換ノート投稿(「書き残す」)がFormspreeでは
+ * なくCloudflare Worker + D1(`worker/index.ts`、Decision Log 0141〜
+ * 0143・0148)を利用しているにもかかわらずこのページに記載が無かった
+ * 点が見つかったため、事実関係のみを最小限修正した。09番のブロックは
+ * `worker/index.ts`(payload、D1スキーマ`migrations/0001_init.sql`、
+ * IPハッシュ・レート制限の実装)を直接確認したうえで書いている。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -28,8 +38,8 @@ import styles from "./privacy.module.css";
 ---
 
 <DefaultLayout
-  title="個人情報の取り扱い ｜ ふ、と"
-  description="公開研究室「ふ、と」における個人情報の取り扱いについて。"
+  title="個人情報の取り扱い ｜ 公開研究室ふ、と"
+  description="公開研究室ふ、とにおける個人情報の取り扱いについて。"
   theme="night"
 >
   <NightBackground />
@@ -38,7 +48,7 @@ import styles from "./privacy.module.css";
       <p class={styles.eyebrow}>PRIVACY</p>
       <h1 class={styles.pageTitle}>個人情報の取り扱い</h1>
       <p class={styles.lead}>
-        公開研究室「ふ、と」では、お問い合わせや「持ち寄る」フォーム、研究便りへの登録などを通じて、お名前、メールアドレス、送信いただいた内容などの情報を取得することがあります。
+        公開研究室ふ、とでは、お問い合わせや「持ち寄る」フォーム、研究便りへの登録、実験室のノートへの投稿などを通じて、お名前、メールアドレス、送信いただいた内容などの情報を取得することがあります。
       </p>
     </div>
 
@@ -53,8 +63,9 @@ import styles from "./privacy.module.css";
           <li>お名前</li>
           <li>メールアドレス</li>
           <li>お問い合わせ内容</li>
-          <li>「持ち寄る」フォームから送信された内容</li>
+          <li>「持ち寄る」「一緒に読みたい」などのフォームから送信された内容</li>
           <li>研究便りの登録に必要な情報</li>
+          <li>実験室のノートへの投稿内容(本文および任意で入力された状況・URL)</li>
         </ul>
       </div>
     </div>
@@ -95,7 +106,7 @@ import styles from "./privacy.module.css";
         <h2 class={styles.subheading}>外部サービスの利用</h2>
       </div>
       <div class={styles.body}>
-        <p>お問い合わせや「持ち寄る」フォームの送信には、Formspree を利用しています。</p>
+        <p>お問い合わせ、「持ち寄る」フォーム、一緒に読みたいフォームの送信には、Formspree を利用しています。</p>
         <p>フォームから送信された情報は、フォームの処理・送信のために Formspree のサービスを経由します。</p>
         <p>研究便りの登録フォームも、同じ Formspree を経由して送信されます。研究便りの配信のために、これ以外の外部のメール配信サービスは利用していません。</p>
       </div>
@@ -140,6 +151,19 @@ import styles from "./privacy.module.css";
       </div>
       <div class={styles.body}>
         <p>利用するサービスや「ふ、と」の活動内容の変更に応じて、このページの内容を更新することがあります。</p>
+      </div>
+    </div>
+
+    <div class={styles.block}>
+      <div class={styles.blockLabel}>
+        <span class={styles.number}>09</span>
+        <h2 class={styles.subheading}>実験室のノートへの投稿について</h2>
+      </div>
+      <div class={styles.body}>
+        <p>「実験室」の各ノートに書き残していただいた内容は、Formspreeなどの外部サービスを経由せず、「ふ、と」が管理するサーバー上にそのまま保存されます。</p>
+        <p>投稿にあたって、お名前やメールアドレスの入力を必須とはしていません。投稿の本文のほか、任意で入力された状況やURLも、保存の対象になることがあります。</p>
+        <p>書き残していただいた内容は、そのノートのページ上でそのまま公開されます。</p>
+        <p>不正な連続投稿を防ぐ目的で、送信元のIPアドレスをもとにした識別用の値を利用しますが、元のIPアドレスが分かる形では保存していません。</p>
       </div>
     </div>
 
