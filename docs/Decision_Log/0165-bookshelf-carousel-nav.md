@@ -1,12 +1,15 @@
 # 0165. 本棚: 1冊ずつ表示+前へ/次へナビゲーションに変更
 
 - 日付: 2026-09-17
-- 状態: 採用(Decision Log 0154の一節「Hero棚はcarousel UI・
-  pagination dotを使わず、素のoverflow-xに任せる」を、Hero棚に
-  関してのみ置き換える。0154のその他の内容は変更していない)
+- 状態: superseded (→0166)。公開直後にプロジェクトオーナーから
+  「見にくくなった」との指摘を受け、同日中にDecision Log 0166で
+  この変更(1冊ずつ表示+前へ/次へ)を差し戻し、Hero棚・「読みたい」
+  ともDecision Log 0154時点の表示方式(Hero棚は横スクロール、
+  「読みたい」は縦積みの全件リスト)に戻した。この判断・実装の記録
+  として本エントリは削除せず残す。
 - 関連: Decision Log 0161・0163(/participateの1画面圧縮・Hero行
   横並び化)。Decision Log 0164(/bookshelfへの同様の適用、この直前の
-  PR)。
+  PR)。Decision Log 0166(この変更の差し戻し)。
 
 ## Decision
 
