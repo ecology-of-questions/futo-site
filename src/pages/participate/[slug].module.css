@@ -71,17 +71,72 @@
 }
 
 /* -----------------------------
- * スライド(2026-09-17、Decision Log 0171)。Googleスライドの「ウェブに
- * 公開」埋め込みURLをiframeで表示する。aspect-ratioでスライドの縦横比
- * (16:9、現行のGoogleスライドの既定値)を維持しつつ、PC・スマホとも
- * 横にはみ出さないようにする(幅は親要素いっぱい、高さは比率から
- * 自動算出)。カード風の枠・背景は付けず、iframe自体の見た目を主役に
- * する。
+ * スライドを主役にした初期表示(2026-09-17、Decision Log 0173)。
+ * `slidesEmbedSrc`があるノートだけ、Hero区画を#notebook-heroという
+ * 別のidにし、通常のResearchSectionのpadding-block(既定
+ * var(--space-6)、96px上下)をこのidだけ縮めて上部の余白を抑える。
+ * :global()が無いとCSS Modules側がIDセレクタをハッシュ化してしまい
+ * 実際のDOMのid属性と一致しなくなる(2026-09-17、Decision Log 0161で
+ * 発見した問題と同種)。
  * ----------------------------- */
+:global(#notebook-hero) {
+  padding-block: var(--space-2) var(--space-3);
+}
+
+/* .heroViewport: タイトル(自然な高さ)+スライド(残り全部)+コメント
+   リンク(自然な高さ)を縦のflexで並べ、画面の高さ(ヘッダー・この
+   区画のpadding-block分を除く)にちょうど収まるmin-heightを持たせる。
+   dvhを先に書けないブラウザ向けにvhを先に、対応ブラウザ向けにdvhを
+   後に書く(値が無効な行は無視されるだけなので、後勝ちで上書きされる
+   進行的強化)。 */
+.heroViewport {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--header-height) - var(--space-2) - var(--space-3));
+  min-height: calc(100dvh - var(--header-height) - var(--space-2) - var(--space-3));
+}
+
+.heroTitle {
+  flex: 0 0 auto;
+}
+
+.heroTitle .back {
+  margin-bottom: var(--space-1);
+}
+
+.headingCompact {
+  margin: calc(var(--space-1) / 2) 0 0;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+}
+
+/* .slideArea: 残りの縦幅をすべて確保する(flex: 1 1 auto)。中は縦の
+   flexにして、.slidesEmbed(スライド本体)と.slidesComment(コメント
+   リンク)を上詰めでひとまとまりに配置する(「コメントする」リンクを
+   スライドの直下に置く指示への対応)。横方向はcenterで中央揃え。
+   .slidesEmbedはaspect-ratioで16:9を維持しつつ、width: 100%(横に
+   はみ出さない)とmax-height: 100%(.slideAreaの高さを超えない)の
+   両方を満たすよう、ブラウザがaspect-ratioを介して両方の制約から
+   縮小後のサイズを計算する(JSでの高さ計測は不要)。画面が余った分は
+   .slideAreaの下側の余白として現れる(スライドとコメントの間には
+   出ない)。 */
+.slideArea {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: var(--space-2);
+}
+
 .slidesEmbed {
-  margin-top: var(--space-4);
+  flex: 0 1 auto;
+  min-height: 0;
   aspect-ratio: 16 / 9;
-  max-width: 48rem;
+  width: 100%;
+  max-height: 100%;
 }
 
 .slidesEmbed iframe {
@@ -92,7 +147,9 @@
 }
 
 .slidesComment {
-  margin-top: var(--space-2);
+  flex: 0 0 auto;
+  width: 100%;
+  margin-top: var(--space-1);
 }
 
 .slidesCommentNote {
@@ -100,6 +157,13 @@
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
+}
+
+/* #notebook-about(スライドの下に移した説明文)では、.leadが区画の
+   最初の要素になるため、h1の直後に置かれる場合のmargin-topを打ち消し、
+   ResearchSectionの通常のpadding-topだけで間隔を取る。 */
+:global(#notebook-about) .lead {
+  margin-top: 0;
 }
 
 /* -----------------------------
