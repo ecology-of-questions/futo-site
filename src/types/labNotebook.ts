@@ -19,6 +19,15 @@
  * Decision Log 0128を踏襲)。個人情報(投稿者名・メールアドレス等)は
  * 収集していないため、`NotebookEntry`にも該当フィールドを持たせて
  * いない。
+ *
+ * 【Googleスライド埋め込み(2026-09-17、Decision Log 0171)】各ノートに
+ * 任意でGoogleスライドを埋め込めるよう、`slidesEmbedUrl`・
+ * `slidesCommentUrl`を追加した(旧Miro埋め込み構想の置き換え。当時
+ * Miroの実装自体は無く、コメントのみだった)。2つのURLは意図的に
+ * 別フィールドにしている(「ウェブに公開」の埋め込み専用URLと、
+ * コメント可能な共有URLは、Google側でも別の設定・別のURLのため)。
+ * どちらも未設定の場合、[slug].astroはスライド区画自体を描画しない
+ * (架空のURLを入れない、壊れたiframeを表示しない方針)。
  * ------------------------------------------------------------
  */
 
@@ -58,4 +67,19 @@ export interface LabNotebook {
   tone: NotebookTone;
   /** このノートの時系列記録。studio/visitorを問わず同じ配列・同じ並びで管理する */
   entries: NotebookEntry[];
+  /**
+   * Googleスライドの「ファイル→共有→ウェブに公開」で取得する埋め込み用
+   * URL(iframeのsrcにそのまま使う)。`slidesCommentUrl`が無くても単独で
+   * 設定できる。未設定の場合、このノートにはスライド区画自体を表示
+   * しない。自動再生・ループは[slug].astro側で明示的に無効化する
+   * (この値にstart/loopのクエリが含まれていても上書きする)。
+   */
+  slidesEmbedUrl?: string;
+  /**
+   * Googleスライド本体の共有URL(コメント可能な権限にしたもの)。
+   * 「この断面にコメントを置く→」リンクの遷移先として、別タブで開く。
+   * `slidesEmbedUrl`とは独立して設定する(埋め込み用の「ウェブに公開」
+   * URLでは、コメント可能な共有URLを兼ねられないため)。
+   */
+  slidesCommentUrl?: string;
 }
