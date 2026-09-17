@@ -59,6 +59,15 @@
  * 再利用できる構造にしてある。現時点では`liveExperimentSlugs`は空の
  * ため、「いま、ひらいている実験」セクション自体は描画されない。
  *
+ * 【Hero行のレイアウト変更、一覧冒頭への罫線追加(2026-09-17、
+ * Decision Log 0163)】プロジェクトオーナーの指示により、見出し
+ * 「実験室」とlead文(「考えるために、つくったり、試したりする
+ * 場所。」)を縦積みから、見出しの右横にlead文を置く横並びに変更した
+ * (`.heroRow`)。あわせて、一覧側(`LabNotebookList.module.css`)の
+ * `.item:first-child`のborder-top抑制を削除し、1件目(音の道)の
+ * 上にも他の項目と同じ罫線が引かれるようにした(HeroとListの境目を
+ * 視覚的に示す)。
+ *
  * データは引き続き`src/data/labNotebooks.ts`(`/participate`・
  * `/participate/[slug]`が共有、二重管理しない)。Miro board等の外部
  * 資産はrepository内に存在しないため(2026-09-16確認、Decision Log
@@ -108,8 +117,10 @@ const consideringNotebooks = labNotebooks.filter((notebook) => !liveExperimentSl
 
   <ResearchSection ariaLabel="Lab" id="lab-hero">
     <p class={styles.eyebrow}>LAB</p>
-    <h1 class={styles.heading}>実験室</h1>
-    <p class={styles.lead}>考えるために、つくったり、試したりする場所。</p>
+    <div class={styles.heroRow}>
+      <h1 class={styles.heading}>実験室</h1>
+      <p class={styles.lead}>考えるために、つくったり、試したりする場所。</p>
+    </div>
 
     {
       liveExperiments.length > 0 && (
