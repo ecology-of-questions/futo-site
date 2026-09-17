@@ -47,10 +47,19 @@
  * を残す)。
  *
  * 書影は、実際の書影画像(`book.image`)→正規に取得した外部URL
- * (`book.externalCoverUrl`)→仮カバー(tone、color-mixの色面)の優先
- * 順位で表示する(この優先順位自体は変更していない)。現時点で
- * repository内に実際の書影画像assetは存在せず、6冊すべてが仮カバー
- * (tone)で表示される。生成画像・架空の背表紙は作っていない。
+ * (`book.externalCoverUrl`)→ISBNから引ける公開書影(Open Library
+ * Covers API)→仮カバー(tone、color-mixの色面)の優先順位で表示する。
+ *
+ * 【実際の書影表示(2026-09-17、Decision Log 0170)】プロジェクト
+ * オーナーからの指示書(v0.2)に基づき、`book.isbn13`が判明している
+ * 本については、Open Library Covers API(`covers.openlibrary.org`、
+ * ISBNから書影を引ける無料の公開API。認証・契約不要で、Amazon PA-API
+ * のような適格販売要件が無い)から書影を取得する優先順位を追加した。
+ * ISBN自体は「ふ、と」が読んでいる本の書誌情報として実在する事実
+ * (架空のIDではない)であり、対応する書影がOpen Library側に存在
+ * しない場合は、下記スクリプトの`error`イベント処理により、画像を
+ * 諦めて仮カバー(tone)表示に切り替える(存在しない書影を無理に
+ * それらしく見せない)。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfShelf.module.css";
@@ -65,6 +74,14 @@ const { books } = Astro.props;
 
 const tones = ["warm", "moss", "sky"] as const;
 const toneForIndex = (i: number) => tones[i % tones.length];
+
+/** Open Library Covers APIの書影URLを組み立てる。`default=false`を
+    付けることで、該当書影が無い場合にプレースホルダー画像ではなく
+    404を返すようにし、下記スクリプトのerrorイベントで仮カバー表示に
+    切り替えられるようにしている。 */
+function openLibraryCoverUrl(isbn13: string) {
+  return `https://covers.openlibrary.org/b/isbn/${isbn13}-L.jpg?default=false`;
+}
 
 function toCard(book: BookEntry, i: number) {
   return {
@@ -117,6 +134,19 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
             <img class={styles.coverImage} src={book.image} alt={accessibleTitle} loading="lazy" />
           ) : book.externalCoverUrl ? (
             <img class={styles.coverImage} src={book.externalCoverUrl} alt={accessibleTitle} loading="lazy" />
+          ) : book.isbn13 ? (
+            <>
+              <img
+                class={styles.coverImage}
+                src={openLibraryCoverUrl(book.isbn13)}
+                alt={accessibleTitle}
+                loading="lazy"
+                data-cover-fallback
+              />
+              <span class={styles.coverTitle} data-cover-placeholder hidden>
+                {accessibleTitle}
+              </span>
+            </>
           ) : (
             <span class={styles.coverTitle}>{accessibleTitle}</span>
           );
@@ -155,3 +185,24 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
     </p>
   )
 }
+
+<script>
+  // Open Library Covers APIから取得を試みた書影(data-cover-fallback)が
+  // 404等で読み込めなかった場合、隣接する仮カバー用テキスト
+  // (data-cover-placeholder、hidden属性で最初は非表示)に切り替える。
+  // 既存の「本棚に本を持ち寄る」トグル等と同じ、hidden属性+JSの
+  // パターンを踏襲している。
+  document.querySelectorAll<HTMLImageElement>("[data-cover-fallback]").forEach((img) => {
+    img.addEventListener(
+      "error",
+      () => {
+        const placeholder = img.nextElementSibling as HTMLElement | null;
+        img.remove();
+        if (placeholder) {
+          placeholder.hidden = false;
+        }
+      },
+      { once: true },
+    );
+  });
+</script>

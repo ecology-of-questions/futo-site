@@ -130,8 +130,9 @@ export interface BookEntry {
   giftFeatured?: boolean;
   /**
    * 書影画像のパス(自分で撮影・用意した画像)。表示の優先順位は
-   * 1. image → 2. externalCoverUrl → 3. 仮カバー(tone、color-mix)の順
-   * (BookshelfFullList.astro参照)。
+   * 1. image → 2. externalCoverUrl → 3. isbn13(Open Library Covers
+   * API) → 4. 仮カバー(tone、color-mix)の順(BookshelfShelf.astro
+   * 参照。2026-09-17、Decision Log 0170でisbn13の段を追加)。
    */
   image?: string;
   /**
@@ -173,10 +174,14 @@ export interface BookEntry {
    */
   contributed?: boolean;
   /**
-   * ISBN-13(判明している本のみ)。本の一意な識別子として、将来
-   * 外部サービス(書影API・関連書籍表示等)と連携する際の手がかりに
-   * なる。現時点ではUIから直接参照していない(2026-09-12、Decision
-   * Log 0138)。不明な本は省略する(推測で補わない)。
+   * ISBN-13(判明している本のみ)。`image`・`externalCoverUrl`が無い
+   * 場合、BookshelfShelf.astroがこの値でOpen Library Covers API
+   * (`https://covers.openlibrary.org/b/isbn/{isbn13}-L.jpg`)から書影を
+   * 取得する(2026-09-17、Decision Log 0170。追加時点ではUIから
+   * 参照していなかった、2026-09-12、Decision Log 0138)。該当する
+   * 書影が存在しない場合は、クライアント側でエラーを検知し仮カバー
+   * (tone)表示にフォールバックする。不明な本は省略する(推測で
+   * 補わない)。
    */
   isbn13?: string;
   /**
