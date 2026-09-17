@@ -22,11 +22,16 @@
  *   遷移する想定。
  *
  * 対応として、status(「いま読んでいる」「読みたい」等)ごとの
- * 見出しは維持しつつ、各status内は「表紙(仮カバー)+タイトル・著者の
- * 小さなキャプション」だけのカードをCSS Gridで並べる形に統一した
- * (Heroの特別扱い・行リストの詳細表示は廃止)。`reason`(なぜ読み
- * たいか)・「一緒に読みたい」ボタン・「この本から生まれた記録」
- * リンクは、このグリッドには表示しない。
+ * 見出しは維持しつつ、各status内は「表紙(仮カバー)」だけのカードを
+ * CSS Gridで並べる形に統一した(Heroの特別扱い・行リストの詳細表示は
+ * 廃止)。`reason`(なぜ読みたいか)・「一緒に読みたい」ボタン・
+ * 「この本から生まれた記録」リンクは、このグリッドには表示しない。
+ *
+ * 【画像下のキャプション(タイトル・著者)を削除(2026-09-17、
+ * Decision Log 0168)】0167時点では書影の下にタイトル・著者名の
+ * キャプションを表示していたが、ブクログのように書影のみを並べる
+ * 見た目にするため削除した。タイトルは各`img`の`alt`(画像が無い本は
+ * `coverTitle`の可視テキスト)に引き継ぎ、情報自体は失っていない。
  *
  * 表紙の遷移先は、既存の`purchaseUrl`(購入先URL、
  * `src/config/site.ts`の`buildPurchaseUrl`でAmazonアソシエイトタグを
@@ -103,24 +108,17 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
       </h2>
       <ul class={styles.grid}>
         {group.cards.map(({ book, tone, href, isAffiliate }) => {
-          // imgのaltは空(装飾扱い)にしている。カード内の.captionに
-          // 同じタイトルを可視テキストとして必ず添えているため、altでも
-          // 重ねて読み上げると冗長になるのを避けるため。
+          // 画像下のキャプション(タイトル・著者)を廃止したため、
+          // book.imageやexternalCoverUrlがある場合もaltにタイトルを
+          // 入れ、書影自体が本の名前を伝えるアクセシブルネームになる
+          // ようにしている(「持ち寄られた本」の情報もaltに残す)。
+          const accessibleTitle = book.contributed ? `${book.title}(持ち寄られた本)` : book.title;
           const coverInner = book.image ? (
-            <img class={styles.coverImage} src={book.image} alt="" loading="lazy" />
+            <img class={styles.coverImage} src={book.image} alt={accessibleTitle} loading="lazy" />
           ) : book.externalCoverUrl ? (
-            <img class={styles.coverImage} src={book.externalCoverUrl} alt="" loading="lazy" />
+            <img class={styles.coverImage} src={book.externalCoverUrl} alt={accessibleTitle} loading="lazy" />
           ) : (
-            <span class={styles.coverTitle} aria-hidden="true">
-              {book.title}
-            </span>
-          );
-          const captionInner = (
-            <p class={styles.caption}>
-              {book.title}
-              {book.author && <span class={styles.author}>・{book.author}</span>}
-              {book.contributed && <span class={styles.contributedTag}>・持ち寄られた本</span>}
-            </p>
+            <span class={styles.coverTitle}>{accessibleTitle}</span>
           );
           return (
             <li class={styles.gridItem}>
@@ -134,14 +132,12 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
                   <span class={styles.cover} data-tone={tone}>
                     {coverInner}
                   </span>
-                  {captionInner}
                 </a>
               ) : (
                 <div class={styles.card}>
                   <span class={styles.cover} data-tone={tone}>
                     {coverInner}
                   </span>
-                  {captionInner}
                 </div>
               )}
             </li>

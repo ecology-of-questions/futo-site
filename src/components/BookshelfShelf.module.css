@@ -6,11 +6,14 @@
  * 【ブクログ風の書影グリッドに刷新(2026-09-17、Decision Log 0167)】
  * それまでの「いま読んでいる」Hero区画(横並びの棚)+status別の
  * 行リスト(書影+タイトル+著者+reason+アクション)という構成をやめ、
- * すべてのstatusを同じ「書影(仮カバー)+タイトル・著者の小さな
- * キャプション」のカードグリッドで表示する形に統一した。reason・
- * 「一緒に読みたい」・「この本から生まれた記録」は、このグリッドには
- * 表示しない(BookActions.module.cssは削除せず残しているが、この
- * ファイルからは参照しなくなった)。
+ * すべてのstatusを同じ「書影(仮カバー)」だけのカードグリッドで表示
+ * する形に統一した。reason・「一緒に読みたい」・「この本から生まれた
+ * 記録」は、このグリッドには表示しない(BookActions.module.cssは
+ * 削除せず残しているが、このファイルからは参照しなくなった)。
+ *
+ * 【画像下のキャプションを削除(2026-09-17、Decision Log 0168)】
+ * 0167時点にあった書影下のタイトル・著者キャプション(.caption・
+ * .author・.contributedTag)を削除し、書影のみのカードにした。
  * ------------------------------------------------------------
  */
 
@@ -51,8 +54,7 @@
 }
 
 .card {
-  display: flex;
-  flex-direction: column;
+  display: block;
   height: 100%;
   text-decoration: none;
   color: inherit;
@@ -116,25 +118,6 @@ a.card:focus-visible .cover {
   font-weight: 500;
   line-height: 1.3;
   color: var(--color-ink);
-}
-
-.caption {
-  margin: calc(var(--space-1) / 2) 0 0;
-  font-size: var(--fs-sm);
-  line-height: var(--lh-heading);
-}
-
-.author {
-  font-family: var(--font-sans);
-  font-weight: 400;
-  color: var(--color-ink-muted);
-}
-
-/* 【「持ち寄られた本」ラベル】新しい色・バッジ枠は作らず、通常の文字の
-   まま情報だけ足す(旧実装から引き継いだ考え方)。 */
-.contributedTag {
-  font-weight: 400;
-  color: var(--color-ink-muted);
 }
 
 /* 【Amazonアソシエイト開示文言】実際にアソシエイトタグ付きリンクを
