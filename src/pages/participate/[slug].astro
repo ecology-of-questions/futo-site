@@ -44,6 +44,26 @@
  * 埋め込み構想(コメントのみで実装は無かった)の置き換えとして、
  * 「書かれたこと」の前に、任意でGoogleスライドの区画を追加した。
  * `notebook.slidesEmbedUrl`が無いノートには区画自体を表示しない。
+ *
+ * 【スライドを主役にした初期表示(2026-09-17、Decision Log 0173)】
+ * 「音の道」への実URL設定後、プロジェクトオーナーから「スクロールなしで
+ * スライド全体が見えるレイアウトにしてほしい」との指示を受けた。
+ * `slidesEmbedSrc`がある場合(現状「音の道」のみ)は、Hero+スライドを
+ * 1つの縦flexコンテナ(`.heroViewport`)にまとめ、ヘッダー分を除いた
+ * 画面の高さ(`min-height: calc(100dvh - var(--header-height) - ...)`)に
+ * 収める。タイトル部分(`.heroTitle`)は内容に応じた自然な高さのまま、
+ * スライド部分(`.slideArea`、`flex: 1 1 auto`)が残りの縦幅をすべて
+ * 使い、その中で`aspect-ratio`+`max-height: 100%`を持つ
+ * `.slidesEmbed`を中央揃えにすることで、縦横比を保ったまま画面の高さに
+ * 収まるサイズへ自動的に縮小される(JSでの高さ計測は不要)。
+ * 「この断面にコメントを置く」はスライド直下に、それ以外の説明文
+ * (`description`・`commonNotebookDescription`)は初期表示の外
+ * (スクロールした先の`#notebook-about`)に移した。
+ *
+ * `slidesEmbedSrc`が無いノート(現状Fieldnote・研究断面をひらく)は、
+ * 従来通りのHero構成(縦積みのタイトル+説明文)のまま変更していない
+ * (今回の指示は「音の道」ページが対象のため、スライドが無いノートの
+ * 見た目は変えない判断)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -106,32 +126,48 @@ const slidesEmbedSrc = notebook.slidesEmbedUrl ? buildSlidesEmbedSrc(notebook.sl
 <DefaultLayout title={`${notebook.title} ｜ 実験室 ｜ 公開研究室ふ、と`} description={notebook.description} theme="night">
   <NightBackground />
 
-  <ResearchSection ariaLabel={notebook.title} id="notebook-top">
-    <a class={styles.back} href="/participate">← 実験室</a>
-    <p class={styles.eyebrow}>{notebook.category}</p>
-    <h1 class={styles.heading}>{notebook.title}</h1>
-    <p class={styles.lead}>{notebook.description}</p>
-    <p class={styles.commonNote}>{commonNotebookDescription}</p>
-  </ResearchSection>
+  {
+    slidesEmbedSrc ? (
+      <ResearchSection ariaLabel={notebook.title} id="notebook-hero">
+        <div class={styles.heroViewport}>
+          <div class={styles.heroTitle}>
+            <a class={styles.back} href="/participate">
+              ← 実験室
+            </a>
+            <p class={styles.eyebrow}>{notebook.category}</p>
+            <h1 class={styles.headingCompact}>{notebook.title}</h1>
+          </div>
+          <div class={styles.slideArea}>
+            <div class={styles.slidesEmbed}>
+              <iframe src={slidesEmbedSrc} title={`${notebook.title}のスライド`} loading="lazy" allowfullscreen />
+            </div>
+            {notebook.slidesCommentUrl && (
+              <div class={styles.slidesComment}>
+                <ArrowLink href={notebook.slidesCommentUrl} label="この断面にコメントを置く" external />
+                <p class={styles.slidesCommentNote}>Googleスライドを開いてコメントできます。</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </ResearchSection>
+    ) : (
+      <ResearchSection ariaLabel={notebook.title} id="notebook-top">
+        <a class={styles.back} href="/participate">
+          ← 実験室
+        </a>
+        <p class={styles.eyebrow}>{notebook.category}</p>
+        <h1 class={styles.heading}>{notebook.title}</h1>
+        <p class={styles.lead}>{notebook.description}</p>
+        <p class={styles.commonNote}>{commonNotebookDescription}</p>
+      </ResearchSection>
+    )
+  }
 
   {
     slidesEmbedSrc && (
-      <ResearchSection ariaLabel="スライド" id="notebook-slides">
-        <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>スライド</h2>
-        <div class={styles.slidesEmbed}>
-          <iframe
-            src={slidesEmbedSrc}
-            title={`${notebook.title}のスライド`}
-            loading="lazy"
-            allowfullscreen
-          />
-        </div>
-        {notebook.slidesCommentUrl && (
-          <div class={styles.slidesComment}>
-            <ArrowLink href={notebook.slidesCommentUrl} label="この断面にコメントを置く" external />
-            <p class={styles.slidesCommentNote}>Googleスライドを開いてコメントできます。</p>
-          </div>
-        )}
+      <ResearchSection ariaLabel="このノートについて" id="notebook-about">
+        <p class={styles.lead}>{notebook.description}</p>
+        <p class={styles.commonNote}>{commonNotebookDescription}</p>
       </ResearchSection>
     )
   }
