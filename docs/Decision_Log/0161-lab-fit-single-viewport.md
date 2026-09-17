@@ -77,19 +77,19 @@
 
 Playwrightで`document.documentElement`の実測値を使い、3項目目
 (研究断面をひらく)の`<a>`の下端がビューポート内に収まるかを計測
-した。
+した(数値は下記「追記」の修正後、最終版)。
 
 - **mobile(390×844、iPhone標準ビューポート)**: 3項目目の下端は
-  y=829px。**スクロールなしで収まることを確認した**。
-- **desktop(1440×900)**: 3項目目の下端はy=801px。**スクロールなしで
+  y=737px。**スクロールなしで収まることを確認した**。
+- **desktop(1440×900)**: 3項目目の下端はy=709px。**スクロールなしで
   収まることを確認した**。
 - 参考として、ブラウザのアドレスバー・下部ツールバーが両方表示
   された状態を想定した、より厳しいビューポート(mobile
-  390×660、desktop 1440×760)でも計測した。この場合はmobileで
-  約170px、desktopで約40px、3項目目が画面外にはみ出す(1〜2行の
-  description、CTAの一部が見えない)。標準的なビューポート高さでは
-  収まるが、ブラウザChrome(アドレスバー等)を非常に多く消費する
-  状態では、なお僅かなスクロールが必要になりうる。
+  390×660、desktop 1440×760)でも計測した。**desktop側はこの厳しい
+  条件でも収まった**。mobileのみ、約77px(description半行分程度)
+  画面外にはみ出す。両方のバーが同時に出る状態は、ページ読み込み
+  直後など一時的な状態であることが多く、スクロールまたはバーの
+  自動収納で解消される。
 - mobile(390px)/desktop(1440px)とも、`document.documentElement.
   scrollWidth === clientWidth`を確認し、横方向のoverflowが無いことを
   確認した。
@@ -99,6 +99,65 @@ Playwrightで`document.documentElement`の実測値を使い、3項目目
 - `npx astro check`: 0 errors, 0 warnings, 1 hint(既存の無関係な
   hint)。
 - `npm run build`: 15ページ生成、エラーなし。
+
+## 追記(2026-09-17、同日、merge前に修正): `#lab-hero`の上書きが
+効いていなかったバグ
+
+上記の初回実装・確認後、プロジェクトオーナーから「LABの上の余白を
+まだ詰められないか」という指摘を受け、実際にブラウザで計測し直した
+ところ、`participate.module.css`に書いた
+
+```css
+#lab-hero {
+  padding-block: calc(var(--space-1) / 2) var(--space-3);
+}
+```
+
+が**まったく適用されておらず**、`#lab-hero`は依然として
+`ResearchSection.module.css`側の既定値(`padding-block:
+var(--space-6)` = 96px上下)のままになっていたことが判明した。
+
+**原因**: `participate.module.css`はCSS Modulesとして処理される
+ファイルであり、Astro/Viteのビルドパイプラインは、素のID
+セレクタ(`#lab-hero`)もクラスセレクタと同様にスコープ用のハッシュに
+置き換えてしまう。一方、`ResearchSection.astro`側で実際にDOMへ付与
+される`id="lab-hero"`は、Astroコンポーネントのpropsとして渡した
+そのままの文字列であり、ハッシュ化されない。結果として、CSS側の
+セレクタとHTML側のIDが一致せず、`#lab-hero`のルールはビルド後の
+出力(HTMLに直接インラインされる`<style>`タグ)から実質的に
+死んだコードとして扱われ、一致する対象が無いまま出力されては
+いたものの、効果を持っていなかった。
+
+**気づいた経緯**: Playwrightで`getComputedStyle(document.
+getElementById('lab-hero')).paddingTop`を直接計測したところ`"96px"`
+(圧縮前の既定値)が返ってきたことで発覚した。見た目のスクリーン
+ショットだけでは、seccion内の他の圧縮(item・description等)の効果と
+混ざって「多少詰まった」ように見えてしまい、この1点だけが効いて
+いないことに気づきにくかった。
+
+**修正**: `:global()`でラップし、CSS Modulesによるハッシュ化を明示的
+に回避した。
+
+```css
+:global(#lab-hero) {
+  padding-block: calc(var(--space-1) / 2) var(--space-3);
+}
+```
+
+**修正後の効果**: `#lab-hero`のpadding-topが実際に96px→4pxになり、
+Header直下の「LAB」ラベルの開始位置がy=169px→y=77pxへ(約92px)
+移動した。この修正1点で、3項目目の下端はmobileでy=829px→737px
+(約92px減)、desktopでy=801px→709px(約92px減)まで縮まり、
+desktopは「ブラウザChromeを両方表示した厳しい条件(1440×760)」でも
+収まるようになった(修正前は約40px超過していた)。上記「確認結果」の
+数値は、この修正後の最終版に更新済み。
+
+**教訓**: 初回実装時、コード内コメントに「IDセレクタはCSS Modules
+でもハッシュ化されない」と書いたが、これはこのビルド環境では誤り
+だった(CLAUDE.md自体にそのような記載があるわけではなく、実装時の
+誤った思い込み)。今後、`*.module.css`内でID・要素セレクタを使って
+特定ページ/特定コンポーネントのみを狙い撃ちで上書きする場合は、
+`:global()`で明示的に囲む必要がある。
 
 ## 採用理由
 
@@ -122,8 +181,9 @@ Playwrightで`document.documentElement`の実測値を使い、3項目目
 
 ## 将来の変更可能性
 
-- ブラウザChromeを多く消費する状態でも完全に収めたい場合は、上記の
-  line-clamp案や、モチーフサイズの見直しが次の選択肢になる。
+- mobileでブラウザChromeを両方表示した最も厳しい状態(約660px)でも
+  完全に収めたい場合は、上記のline-clamp案や、モチーフサイズの見直し
+  が次の選択肢になる(現状、約77px超過)。
 - 「いま、ひらいている実験」セクションが将来有効化された際は、
   `.subsection`のmargin-topと`.sectionRule`のpadding-top
   (`var(--space-3)`に圧縮済み)がそのまま適用される。
