@@ -39,11 +39,17 @@
  *      (Decision Log 0141参照)。
  *   5. 「他のノートを見る」: 残り2冊への小さなテキストリンク
  *      (カルーセル・カード一覧にはしない)。
+ *
+ * 【Googleスライド埋め込み(2026-09-17、Decision Log 0171)】旧Miro
+ * 埋め込み構想(コメントのみで実装は無かった)の置き換えとして、
+ * 「書かれたこと」の前に、任意でGoogleスライドの区画を追加した。
+ * `notebook.slidesEmbedUrl`が無いノートには区画自体を表示しない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import NightBackground from "@components/NightBackground.astro";
+import ArrowLink from "@components/ArrowLink.astro";
 import styles from "./[slug].module.css";
 import { labNotebooks, commonNotebookDescription } from "@/data/labNotebooks";
 import type { LabNotebook } from "@/types/labNotebook";
@@ -74,6 +80,27 @@ function hostnameOf(url: string): string {
     return url;
   }
 }
+
+/**
+ * Googleスライドの埋め込み用URL(「ウェブに公開」で取得したもの)に、
+ * 自動再生・ループを明示的に無効化するクエリを付加する。コピー元の
+ * URLに`start`/`loop`が含まれていた場合も、ここで上書きする
+ * (訪問者が自分のペースでページを送れるようにする、という指示への
+ * 対応)。URLとして解釈できない値は、壊れたiframeを作らないよう
+ * nullを返す(呼び出し側で区画自体を表示しない)。
+ */
+function buildSlidesEmbedSrc(rawUrl: string): string | null {
+  try {
+    const url = new URL(rawUrl);
+    url.searchParams.set("start", "false");
+    url.searchParams.set("loop", "false");
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+const slidesEmbedSrc = notebook.slidesEmbedUrl ? buildSlidesEmbedSrc(notebook.slidesEmbedUrl) : null;
 ---
 
 <DefaultLayout title={`${notebook.title} ｜ 実験室 ｜ 公開研究室ふ、と`} description={notebook.description} theme="night">
@@ -86,6 +113,28 @@ function hostnameOf(url: string): string {
     <p class={styles.lead}>{notebook.description}</p>
     <p class={styles.commonNote}>{commonNotebookDescription}</p>
   </ResearchSection>
+
+  {
+    slidesEmbedSrc && (
+      <ResearchSection ariaLabel="スライド" id="notebook-slides">
+        <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>スライド</h2>
+        <div class={styles.slidesEmbed}>
+          <iframe
+            src={slidesEmbedSrc}
+            title={`${notebook.title}のスライド`}
+            loading="lazy"
+            allowfullscreen
+          />
+        </div>
+        {notebook.slidesCommentUrl && (
+          <div class={styles.slidesComment}>
+            <ArrowLink href={notebook.slidesCommentUrl} label="この断面にコメントを置く" external />
+            <p class={styles.slidesCommentNote}>Googleスライドを開いてコメントできます。</p>
+          </div>
+        )}
+      </ResearchSection>
+    )
+  }
 
   <ResearchSection ariaLabel="書かれたこと" id="notebook-entries">
     <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>書かれたこと</h2>

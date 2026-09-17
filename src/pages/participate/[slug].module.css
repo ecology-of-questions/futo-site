@@ -71,6 +71,38 @@
 }
 
 /* -----------------------------
+ * スライド(2026-09-17、Decision Log 0171)。Googleスライドの「ウェブに
+ * 公開」埋め込みURLをiframeで表示する。aspect-ratioでスライドの縦横比
+ * (16:9、現行のGoogleスライドの既定値)を維持しつつ、PC・スマホとも
+ * 横にはみ出さないようにする(幅は親要素いっぱい、高さは比率から
+ * 自動算出)。カード風の枠・背景は付けず、iframe自体の見た目を主役に
+ * する。
+ * ----------------------------- */
+.slidesEmbed {
+  margin-top: var(--space-4);
+  aspect-ratio: 16 / 9;
+  max-width: 48rem;
+}
+
+.slidesEmbed iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.slidesComment {
+  margin-top: var(--space-2);
+}
+
+.slidesCommentNote {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+/* -----------------------------
  * 書かれたこと(「ふ、と」自身の記録・訪問者の記録を、区別する見出しを
  * 設けずに同じ時系列の一覧として表示する。.contributionItem
  * (旧participate.module.css)と同じ「細い罫線区切り」を踏襲。
