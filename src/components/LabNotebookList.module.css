@@ -12,6 +12,15 @@
  * `.title`はflex子要素としてmin-width: 0を持たせ、長いタイトルでも
  * モチーフの領域を侵食せずに折り返す。モチーフ自体は`clamp()`で
  * ビューポート幅に応じて縮小し、page-level overflowを起こさない。
+ *
+ * 【文字を引き、モチーフを主役級に(2026-09-17、Decision Log 0160)】
+ * プロジェクトオーナーから、モチーフが「意味を持つビジュアル」ではなく
+ * 小さな装飾アイコンに見えてしまうとの指摘を受けた。とくに「研究断面を
+ * ひらく」は重なりが小さいとコンセプトが読めず、Fieldnoteも「点→線」の
+ * 変化が見えにくい。指示に従い、タイトルを約88%(0159比)に抑え、
+ * モチーフを約1.6倍に拡大した。行の構造(タイトルと同じ行、
+ * justify-content: space-between)自体は0159のまま変更していない。
+ * category(`.label`)・説明文(`.description`)のサイズは維持。
  * ------------------------------------------------------------
  */
 
@@ -59,7 +68,9 @@
 
 .title {
   margin: 0;
-  font-size: var(--fs-xl);
+  /* 0160: モチーフを主役級に大きくする分、タイトルは一段抑える
+     (--fs-xlの約88%)。 */
+  font-size: calc(var(--fs-xl) * 0.88);
   line-height: var(--lh-heading);
   font-weight: 500;
   flex: 1 1 auto;
@@ -79,11 +90,15 @@
    統一し、「クリエイティブ系AIサイト」のような派手な配色にはしない。
    タイトル行の右側に収まる固定枠(flex: 0 0 auto)とし、ビューポート
    幅に応じてclamp()で縮小することで、タイトルと重ならず、page-level
-   horizontal overflowも起こさないようにしている。 */
+   horizontal overflowも起こさないようにしている。
+   0160: 「意味を持つビジュアル」として読めるよう、0159比で約1.6倍に
+   拡大した(3.25rem/20vw/5.5rem → 5.2rem/32vw/8.8rem)。viewBoxは
+   変えていないため、線幅・点サイズも見た目のサイズに比例して拡大
+   される。 */
 .trace {
   display: block;
   flex: 0 0 auto;
-  width: clamp(3.25rem, 20vw, 5.5rem);
+  width: clamp(5.2rem, 32vw, 8.8rem);
   height: auto;
 }
 
