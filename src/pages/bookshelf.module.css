@@ -1,15 +1,3 @@
-/* Hero区画(見出し+導入文+BookshelfShelf)をまとめた#bookshelf-heroの
-   padding-blockを圧縮する(既定はResearchSection.module.cssの
-   padding-block: var(--space-6) = 96px上下)。他ページの
-   ResearchSectionには影響しない。:global()が無いとCSS Modules側が
-   このIDセレクタもハッシュ化してしまい、DOM側のid="bookshelf-hero"
-   と一致しなくなる(/participateのDecision Log 0161で発見・修正した
-   ものと同じ仕組み。参照: LabNotebookList.module.css)。
-   (2026-09-17、Decision Log 0164) */
-:global(#bookshelf-hero) {
-  padding-block: calc(var(--space-1) / 2) var(--space-3);
-}
-
 /* research.module.css・about.module.css等と同じ「Eyebrowをpに変更」
    の考え方(Decision Log 0096)。見出し要素ではないプレーンな<p>にし、
    ページの最初の見出し(h1)の前にh2相当の見た目のラベルを置く。 */
@@ -23,32 +11,18 @@
   color: var(--color-ink-muted);
 }
 
-/* 見出し「研究の本棚」と導入文(.note)を横並びにする
-   (2026-09-17、Decision Log 0164。/participateの.heroRowと同じ
-   考え方)。align-items: baselineで見出し・本文のベースラインを
-   揃え、幅が足りないmobile幅ではflex-wrapで縦積みに戻る。 */
-.heroRow {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
-}
-
 .heading {
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
-  margin: calc(var(--space-1) / 2) 0 0;
-  flex: 0 0 auto;
+  margin: var(--space-2) 0 0;
 }
 
 .note {
-  margin-top: calc(var(--space-1) / 2);
+  margin-top: var(--space-2);
   font-size: var(--fs-base);
   line-height: var(--lh-heading);
   color: var(--color-ink-muted);
-  flex: 1 1 16rem;
-  min-width: 0;
 }
 
 /* 【2026-09-11、Decision Log 0137】「本棚に本を持ち寄る」機能の追加に
