@@ -119,3 +119,38 @@
    * ----------------------------- */
   --transition-base: 240ms ease;
 }
+
+/* Home editorial study, Decision Log 0174. Opt-in: other pages keep their tokens. */
+body[data-theme="editorial"] {
+  --color-paper: #f7f5ef;
+  --color-ink: #283f51;
+  --color-ink-muted: #586570;
+  --color-accent-blue: #283f51;
+  --color-accent-beige: #c7cbd0;
+  --color-surface: #fbfaf7;
+  --home-visual: #e9e7df;
+  --home-newsletter: #e4eaec;
+  --home-book-warm: #e5ddca;
+  --home-book-moss: #dbe0d4;
+  --home-book-sky: #d6e0e6;
+  --home-muted-rule: #dde0de;
+  --home-heading: clamp(2rem, 4vw, 3.5rem);
+  --home-feature-title: clamp(2.5rem, 4.5vw, 4rem);
+  --home-section-title: clamp(1.4rem, 2.4vw, 1.8rem);
+  --home-article-title: clamp(1.05rem, 1.5vw, 1.25rem);
+  --home-label-size: 0.75rem;
+  --home-book-title: clamp(0.875rem, 1.4vw, 1.125rem);
+  --home-book-author: 0.6875rem;
+  --home-leading: 1.9;
+  --home-tracking: 0.08em;
+  --home-heading-tracking: 0.06em;
+  --home-width: 1280px;
+  --home-gutter: clamp(1.25rem, 4.5vw, 4rem);
+  --home-intro-space: clamp(2.5rem, 5vw, 4rem);
+  --home-section-space: clamp(2.5rem, 5vw, 4rem);
+  --home-column-gap: clamp(2rem, 4vw, 3.5rem);
+  --home-book-gap: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+@media (max-width: 360px) {
+  body[data-theme="editorial"] { --home-heading: 1.625rem; }
+}

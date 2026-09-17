@@ -1,171 +1,93 @@
 ---
-/**
- * index.astro (Home)
- * ------------------------------------------------------------
- * Home_Hero_v1_mockup.png / Home_Hero_v1_spec.md に基づき Hero を実装済み
- * だったが、2026-09-09にHeroとResearch Statementを統合した(下記
- * 【HeroとResearch Statementを統合】参照)。
- *
- * Research Statementは、Design Spec 7・8による仮コンテンツ→v0.1
- * (First Draft)を経て、2026-08-07に正式版へ差し替えた(Decision Log
- * 0016)。過去の変遷(全文掲載/抜粋掲載の切り替え)は複数回の
- * Decision Logにまたがっているため、直近の構成のみ以下に記す。
- *
- * 2026-08-15〜2026-09-14の再設計の変遷(トップページ編集的再設計
- * (Decision Log 0111)→4層構成への整理(0125)→研究断面2件表示(0127)→
- * スマホのファーストビューでサイト全体像が分かる構成(0149))は、
- * このファイルのgit履歴および各Decision Logを参照。
- *
- * 【v0.1公開仕様に合わせたTop全面刷新(2026-09-16、Decision Log 0150)】
- * プロジェクトオーナーから、2026年9月公開版 v0.1 実装仕様書
- * (futo_v0.1_handoff、以下「v0.1仕様」)を受け取った。v0.1仕様は
- * Topを含むサイト全体の再構成を指示しており、「現在の旧Top案
- * (このファイルの直前の状態、Decision Log 0149)のレイアウトは
- * そのままmergeせず、v0.1仕様で置き換える」という明示的な指示が
- * あった。今回のコミットはそのTop部分の置き換えである。
- *
- * Decision Log 0149時点のTopは、ファーストビュー(Hero+3つの主要
- * 入口+いま動いていること)とスクロール後(Research Statement全文+
- * 研究断面2件+実験室のノート+研究の本棚3冊+研究便りフォーム)という
- * 「サイト内の主要コンテンツをTopに集約する」構成だった。v0.1仕様は
- * これと方向性が異なり、「Topはサイト内の全機能を紹介する場所に
- * しない」という原則を徹底し、Topを
- *
- *   1. Hero(抽象モーション+コピー1文)
- *   2. 3つの主要入口(研究断面/実験室/本棚。カード風に統一せず、
- *      領域ごとに異なる「物質」(紙面/線・痕跡/背表紙)で見せる)
- *   3. 「この場所について」への静かな導線
- *   4. 研究便りの小さな入口
- *
- * という4区画のみに絞る指示だった。Research Statement全文・研究断面
- * 一覧・実験室のノート一覧・本棚のプレビューは、いずれもTopから
- * 外し、それぞれの本来のページ(/research-statement、/research、
- * /participate、/bookshelf)に委ねた(これらのページ自体・データ・
- * リンク先は変更していない。Header.astroの4項目のナビゲーションから
- * 引き続き到達できる)。
- *
- * 3つの主要入口の短い説明文は、新しいコピーを作らず、それぞれの遷移先
- * ページに既にある文言をそのまま引用している(v0.1仕様の「架空の
- * コンテンツで画面を埋めない」という原則を、コピーにも適用した判断。
- * 詳細はDecision Log 0150参照)。
- *
- *   - 研究断面: research.astroの見出し下の説明文の前半
- *     (「その時点で考えていることを、研究の断面として残しています。」)
- *     と、researchReviews.tsの最新エントリの説明文(実データ)。
- *   - 実験室: participate.astroのHero本文の1文目
- *     (「ここでは、ツールや企画を、考えたり、つくったり、試したり
- *     しています。」)。
- *   - 本棚: bookshelf.astroの見出し下の説明文
- *     (「読んでいる本、これから読みたい本。」)と、bookshelf.tsの
- *     先頭3冊(実データ、現在「読書中」の3冊)。
- *
- * Heroの抽象モーション(閉じた境界→ゆっくりひらく→余白が生まれる、
- * という3段階)は、写真・外部アセットを使わず、既存のtokens.css の
- * トーン(--color-accent-beige/--color-accent-green/--color-accent-blue
- * のcolor-mix)のみで構成した3枚の帯がスライドして開く、CSSアニメー
- * ションのみの表現。`prefers-reduced-motion: reduce`では、アニメー
- * ションさせず最終状態(開いた状態)を直接描画する。
- * ------------------------------------------------------------
- */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
-import NightBackground from "@components/NightBackground.astro";
+import HomeBook from "@components/HomeBook.astro";
 import styles from "./index.module.css";
 import { publishedReviews } from "@/data/researchReviews";
 import { books } from "@/data/bookshelf";
+import { labNotebooks } from "@/data/labNotebooks";
 import { contactFormEndpoint } from "@/config/site";
 
-/** 研究断面の入口に使う最新1件(公開順の末尾)。researchReviews.tsは
-    「古い→新しい」の順で並んでいるため、末尾が最新になる(/research・
-    旧Topの「研究断面」表示と同じ取得方法)。 */
-const latestReview = publishedReviews[publishedReviews.length - 1];
-
-/** 本棚の入口に使う3冊。bookshelf.ts側の並び順・データは変更せず、
-    先頭3冊(現在は「読書中」の3冊)をそのまま使う。 */
-const bookshelfPreview = books.slice(0, 3);
-const previewTones = ["warm", "moss", "sky"] as const;
+const reviews = [...publishedReviews].reverse().slice(0, 2);
+const reading = books.filter((book) => book.status === "reading").slice(0, 3);
+const featured = labNotebooks.find((notebook) => notebook.slug === "oto-no-michi");
+// Replace only this asset URL when the owner selects the main visual.
+const featureImage: string | undefined = undefined;
 ---
 
-<DefaultLayout
-  title="公開研究室ふ、と｜誰もが探究を続けられる場所へ"
-  description="個人の探究をひらき、誰もがふらっと立ち寄り、ともに探究を深められる場です。"
-  theme="night"
->
-  <NightBackground gradient />
-
-  <section class={styles.hero} aria-label="Hero">
-    <div class={styles.heroMotion} aria-hidden="true">
-      <span class={`${styles.heroPanel} ${styles.heroPanelA}`}></span>
-      <span class={`${styles.heroPanel} ${styles.heroPanelB}`}></span>
-      <span class={`${styles.heroPanel} ${styles.heroPanelC}`}></span>
-      <span class={styles.heroGlow}></span>
-    </div>
-    <h1 class={styles.heroHeading}>公開研究室ふ、と</h1>
-    <p class={styles.heroLead}>
-      個人の探究をひらき、誰もがふらっと立ち寄り、<br />ともに探究を深められる場です。
-    </p>
-  </section>
-
-  <div class={styles.entries}>
-    <a class={`${styles.entry} ${styles.entryResearch}`} href="/research">
-      <h2 class={styles.entryLabel}>研究断面</h2>
-      <blockquote class={styles.entryQuote}>{latestReview.description}</blockquote>
-      <p class={styles.entryDescription}>その時点で考えていることを、研究の断面として残しています。</p>
-      <span class={styles.entryLink}>読む <span aria-hidden="true">→</span></span>
-    </a>
-
-    <a class={`${styles.entry} ${styles.entryLab}`} href="/participate">
-      <svg class={styles.entryTrace} viewBox="0 0 120 56" aria-hidden="true">
-        <path d="M4 40 C 22 8, 40 8, 52 26 S 78 46, 92 18" />
-        <circle cx="4" cy="40" r="2" />
-        <circle cx="92" cy="18" r="2" />
-      </svg>
-      <h2 class={styles.entryLabel}>実験室</h2>
-      <p class={styles.entryDescription}>ここでは、ツールや企画を、考えたり、つくったり、試したりしています。</p>
-      <span class={styles.entryLink}>実験室を見る <span aria-hidden="true">→</span></span>
-    </a>
-
-    <a class={`${styles.entry} ${styles.entryBookshelf}`} href="/bookshelf">
-      <div class={styles.entrySpines}>
-        {
-          bookshelfPreview.map((book, i) => (
-            <span class={styles.spine} data-tone={book.tone ?? previewTones[i % previewTones.length]}>
-              <span class={styles.spineTitle}>{book.title}</span>
-            </span>
-          ))
-        }
+<DefaultLayout title="公開研究室ふ、と｜誰もが探究を続けられる場所へ"
+  description="個人の探究をひらき、誰もがふらっと立ち寄り、ともに探究を深められる場です。" theme="editorial">
+  <div class={styles.home}>
+    <section class={styles.intro} aria-labelledby="home-title">
+      <div>
+        <p class={styles.eyebrow}>公開研究室ふ、と</p>
+        <h1 id="home-title">日々の気づきから、<br />問いが育つ。</h1>
       </div>
-      <h2 class={styles.entryLabel}>本棚</h2>
-      <p class={styles.entryDescription}>読んでいる本、これから読みたい本。</p>
-      <span class={styles.entryLink}>本棚を見る <span aria-hidden="true">→</span></span>
-    </a>
-  </div>
+      <div class={styles.introAside}>
+        <p>個人の探究をひらき、<br />誰もがふらっと立ち寄り、<br />ともに探究を深められる場です。</p>
+        <a class={styles.textLink} href="/about">この場所について <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
 
-  <div class={styles.closing}>
-    <a class={styles.closingLink} href="/about">この場所について <span aria-hidden="true">→</span></a>
-  </div>
+    {featured && <section class={styles.feature} aria-labelledby="feature-title">
+      <div class={styles.featureCopy}>
+        <a class={styles.eyebrow} href="/participate">実験室 <span aria-hidden="true">/</span> つくっている途中</a>
+        <h2 id="feature-title">{featured.title}</h2>
+        <p>{featured.description}</p>
+        <a class={styles.textLink} href={`/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
+      </div>
+      <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label="音の道のノートを開く">
+        {featureImage ? <img src={featureImage} alt="" width="960" height="640" fetchpriority="high" /> :
+          <div class={styles.visualStudy} aria-hidden="true">
+            <span class={styles.visualLabel}>ふ、と / 音の道</span>
+            <svg viewBox="0 0 800 500" fill="none" preserveAspectRatio="xMidYMid meet">
+              <path class={styles.traceSoft} d="M-20 358C92 356 153 58 272 115S344 367 475 327 624 151 834 219" />
+              <path class={styles.trace} d="M-20 370C103 377 154 79 271 132S348 380 482 344 637 166 834 229" />
+              <path class={styles.traceSoft} d="M-20 384C91 405 170 99 276 151S365 393 491 363 653 189 834 244" />
+              <circle cx="271" cy="132" r="5" class={styles.tracePoint}/>
+              <circle cx="482" cy="344" r="5" class={styles.tracePoint}/>
+              <path class={styles.traceMarker} d="M271 102V53M482 374V428M247 53H295M458 428H506" />
+            </svg>
+            <span class={styles.visualIndex}>01 <span aria-hidden="true">—</span> 実験のノート</span>
+            <span class={styles.visualArrow}>↗</span>
+          </div>}
+      </a>
+    </section>}
 
-  <div class={styles.newsletter}>
-    <label class={styles.newsletterLabel} for="newsletter-email">研究便りを受け取る</label>
-    <form
-      class={styles.newsletterForm}
-      method="POST"
-      action={contactFormEndpoint}
-      data-newsletter-form
-    >
-      <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <input type="hidden" name="_subject" value="ふ、と 研究便り 登録希望" />
-      <input
-        class={styles.newsletterInput}
-        type="email"
-        id="newsletter-email"
-        name="email"
-        placeholder="メールアドレス"
-        autocomplete="email"
-        required
-      />
-      <button class={styles.newsletterSubmit} type="submit">登録する <span aria-hidden="true">→</span></button>
-    </form>
-    <p class={styles.newsletterStatus} data-newsletter-status role="status" aria-live="polite"></p>
+    <div class={styles.collections}>
+      <section class={styles.research} aria-labelledby="research-title">
+        <div class={styles.sectionHead}><h2 id="research-title">研究断面</h2><a href="/research">すべて読む <span aria-hidden="true">→</span></a></div>
+        <div class={styles.reviews}>
+          {reviews.map((review) => <article class={styles.review}>
+            <span class={styles.reviewNumber} aria-hidden="true">{review.number}</span>
+            <div><p class={styles.eyebrow}>研究断面 {review.number}</p>
+              <h3><a href={review.href}>{review.title}</a></h3>
+              <p class={styles.reviewSubtitle}>{review.subtitle}</p>
+              <a class={styles.textLink} href={review.href}>続きを読む <span aria-hidden="true">→</span></a>
+            </div>
+          </article>)}
+        </div>
+      </section>
+      <section class={styles.bookshelf} aria-labelledby="bookshelf-title">
+        <div class={styles.sectionHead}><h2 id="bookshelf-title">本棚</h2><a href="/bookshelf">本棚へ <span aria-hidden="true">→</span></a></div>
+        <p class={styles.sectionDescription}>読んでいる本、これから読みたい本。</p>
+        <p class={styles.readingLabel}>いま読んでいる</p>
+        <ul class={styles.books}>{reading.map((book) => <li><HomeBook book={book} /></li>)}</ul>
+      </section>
+    </div>
+
+    <section class={styles.newsletter} aria-labelledby="newsletter-title">
+      <div><p class={styles.eyebrow}>ふ、とからのお知らせ</p><h2 id="newsletter-title">研究便り</h2><p class={styles.sectionDescription}>研究便りを受け取る</p></div>
+      <div class={styles.newsletterFields}>
+        <form class={styles.newsletterForm} method="POST" action={contactFormEndpoint} data-newsletter-form>
+          <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <input type="hidden" name="_subject" value="ふ、と 研究便り 登録希望" />
+          <label class={styles.srOnly} for="newsletter-email">メールアドレス</label>
+          <input class={styles.newsletterInput} type="email" id="newsletter-email" name="email" placeholder="メールアドレス" autocomplete="email" required />
+          <button class={styles.newsletterSubmit} type="submit">登録する <span aria-hidden="true">→</span></button>
+        </form>
+        <p class={styles.newsletterStatus} data-newsletter-status role="status" aria-live="polite"></p>
+      </div>
+    </section>
   </div>
 </DefaultLayout>
 

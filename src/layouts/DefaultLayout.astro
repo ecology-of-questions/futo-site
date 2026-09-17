@@ -61,7 +61,7 @@ interface Props {
    * 指示により/research・/about・/contactにも適用した
    * (Decision Log 0063)。指定しないページは既定の配色のまま。
    */
-  theme?: "default" | "night";
+  theme?: "default" | "night" | "editorial";
 }
 
 const {
@@ -100,7 +100,7 @@ const sharedTitle = "公開研究室ふ、と";
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
   </head>
-  <body data-theme={theme === "night" ? "night" : undefined}>
+  <body data-theme={theme === "default" ? undefined : theme}>
     <Header />
     <main>
       <slot />
