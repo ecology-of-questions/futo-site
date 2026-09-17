@@ -31,8 +31,12 @@
  */
 
 /* Hero+一覧をまとめた#lab-heroだけ、通常の96px上下パディングを圧縮する
-   (他ページのResearchSectionには影響しない、IDセレクタでの上書き)。 */
-#lab-hero {
+   (他ページのResearchSectionには影響しない、IDセレクタでの上書き)。
+   :global()が無いと、CSS Modules側がこのIDセレクタもクラス同様に
+   ハッシュ化してしまい、実際のDOMのid="lab-hero"(ハッシュされない
+   素の文字列)と一致せず、ルール自体がビルド後のCSSから消える
+   (2026-09-17、Decision Log 0162で発見・修正)。 */
+:global(#lab-hero) {
   padding-block: calc(var(--space-1) / 2) var(--space-3);
 }
 
