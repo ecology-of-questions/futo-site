@@ -5,6 +5,13 @@
  * Decision Log 0156)のスタイル。participate.module.cssにあった
  * `.experimentList`以下を、コンポーネント分割に伴いそのまま移設した
  * (見た目は変更していない)。
+ *
+ * 【モチーフをタイトル行の右側に配置(2026-09-17、Decision Log 0159)】
+ * それまで説明文の下にブロックとして置いていたモチーフ(`.trace`)を、
+ * タイトルと同じ行の右側に配置する構成に変更した(`.titleRow`を新設)。
+ * `.title`はflex子要素としてmin-width: 0を持たせ、長いタイトルでも
+ * モチーフの領域を侵食せずに折り返す。モチーフ自体は`clamp()`で
+ * ビューポート幅に応じて縮小し、page-level overflowを起こさない。
  * ------------------------------------------------------------
  */
 
@@ -42,11 +49,21 @@
   color: var(--color-ink-muted);
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+}
+
 .title {
   margin: 0;
   font-size: var(--fs-xl);
   line-height: var(--lh-heading);
   font-weight: 500;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .description {
@@ -59,13 +76,15 @@
 
 /* ノートごとの抽象的な「痕跡」(装飾要素、aria-hidden)。写真・生成
    画像は使わず、細い線のみで構成する。色は単色(--color-ink-muted)に
-   統一し、「クリエイティブ系AIサイト」のような派手な配色にはしない。 */
+   統一し、「クリエイティブ系AIサイト」のような派手な配色にはしない。
+   タイトル行の右側に収まる固定枠(flex: 0 0 auto)とし、ビューポート
+   幅に応じてclamp()で縮小することで、タイトルと重ならず、page-level
+   horizontal overflowも起こさないようにしている。 */
 .trace {
   display: block;
-  width: 100%;
-  max-width: 7rem;
+  flex: 0 0 auto;
+  width: clamp(3.25rem, 20vw, 5.5rem);
   height: auto;
-  margin-top: var(--space-2);
 }
 
 .trace :global(svg) {
@@ -90,6 +109,15 @@
 
 .trace :global(circle) {
   fill: var(--color-ink-muted);
+}
+
+/* 「研究断面をひらく」のみ: 3本の線が重なる部分だけに生まれる、ごく
+   淡い面。塗りつぶしのみでstrokeは持たない(pathの既定スタイルを
+   クラスセレクタの詳細度で上書きする)。 */
+.trace :global(.overlap) {
+  fill: var(--color-ink-muted);
+  stroke: none;
+  opacity: 0.14;
 }
 
 .readMore {
