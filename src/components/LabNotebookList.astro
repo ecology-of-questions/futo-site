@@ -25,6 +25,22 @@
  * `ctaLabel`は呼び出し元が指定する(「いま、考えていること」では
  * 「ノートを見る」、将来の「いま、ひらいている実験」では「実験を
  * 見る」を想定)。
+ *
+ * 【モチーフを決定案3種に統一(2026-09-17、Decision Log 0159)】
+ * プロジェクトオーナーから渡された決定イメージに基づき、3つの
+ * モチーフをすべて描き直した。
+ * - 音の道: 「立ち止まり、また歩き出す」= 一本線がゆるく進み、
+ *   一度だけ小さくループしたのち前へ進む。始点・終点に小さな点。
+ * - Fieldnote: 「点の記録が、あとから線になる」= 左側は散らばった点、
+ *   右へ進むにつれ点が収束し、最後は一本の細い線として続く。
+ * - 研究断面をひらく: 「重なっているところから、断面が見えてくる」=
+ *   3本の有機的な線が中央付近で重なり、重なった部分だけごく淡い面
+ *   (`.overlap`)が生まれる。線はその後もそれぞれ続く。
+ * 3つとも同じviewBox(130×54)に揃え、線幅・点サイズ(r=2)・全体の
+ * 見た目のサイズを統一した(以前は3:1/1:1/1.36:1とばらばらの比率
+ * だった)。タイトルの右に添える形に配置が変わったことに伴い、
+ * それぞれの図形自体も見出しの高さと釣り合う横長比率に描き直して
+ * いる。
  * ------------------------------------------------------------
  */
 import styles from "./LabNotebookList.module.css";
@@ -44,9 +60,16 @@ const { notebooks, descriptions, ctaLabel } = Astro.props;
     labNotebooks.ts側にデータを増やさず、このコンポーネント内で完結
     させる(装飾情報のため)。 */
 const traces: Record<string, string> = {
-  "oto-no-michi": `<svg viewBox="0 0 120 40" aria-hidden="true"><path d="M4 30 Q 20 6 36 22 T 68 18 T 100 28 T 116 10" /><circle cx="4" cy="30" r="2" /></svg>`,
-  fieldnote: `<svg viewBox="0 0 60 60" aria-hidden="true"><rect x="8" y="6" width="38" height="48" rx="2" /><line x1="16" y1="20" x2="38" y2="20" /><line x1="16" y1="30" x2="38" y2="30" /><line x1="16" y1="40" x2="30" y2="40" /></svg>`,
-  "research-fragments": `<svg viewBox="0 0 60 44" aria-hidden="true"><rect x="4" y="18" width="34" height="22" /><rect x="13" y="10" width="34" height="22" /><rect x="22" y="2" width="34" height="22" /></svg>`,
+  // 音の道: ゆるく進む一本線が、一度だけ小さくループしてから前へ進む。
+  // 始点・終点に小さな点。停止記号や矢印、波形の反復はつくらない。
+  "oto-no-michi": `<svg viewBox="0 0 130 54" aria-hidden="true"><path d="M8 40 C 26 22 38 28 50 30 C 60 34 60 16 50 16 C 40 16 38 28 50 32 C 66 36 88 26 108 16 T 122 12" /><circle cx="8" cy="40" r="2" /><circle cx="122" cy="12" r="2" /></svg>`,
+  // Fieldnote: 左は散らばった点、右へ進むほど点が収束し、最後は
+  // 一本の細い線として続く。最初からすべてを線でつながない。
+  fieldnote: `<svg viewBox="0 0 130 54" aria-hidden="true"><circle cx="8" cy="42" r="2" /><circle cx="17" cy="16" r="2" /><circle cx="25" cy="36" r="2" /><circle cx="31" cy="10" r="2" /><circle cx="39" cy="26" r="2" /><circle cx="47" cy="20" r="2" /><circle cx="54" cy="23" r="2" /><path d="M54 23 C 66 19 80 17 94 18 T 122 12" /><circle cx="122" cy="12" r="2" /></svg>`,
+  // 研究断面をひらく: 3本の有機的な線が中央付近で重なる。重なった
+  // 部分だけ、ごく淡い面(.overlap)が生まれる。線はその後も個別に
+  // 続く。本・ページ・窓のような説明的図形にはしない。
+  "research-fragments": `<svg viewBox="0 0 130 54" aria-hidden="true"><path class="overlap" d="M50 24 C 58 12 72 14 78 22 C 86 28 82 40 70 38 C 58 40 44 34 50 24 Z" /><path d="M8 44 C 40 28 70 42 122 16" /><path d="M8 16 C 42 38 68 16 122 40" /><path d="M8 32 C 46 6 62 50 122 24" /></svg>`,
 };
 ---
 
@@ -60,9 +83,11 @@ const traces: Record<string, string> = {
           aria-label={`「${notebook.title}」の${ctaLabel}`}
         >
           <p class={styles.label}>{notebook.category}</p>
-          <h3 class={styles.title}>{notebook.title}</h3>
+          <div class={styles.titleRow}>
+            <h3 class={styles.title}>{notebook.title}</h3>
+            <span class={styles.trace} set:html={traces[notebook.slug]} />
+          </div>
           <p class={styles.description}>{descriptions[notebook.slug] ?? notebook.description}</p>
-          <span class={styles.trace} set:html={traces[notebook.slug]} />
           <span class={styles.readMore}>
             {ctaLabel} <span class={styles.arrow} aria-hidden="true">→</span>
           </span>
