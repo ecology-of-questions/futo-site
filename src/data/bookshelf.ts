@@ -13,7 +13,20 @@
  * そのまま引き継いでいる。
  *
  * 著者等が現時点で不明な本は、コード上で推測して補わず、フィールド
- * 自体を省略している(例: 「調査的感性術」の著者。判明次第追加する)。
+ * 自体を省略している。
+ *
+ * 【実際の書影表示に向けてisbn13を追加(2026-09-17、Decision Log
+ * 0170)】プロジェクトオーナーからの指示書(v0.2)に基づき、6冊すべて
+ * について、公開書誌データベース(国立国会図書館サーチ・版元
+ * ドットコム・出版書誌データベース等、複数の情報源で相互に確認できた
+ * もの)を調べ、確認できたISBN-13を`isbn13`に追加した。あわせて、
+ * 「調査的感性術」の著者(マシュー・フラー、エヤル・ヴァイツマン。
+ * 訳者は中井悠)も同じ調査で判明したため追加した(推測ではなく、
+ * 版元ドットコム・出版書誌データベース等で確認済み)。
+ * 「想像の共同体」は、初版(NTT出版・1997年)と「定本 想像の共同体」
+ * (書籍工房早山・2007年)の2つの版が流通しているが、現在も入手しやすい
+ * 「定本」版のISBNを採用した(データ上のtitleは版を区別していないため、
+ * この判断はDecision Log 0170に記録している)。
  *
  * 【2026-09-11、「読みたい・未所蔵」の本を3冊追加(Decision Log 0118)】
  * インゴルド等の「読みたい本」(このコメントは当初「未確定のため
@@ -65,17 +78,21 @@ export const books: BookEntry[] = [
     conversationEnabled: true,
     featured: true,
     tone: "warm",
+    // 講談社学術文庫版(市村尚久訳、2004年)
+    isbn13: "9784061596801",
   },
   {
     id: "chousateki-kansei-jutsu",
     title: "調査的感性術",
-    // TODO: 著者未確認。判明次第追加する。
+    author: "マシュー・フラー、エヤル・ヴァイツマン",
     status: "reading",
     owned: true,
     giftEnabled: false,
     conversationEnabled: true,
     featured: true,
     tone: "moss",
+    // 水声社版(中井悠訳、2024年)
+    isbn13: "9784801007659",
   },
   {
     id: "souzou-no-kyoudoutai",
@@ -87,6 +104,8 @@ export const books: BookEntry[] = [
     conversationEnabled: true,
     featured: true,
     tone: "sky",
+    // 「定本 想像の共同体」書籍工房早山版(白石さや・白石隆訳、2007年)
+    isbn13: "9784904701089",
   },
   {
     id: "matsutake",
@@ -100,6 +119,8 @@ export const books: BookEntry[] = [
     featured: true,
     giftFeatured: true,
     tone: "warm",
+    // みすず書房版(赤嶺淳訳、2019年)
+    isbn13: "9784622088318",
   },
   {
     id: "ikiteiru-koto",
@@ -113,6 +134,8 @@ export const books: BookEntry[] = [
     featured: true,
     giftFeatured: true,
     tone: "moss",
+    // 左右社版(柴田崇ほか訳、2021年)
+    isbn13: "9784865280371",
   },
   {
     id: "ito-sei-fukushi",
@@ -126,5 +149,7 @@ export const books: BookEntry[] = [
     featured: true,
     giftFeatured: true,
     tone: "sky",
+    // ひつじ書房版(ひつじ研究叢書 言語編193、2023年)
+    isbn13: "9784823411717",
   },
 ];

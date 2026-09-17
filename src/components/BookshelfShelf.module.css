@@ -14,6 +14,13 @@
  * 【画像下のキャプションを削除(2026-09-17、Decision Log 0168)】
  * 0167時点にあった書影下のタイトル・著者キャプション(.caption・
  * .author・.contributedTag)を削除し、書影のみのカードにした。
+ *
+ * 【実際の書影表示、object-fit: contain化(2026-09-17、Decision Log
+ * 0170)】.coverImageのobject-fitを、色面プレースホルダー前提の
+ * coverからcontainに変更した。実際の書影(縦横比が3:4と異なる場合が
+ * ある)を、切り取らず全体が見えるようにするため。containで余った
+ * 部分は.coverのtoneグラデーション背景がそのまま透けて見える(枠が
+ * 空白になるのではなく、色面のフレームとして機能する)。
  * ------------------------------------------------------------
  */
 
@@ -82,7 +89,7 @@ a.card:focus-visible .cover {
 .coverImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .cover[data-tone="warm"] {
@@ -118,6 +125,14 @@ a.card:focus-visible .cover {
   font-weight: 500;
   line-height: 1.3;
   color: var(--color-ink);
+}
+
+/* .coverTitleが常時display: -webkit-boxを持つため、UAスタイルシートの
+   [hidden] { display: none }がカスケードで負けてしまう(author origin
+   がUA originに勝つため)。Decision Log 0161で発見した[hidden]の
+   落とし穴と同じ問題のため、明示的に上書きする。 */
+.coverTitle[hidden] {
+  display: none;
 }
 
 /* 【Amazonアソシエイト開示文言】実際にアソシエイトタグ付きリンクを
