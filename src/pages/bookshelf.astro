@@ -51,6 +51,13 @@
  * Formspreeエンドポイント・honeypotを一切変更せず、見出し+説明文の
  * 大きなセクションから、1行の呼びかけ+トグルボタンで開く「静かな
  * 導線」に変更した(指示された文言候補をそのまま使用)。
+ *
+ * 【見出しの右横に導入文を配置(2026-09-17、Decision Log 0169)】
+ * プロジェクトオーナーの指示により、見出し「研究の本棚」と導入文
+ * (`.note`)を縦積みから、見出しの右横に導入文を置く横並びに変更した
+ * (`.heroRow`)。`/participate`のHero行(Decision Log 0163)と同じ
+ * `align-items: baseline`+`flex-wrap`の考え方を踏襲している。導入文
+ * 自体のコピー・「本棚に本を持ち寄る」の構成は変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -70,10 +77,12 @@ import { contactFormEndpoint } from "@/config/site";
   <NightBackground />
   <ResearchSection ariaLabel="Bookshelf">
     <p class={styles.eyebrow}>BOOKSHELF</p>
-    <h1 class={styles.heading}>研究の本棚</h1>
-    <div class={styles.note}>
-      <p>読んでいる本、これから読みたい本。</p>
-      <p>この本棚は、誰かが持ち寄ってくれた本も加わりながら、少しずつ育っていきます。</p>
+    <div class={styles.heroRow}>
+      <h1 class={styles.heading}>研究の本棚</h1>
+      <div class={styles.note}>
+        <p>読んでいる本、これから読みたい本。</p>
+        <p>この本棚は、誰かが持ち寄ってくれた本も加わりながら、少しずつ育っていきます。</p>
+      </div>
     </div>
     <BookshelfShelf books={books} />
   </ResearchSection>
