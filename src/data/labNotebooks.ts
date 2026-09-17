@@ -16,12 +16,15 @@
  * ものだけを、この配列に手動で追加する運用にしている
  * (`src/types/labNotebook.ts`参照)。
  *
- * 【Googleスライド埋め込み(2026-09-17、Decision Log 0171)】3冊とも
- * `slidesEmbedUrl`/`slidesCommentUrl`は現時点で未設定(架空のURLを
- * 入れない方針のため)。Google側で「ウェブに公開」の埋め込みURLと、
- * コメント可能な共有URLを発行したら、該当するノートのオブジェクトに
- * この2フィールドを追加するだけでスライド区画が表示される
- * ([slug].astro参照)。
+ * 【Googleスライド埋め込み(2026-09-17、Decision Log 0171)】
+ * `slidesEmbedUrl`/`slidesCommentUrl`は、Google側で「ウェブに公開」の
+ * 埋め込みURLと、コメント可能な共有URLを発行したノートにのみ設定する。
+ * 未設定のノートにはスライド区画自体が表示されない([slug].astro
+ * 参照)。
+ *
+ * 【「音の道」にURLを設定(2026-09-17、Decision Log 0172)】プロジェクト
+ * オーナーから提供された実URLを設定した。他の2冊(Fieldnote・研究断面
+ * をひらく)はまだ未設定。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
@@ -38,6 +41,11 @@ export const labNotebooks: LabNotebook[] = [
       "誰かがどこで立ち止まり、何に気づいたのか。その人の注意の道筋を、音から辿るためのツールをつくっています。",
     tone: "warm",
     entries: [],
+    // Googleスライド「ウェブに公開」の埋め込みURL(2026-09-17設定)
+    slidesEmbedUrl:
+      "https://docs.google.com/presentation/d/e/2PACX-1vR3mNN6yjbJ4JhPRUGYBJU3Gk1gI3pD9P4DgFAjrEUdez91wJT8v4NM2iBz2__hvSr4j4ycT4oO5Wxp/pubembed",
+    // Googleスライド本体の共有URL(コメント用リンクの遷移先。コメント権限は要確認、Decision Log 0172参照)
+    slidesCommentUrl: "https://docs.google.com/presentation/d/17KEP9gTbx0sFl_UM7WGhpYP-GycxofCt6ucEDVRcveY/edit?usp=drive_link",
   },
   {
     slug: "fieldnote",
