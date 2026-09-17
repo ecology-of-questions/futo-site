@@ -6,18 +6,35 @@
  * (.row以下)・仮カバーのtone配色(.cover)は実質的にそのまま引き継ぎ、
  * フィルター用スタイル(.filters/.filterButton)は削除、「いま読んで
  * いる」Hero区画(.hero以下)を新設した。
+ *
+ * 【1画面圧縮(2026-09-17、Decision Log 0164)】mobile・desktopとも
+ * スクロールなしで「いま読んでいる」(Hero)と「読みたい」の両方が
+ * 見えるようにする指示を受け、`/participate`(Decision Log 0161)と
+ * 同じ考え方で、既存のスペーシングトークンを基準にした`calc()`で
+ * 余白を圧縮した。書影のサイズ・フォントサイズ・文言は変更していない。
+ *
+ * 【1冊ずつ表示+前へ/次へナビゲーション(2026-09-17、Decision Log
+ * 0165)】0164でも1画面に収まらなかったmobileへの対応として、Hero・
+ * status別セクションの両方を「1冊だけ表示+ボタンで切り替え」に
+ * 変更した。Hero棚について「carousel UI・pagination dotは使わず、
+ * 素のoverflow-xに任せる」としていた直前の方針(このコメント内に
+ * 残っていた記述)を上書きする。`.carouselNav`/`.carouselButton`/
+ * `.carouselStatus`が新設のナビゲーションUI、
+ * `[data-carousel-item][hidden]`が実際に他の本を隠すための
+ * ルール(`.heroItem`側で`display: flex`を指定しているため、
+ * `[hidden]`のUA既定スタイルだけでは打ち消せない。詳細はDecision
+ * Log 0165参照)。
  * ------------------------------------------------------------
  */
 
 /* -----------------------------
  * いま読んでいる(Hero)。ページ上部で最も大きく見せる。カードグリッド
- * にはせず、横並びの書影+キャプションを1つの単位として、棚のように
- * 並べる。mobileで本数が増えた場合は横スクロールする(carousel UI・
- * pagination dotは使わず、素のoverflow-xに任せる。自動スクロールも
- * しない)。
+ * にはせず、書影+キャプションを1つの単位として見せる。複数冊ある
+ * 場合は1冊だけを表示し、`.carouselNav`の前へ/次へボタンで切り替える
+ * (2026-09-17、Decision Log 0165)。
  * ----------------------------- */
 .hero {
-  margin-top: var(--space-4);
+  margin-top: var(--space-2);
 }
 
 .heroHeading {
@@ -29,11 +46,12 @@
 
 .heroShelf {
   display: flex;
-  gap: var(--space-4);
-  margin: var(--space-3) 0 0;
-  padding: 0 0 var(--space-3);
+  gap: var(--space-3);
+  margin: calc(var(--space-1) / 2) 0 0;
+  padding: 0 0 calc(var(--space-1) / 2);
   list-style: none;
-  overflow-x: auto;
+  /* 0165: 1冊ずつ表示に変更したため、横スクロール(overflow-x)は
+     不要になった(常に表示中の1冊しか可視のflex子要素が無い)。 */
   /* 「棚」であることを示す、書影の下端に沿った1本の罫線(棚板)。
      本棚だけ他ページより少し物質感を持たせる、という指示への対応
      (装飾しすぎない範囲で、細い罫線のみ)。 */
@@ -45,6 +63,13 @@
   display: flex;
   flex-direction: column;
   width: 7rem;
+}
+
+/* 0165: [hidden]のUA既定スタイル(display: none)は、同じ詳細度の
+   author側display宣言(.heroItem/.rowのdisplay)に負けることがある
+   ため、data-carousel-item側で明示的に上書きする。 */
+[data-carousel-item][hidden] {
+  display: none;
 }
 
 .heroSpine {
@@ -99,16 +124,20 @@
 }
 
 .heroCaptionTitle {
-  margin: var(--space-2) 0 0;
+  margin: calc(var(--space-1) / 2) 0 0;
   font-size: var(--fs-base);
   font-weight: 500;
   line-height: var(--lh-heading);
 }
 
+/* 0164: それまで著者名は独立した<p>(タイトルの下の別行)だったが、
+   1画面に収める密度を優先し、タイトルと同じ行に添えるinline要素に
+   変更した(book.contributedタグを同じ行に添える既存パターンと
+   揃えた)。 */
 .heroCaptionAuthor {
-  margin: 2px 0 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+  font-weight: 400;
   color: var(--color-ink-muted);
 }
 
@@ -127,12 +156,12 @@
  * 描画する。
  * ----------------------------- */
 .section {
-  margin-top: var(--space-5);
+  margin-top: var(--space-2);
 }
 
 .sectionRule {
   border-top: 1px solid var(--color-accent-beige);
-  padding-top: var(--space-4);
+  padding-top: var(--space-2);
 }
 
 .sectionHeading {
@@ -145,21 +174,15 @@
 
 .list {
   list-style: none;
-  margin: var(--space-3) 0 0;
+  margin: calc(var(--space-1) / 2) 0 0;
   padding: 0;
 }
 
+/* 0165: 1冊ずつ表示に変更したため(常に1件しか可視でない)、以前
+   あった:first-child/:last-childでのpadding-top/border-bottom調整
+   (縦積みリストの境界線を揃えるための調整)は不要になった。 */
 .row {
-  padding: var(--space-4) 0;
-  border-bottom: 1px solid var(--color-accent-beige);
-}
-
-.row:first-child {
-  padding-top: 0;
-}
-
-.row:last-child {
-  border-bottom: none;
+  padding: 0;
 }
 
 .rowMain {
@@ -230,22 +253,70 @@
 
 .title {
   margin: 0;
-  font-size: var(--fs-lg);
+  /* 0164: 1画面に収める密度を優先し、fs-lg(20px)からHeroの
+     .heroCaptionTitleと揃うfs-base(16px)に詰めた。 */
+  font-size: var(--fs-base);
   font-weight: 500;
   line-height: var(--lh-heading);
 }
 
+/* 0164: heroCaptionAuthorと同様、独立した行からタイトルと同じ行の
+   inline要素に変更した。 */
 .author {
-  margin: 2px 0 0;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
+  font-weight: 400;
   color: var(--color-ink-muted);
 }
 
 .reason {
-  margin: var(--space-1) 0 0;
-  font-size: var(--fs-base);
+  margin: calc(var(--space-1) / 2) 0 0;
+  /* 0164: fs-base(16px)からfs-smに詰めた。文字数の関係でmobile幅の
+     折り返し行数が減ることが多く、縦方向の圧縮効果が大きい
+     (/participateのDecision Log 0161と同じ判断)。 */
+  font-size: var(--fs-sm);
   line-height: var(--lh-body);
+}
+
+/* -----------------------------
+ * 1冊ずつ表示のナビゲーション(前へ/次へ、2026-09-17、Decision Log
+ * 0165)。Hero・status別セクション両方から共通で使う。装飾的な
+ * ボタン枠は作らず、他ページの.actionLink/.contributeToggleと同じ、
+ * 下線付きのプレーンテキストのスタイルに揃えた。件数(「1 / 3」)は
+ * pagination dot(0154で明示的に不採用とした表現)ではなく文字列で
+ * 示す。
+ * ----------------------------- */
+.carouselNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.carouselButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+  background: none;
+  border: none;
+  border-bottom: 1px solid currentColor;
+  padding: 0 0 1px;
+  cursor: pointer;
+}
+
+.carouselButton:hover,
+.carouselButton:focus-visible {
+  text-decoration: underline;
+}
+
+.carouselStatus {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
 }
 
 /* 【Amazonアソシエイト開示文言】実際にアソシエイトタグ付きリンクを

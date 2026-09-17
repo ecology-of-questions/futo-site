@@ -6,6 +6,10 @@
  * 「本ごとのアクション」「一緒に読みたい(展開パネル)」を、コンポーネント
  * 分割に伴いそのまま移設した(2026-09-16、Decision Log 0154)。見た目・
  * 挙動は変更していない。
+ *
+ * 【1画面圧縮(2026-09-17、Decision Log 0164)】`.actions`の
+ * margin-topを圧縮した(Hero・行リスト双方から呼ばれるため、両方に
+ * 効く)。
  * ------------------------------------------------------------
  */
 
@@ -14,7 +18,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-1);
-  margin-top: var(--space-2);
+  margin-top: calc(var(--space-1) / 2);
 }
 
 .actionLink {
