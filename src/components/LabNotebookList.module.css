@@ -21,12 +21,21 @@
  * モチーフを約1.6倍に拡大した。行の構造(タイトルと同じ行、
  * justify-content: space-between)自体は0159のまま変更していない。
  * category(`.label`)・説明文(`.description`)のサイズは維持。
+ *
+ * 【1画面に収まる密度への圧縮(2026-09-17、Decision Log 0161)】
+ * 「いま、考えていること」見出しの削除とあわせ、mobile・desktopとも
+ * スクロールなしで3項目(音の道/Fieldnote/研究断面をひらく)が
+ * 見えるようにする指示を受け、`.list`のmargin-top・`.link`の
+ * padding-block・`.readMore`のmargin-topを圧縮した。フォントサイズ
+ * (`.title`・`.label`・`.description`)、モチーフの大きさ
+ * (`.trace`)は0160の状態を維持している(直前の指示で「主役級に」
+ * 拡大したばかりのため、再び縮小しない)。
  * ------------------------------------------------------------
  */
 
 .list {
   list-style: none;
-  margin: var(--space-4) 0 0;
+  margin: calc(var(--space-1) / 2) 0 0;
   padding: 0;
 }
 
@@ -42,8 +51,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-1);
-  padding-block: var(--space-4);
+  gap: calc(var(--space-1) / 2);
+  padding-block: calc(var(--space-1) / 2);
   text-decoration: none;
   color: inherit;
 }
@@ -79,7 +88,10 @@
 
 .description {
   margin: 0;
-  font-size: var(--fs-base);
+  /* 0161: 1画面に収める密度を優先し、fs-base(16px)からfs-sm(14px)に
+     詰めた。文字数の関係でmobile幅の折り返し行数も1行減ることが多く、
+     縦方向の圧縮効果が大きい。 */
+  font-size: var(--fs-sm);
   line-height: var(--lh-body);
   color: var(--color-ink-muted);
   max-width: 36rem;
@@ -139,7 +151,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  margin-top: var(--space-2);
+  margin-top: calc(var(--space-1) / 4);
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   color: var(--color-accent-blue);
