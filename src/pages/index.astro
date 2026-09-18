@@ -1,7 +1,6 @@
 ---
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import HomeMotion from "@components/HomeMotion.astro";
-import HomeBook from "@components/HomeBook.astro";
 import styles from "./index.module.css";
 import { publishedReviews } from "@/data/researchReviews";
 import { books } from "@/data/bookshelf";
@@ -63,7 +62,14 @@ const bookshelfPhoto: string | undefined = undefined;
         <p class={styles.readingLabel}>いま読んでいる</p>
         {bookshelfPhoto ? <a class={styles.bookshelfPhoto} href="/bookshelf">
           <img src={bookshelfPhoto} alt={reading.map((book) => book.title).join("、") + "の背表紙。本棚を見る"} loading="lazy" />
-        </a> : <ul class={styles.books}>{reading.map((book) => <li><HomeBook book={book} /></li>)}</ul>}
+        </a> : <ul class={styles.books}>
+          {reading.map((book) => <li class={styles.bookRow}>
+            <a class={styles.bookLink} href="/bookshelf">
+              <span class={styles.bookTitle}>{book.title}</span>
+              <span class={styles.bookAuthor}>{book.author}</span>
+            </a>
+          </li>)}
+        </ul>}
       </section>
     </div>
 
