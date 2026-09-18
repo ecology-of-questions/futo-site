@@ -31,8 +31,13 @@
 .bookshelf { border-left: 1px solid var(--color-accent-beige); padding-left: var(--home-column-gap); }
 .sectionDescription { font-size: var(--fs-sm); line-height: var(--home-leading); color: var(--color-ink-muted); margin-top: var(--space-1); }
 .readingLabel { font-size: var(--home-label-size); font-family: var(--font-sans); margin-top: var(--space-3); color: var(--color-ink-muted); }
-.books { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--home-book-gap); list-style: none; padding: 0; margin: var(--space-2) 0 0; }
-.books li { min-width: 0; }
+.books { display: flex; flex-direction: column; list-style: none; padding: 0; margin: var(--space-2) 0 0; }
+.bookRow { border-top: 1px solid var(--color-accent-beige); }
+.bookRow:first-child { border-top: none; }
+.bookLink { display: flex; align-items: baseline; gap: var(--space-2); padding: var(--space-2) 0; text-decoration: none; color: inherit; }
+.bookLink:hover .bookTitle, .bookLink:focus-visible .bookTitle { text-decoration: underline; }
+.bookTitle { font-size: var(--fs-base); line-height: var(--lh-body); flex: 1 1 auto; min-width: 0; }
+.bookAuthor { font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--color-ink-muted); flex: 0 0 auto; white-space: nowrap; }
 .newsletter { display: grid; grid-template-columns: 1fr 1.25fr; align-items: center; gap: var(--space-4); background: var(--home-newsletter); padding: var(--space-4); margin-bottom: var(--space-4); }
 .newsletter h2 { margin-top: var(--space-1); }
 .newsletterFields { min-width: 0; }
@@ -56,9 +61,10 @@
  .collections { grid-template-columns: 1fr; gap: var(--space-4); }
  .bookshelf { border-left: 0; padding-left: 0; border-top: 1px solid var(--color-accent-beige); padding-top: var(--space-4); }
  .newsletter { grid-template-columns: 1fr; padding: var(--space-3); gap: var(--space-3); }
+ .bookLink { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
 }
 @media (max-width: 360px) { .newsletterForm { flex-direction: column; } }
-/* Give the three covers enough width before switching the entire feature to mobile. */
+/* Switch the two-column layout to a single column before it gets cramped. */
 @media (min-width: 761px) and (max-width: 1000px) {
  .collections { grid-template-columns: 1fr; }
  .bookshelf { border-left: 0; padding-left: 0; border-top: 1px solid var(--color-accent-beige); padding-top: var(--space-4); }
