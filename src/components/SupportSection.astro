@@ -1,0 +1,102 @@
+---
+/**
+ * SupportSection.astro
+ * ------------------------------------------------------------
+ * 「試行錯誤を支える」(銀行振込での支援、2026-09-18、Decision Log
+ * 0182)。支援先は特定のノートに限定せず「ふ、と」全体。
+ *
+ * 【fail-closed】`isSupportConfigured(supportConfig)`がfalseの場合、
+ * このコンポーネントは何も描画しない(nullを返す)。支援ボタン・
+ * 空口座・ダミー口座を本番出力に一切含めない。呼び出し側
+ * ([slug].astro)は、このコンポーネントの描画結果が空かどうかで
+ * レイアウト(support無しなら1カラム)を分岐する。
+ *
+ * 【口座情報の表示】<details>で開閉する。銀行・支店・種別・番号・
+ * 名義をラベル付きで表示。コピーはユーザー操作時のみ、Clipboard API
+ * 失敗時も手動選択できるようテキストとして表示したままにする。
+ * 完了通知はコピーに対してのみで、振込済み扱いはしない。
+ *
+ * 【導入文の文字サイズ】17px以上、本文と同程度以上のコントラスト、
+ * 通常の行間。eyebrowや12pxの注記スタイルを適用しない(指示書)。
+ * ------------------------------------------------------------
+ */
+import { supportConfig, isSupportConfigured } from "@/config/support";
+import type { BankTransferInfo } from "@/config/support";
+import styles from "./SupportSection.module.css";
+
+const bank: BankTransferInfo | undefined = isSupportConfigured(supportConfig) ? supportConfig.bank : undefined;
+---
+
+{
+  bank && (
+    <div class={styles.support}>
+      <p class={styles.lead}>この先も、試していくために</p>
+      <h2 class={styles.heading}>試行錯誤を支える</h2>
+      <p class={styles.body}>
+        ふ、との探究と制作を続けるために。好きな金額で支えられます。
+      </p>
+
+      <button
+        class={styles.primaryButton}
+        type="button"
+        data-bank-toggle
+        aria-expanded="false"
+        aria-controls="bank-transfer-panel"
+      >
+        銀行振込で支える <span aria-hidden="true">↗</span>
+      </button>
+
+      <div class={styles.panel} id="bank-transfer-panel" data-bank-panel hidden>
+        <h3 class={styles.panelHeading}>振込先</h3>
+        <dl class={styles.dl}>
+          <dt>銀行・支店</dt>
+          <dd data-bank-copy-target>{bank.bankName}　{bank.branchName}</dd>
+          <dt>口座種別・番号</dt>
+          <dd data-bank-copy-target>{bank.accountType}　{bank.accountNumber}</dd>
+          <dt>口座名義</dt>
+          <dd data-bank-copy-target>{bank.accountHolder}</dd>
+        </dl>
+        <button class={styles.copyButton} type="button" data-bank-copy>
+          振込先をコピー
+        </button>
+        <p class={styles.copyStatus} data-bank-copy-status role="status" aria-live="polite" />
+        <p class={styles.fine}>事前のご連絡は不要です。振込手数料はご利用の銀行によります。</p>
+      </div>
+
+      <p class={styles.fine}>
+        返礼や完成のお約束はありません。途中の記録は、どなたでも読めます。
+      </p>
+    </div>
+  )
+}
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-bank-toggle]");
+  const panel = document.querySelector<HTMLElement>("[data-bank-panel]");
+
+  if (toggle && panel) {
+    toggle.addEventListener("click", () => {
+      const expanded = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!expanded));
+      panel.hidden = expanded;
+    });
+  }
+
+  const copyButton = document.querySelector<HTMLButtonElement>("[data-bank-copy]");
+  const copyStatus = document.querySelector<HTMLElement>("[data-bank-copy-status]");
+  const copyTargets = document.querySelectorAll<HTMLElement>("[data-bank-copy-target]");
+
+  if (copyButton && copyStatus && copyTargets.length > 0) {
+    copyButton.addEventListener("click", async () => {
+      const text = Array.from(copyTargets)
+        .map((el) => el.textContent?.trim() ?? "")
+        .join("\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        copyStatus.textContent = "コピーしました。";
+      } catch {
+        copyStatus.textContent = "コピーできませんでした。表示された振込先を選択してコピーしてください。";
+      }
+    });
+  }
+</script>

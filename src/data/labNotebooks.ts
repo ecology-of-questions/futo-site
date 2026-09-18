@@ -25,6 +25,13 @@
  * 【「音の道」にURLを設定(2026-09-17、Decision Log 0172)】プロジェクト
  * オーナーから提供された実URLを設定した。他の2冊(Fieldnote・研究断面
  * をひらく)はまだ未設定。
+ *
+ * 【「音の道」→「散歩譜」に改称(2026-09-18、Decision Log 0182)】
+ * プロジェクトオーナーが承認した方向に沿って、表示名・descriptionを
+ * 「散歩譜」に更新した。route slug(oto-no-michi)・データID・保存キー・
+ * コメントリンク・Slides URLは変更していない(指示書「散歩譜＋支援」v2
+ * のURL移行方針)。過去のDecision Log(0171・0172・0173等)の本文は
+ * 「音の道」表記のまま残す(履歴改変はしない)。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
@@ -36,9 +43,8 @@ export const labNotebooks: LabNotebook[] = [
   {
     slug: "oto-no-michi",
     category: "実験",
-    title: "音の道",
-    description:
-      "誰かがどこで立ち止まり、何に気づいたのか。その人の注意の道筋を、音から辿るためのツールをつくっています。",
+    title: "散歩譜",
+    description: "歩く、止まる、待つ。散歩の時間を、音と動きで記す。",
     tone: "warm",
     entries: [],
     // Googleスライド「ウェブに公開」の埋め込みURL(2026-09-17設定)

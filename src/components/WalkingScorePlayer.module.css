@@ -1,0 +1,142 @@
+/**
+ * WalkingScorePlayer.module.css
+ * ------------------------------------------------------------
+ * 身体譜プレイヤーv0のスタイル(2026-09-18、Decision Log 0182)。
+ * レーン名・時刻目盛はHTML側(.laneLabels/.ticks)に置き、SVGは
+ * 罫線・点・再生位置線のみを描く(320pxでのSVG内文字縮小を避ける)。
+ * ------------------------------------------------------------
+ */
+
+.wrapper {
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+}
+
+.topLabel {
+  color: var(--color-ink);
+}
+
+.topNote {
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.laneLabels {
+  display: grid;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.laneLabels span {
+  display: flex;
+  align-items: center;
+}
+
+.svgArea {
+  min-width: 0;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  margin-top: var(--space-1);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+  background: var(--color-accent-beige);
+}
+
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.time {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+}
+
+.seek {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-2);
+  accent-color: var(--color-accent-blue);
+  min-height: 32px;
+}
+
+.caption {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  max-width: var(--reading-width);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 400px) {
+  .chart {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+}

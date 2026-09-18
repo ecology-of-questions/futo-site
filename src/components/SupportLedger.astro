@@ -1,0 +1,70 @@
+---
+/**
+ * SupportLedger.astro
+ * ------------------------------------------------------------
+ * 「支援と使いみち」(月次収支の公開、2026-09-18、Decision Log 0182)。
+ * 対象は「ふ、とに寄せられた支援金」のみ。家計・活動全体の会計とは
+ * 別。リアルタイム累計は出さない(月ごとの手動入力データのみ)。
+ *
+ * 【fail-closed】公開月(`published: true`)が1件も無い場合、このセクション
+ * 自体を描画しない(本番では「表示例／未登録」のようなダミー表示も
+ * しない。fail-closedの仮表示はプレビュー用fixtureでのみ行う)。
+ * ------------------------------------------------------------
+ */
+import { getPublishedLedgerMonths } from "@/data/supportLedger";
+import styles from "./SupportLedger.module.css";
+
+const months = getPublishedLedgerMonths();
+
+function formatYen(amount: number): string {
+  return `${amount.toLocaleString("ja-JP")}円`;
+}
+---
+
+{
+  months.length > 0 && (
+    <details class={styles.ledger}>
+      <summary class={styles.summary}>支援と使いみち</summary>
+      <p class={styles.note}>
+        収支の対象は、ふ、とに寄せられた支援金です。探究・制作の時間を確保するためにも使います。
+      </p>
+      {months.map((entry) => {
+        const expenseRows = entry.expenses.map((expense) => (
+          <tr>
+            <th>{expense.category}</th>
+            <td>{formatYen(expense.amount)}</td>
+          </tr>
+        ));
+        return (
+          <div class={styles.month}>
+            <p class={styles.monthLabel}>{entry.month}</p>
+            <table>
+              <caption class={styles.caption}>月ごとの収支</caption>
+              <tbody>
+                <tr>
+                  <th>前月からの繰越</th>
+                  <td>{formatYen(entry.openingBalance)}</td>
+                </tr>
+                <tr>
+                  <th>受け取った支援</th>
+                  <td>{formatYen(entry.contributions)}</td>
+                </tr>
+                <tr>
+                  <th>手数料</th>
+                  <td>{formatYen(entry.fees)}</td>
+                </tr>
+                {expenseRows}
+                <tr>
+                  <th>翌月への繰越</th>
+                  <td>{formatYen(entry.closingBalance)}</td>
+                </tr>
+              </tbody>
+            </table>
+            {entry.note && <p class={styles.monthNote}>{entry.note}</p>}
+          </div>
+        );
+      })}
+      <p class={styles.fine}>支援者名、個別入金日時、銀行明細は公開しません。</p>
+    </details>
+  )
+}
