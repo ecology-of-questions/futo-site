@@ -60,10 +60,10 @@
  * 自体のコピー・「本棚に本を持ち寄る」の構成は変更していない。
  * ------------------------------------------------------------
  */
+import PageHeading from "@components/PageHeading.astro";
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import BookshelfShelf from "@components/BookshelfShelf.astro";
-import NightBackground from "@components/NightBackground.astro";
 import styles from "./bookshelf.module.css";
 import { books } from "@/data/bookshelf";
 import { contactFormEndpoint } from "@/config/site";
@@ -72,18 +72,10 @@ import { contactFormEndpoint } from "@/config/site";
 <DefaultLayout
   title="研究の本棚 ｜ 公開研究室ふ、と"
   description="公開研究室ふ、とで読んでいる本、これから読みたい本。訪問者が持ち寄った本も加わります。"
-  theme="night"
+  theme="editorial"
 >
-  <NightBackground />
   <ResearchSection ariaLabel="Bookshelf">
-    <p class={styles.eyebrow}>BOOKSHELF</p>
-    <div class={styles.heroRow}>
-      <h1 class={styles.heading}>研究の本棚</h1>
-      <div class={styles.note}>
-        <p>読んでいる本、これから読みたい本。</p>
-        <p>この本棚は、誰かが持ち寄ってくれた本も加わりながら、少しずつ育っていきます。</p>
-      </div>
-    </div>
+    <PageHeading label="BOOKSHELF" title="研究の本棚" description="読んでいる本、これから読みたい本。" />
     <BookshelfShelf books={books} />
   </ResearchSection>
 

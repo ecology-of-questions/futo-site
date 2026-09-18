@@ -43,6 +43,7 @@
  * いる。
  * ------------------------------------------------------------
  */
+import HomeMotion from "./HomeMotion.astro";
 import styles from "./LabNotebookList.module.css";
 import type { LabNotebook } from "@/types/labNotebook";
 
@@ -85,13 +86,16 @@ const traces: Record<string, string> = {
           <p class={styles.label}>{notebook.category}</p>
           <div class={styles.titleRow}>
             <h3 class={styles.title}>{notebook.title}</h3>
-            <span class={styles.trace} set:html={traces[notebook.slug]} />
+
           </div>
           <p class={styles.description}>{descriptions[notebook.slug] ?? notebook.description}</p>
           <span class={styles.readMore}>
             {ctaLabel} <span class={styles.arrow} aria-hidden="true">→</span>
           </span>
         </a>
+        <div class={styles.visual}>
+          {notebook.slug === 'oto-no-michi' ? <HomeMotion kind="sound" /> : notebook.slug === 'fieldnote' ? <HomeMotion kind="question" /> : <span class={styles.trace} set:html={traces[notebook.slug]} />}
+        </div>
       </li>
     ))
   }

@@ -7,3 +7,6 @@
      ジャンプ先が固定Headerの下に隠れないようにする */
   scroll-margin-top: var(--header-height);
 }
+
+:global(body[data-theme="editorial"]) .section { padding-block: var(--page-space); }
+:global(body[data-theme="editorial"]) .section + .section { padding-top: var(--space-3); }

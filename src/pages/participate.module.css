@@ -39,7 +39,7 @@
    素の文字列)と一致せず、ルール自体がビルド後のCSSから消える
    (2026-09-17、Decision Log 0161の追記で発見・修正)。 */
 :global(#lab-hero) {
-  padding-block: calc(var(--space-1) / 2) var(--space-3);
+  padding-block: var(--page-space);
 }
 
 .eyebrow {

@@ -40,10 +40,10 @@
  * `/research-statement`ページ・その本文は変更していない。
  * ------------------------------------------------------------
  */
+import HomeMotion from "@components/HomeMotion.astro";
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import ArrowLink from "@components/ArrowLink.astro";
-import NightBackground from "@components/NightBackground.astro";
 import styles from "./about.module.css";
 
 const paragraphs = [
@@ -61,14 +61,14 @@ const paragraphs = [
 <DefaultLayout
   title="この場所について ｜ 公開研究室ふ、と"
   description="誰もが、探究を続けられる場所へ。公開研究室ふ、とについて。"
-  theme="night"
+  theme="editorial"
 >
-  <NightBackground />
   <ResearchSection ariaLabel="この場所について">
     <p class={styles.eyebrow}>ABOUT</p>
-    <span class={styles.dash} aria-hidden="true"></span>
+
     <h1 class={styles.heading}>誰もが、探究を続けられる場所へ。</h1>
 
+    <HomeMotion kind="question" />
     <div class={styles.body}>
       {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
     </div>

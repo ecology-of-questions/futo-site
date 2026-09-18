@@ -168,3 +168,14 @@
 .link:focus-visible .arrow {
   transform: translateX(4px);
 }
+
+.list { margin-top: 0; }
+.item { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--space-4); align-items: center; padding-block: var(--space-4); }
+.link { gap: var(--space-2); padding: 0; }
+.label, .readMore { font-size: var(--home-label-size); }
+.title { font-size: var(--page-section-title); }
+.description { max-width: var(--reading-width); line-height: var(--home-leading); }
+.visual { min-width: 0; display: flex; justify-content: flex-end; }
+.trace { width: var(--home-motion-width); max-width: 100%; }
+.trace :global(svg) { height: var(--home-motion-height); }
+@media (max-width: 760px) { .item { grid-template-columns: 1fr; gap: var(--space-1); padding-block: var(--space-3); } .visual { justify-content: flex-start; } }

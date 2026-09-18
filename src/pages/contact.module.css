@@ -192,3 +192,14 @@
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
 }
+
+ .input, .textarea { width: 100%; padding: var(--space-2); }
+.submit { padding: var(--space-2) var(--space-3); border-radius: 0; }
+.form { gap: var(--space-3); }
+
+
+.heading { font-size: var(--page-title); }
+.eyebrow { font-size: var(--home-label-size); }
+.layout { gap: var(--space-5); }
+.form { width: 100%; max-width: var(--reading-width); }
+.select { padding: var(--space-2); width: 100%; }

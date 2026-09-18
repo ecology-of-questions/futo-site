@@ -160,3 +160,16 @@ body[data-theme="editorial"] {
   --home-motion-height: 4rem;
   --home-motion-control: 2.75rem;
 }
+
+/* Site-wide editorial extension, Decision Log 0177. */
+body[data-theme="editorial"] {
+  --content-max-width: var(--home-width);
+  --content-padding-inline: var(--home-gutter);
+  --page-title: clamp(1.5rem, 2.8vw, 2.25rem);
+  --page-section-title: clamp(1.2rem, 2vw, 1.5rem);
+  --page-space: clamp(2rem, 4vw, 3.5rem);
+  --reading-width: 42rem;
+  --reading-leading: 2;
+  --shelf-width: 44rem;
+  --color-ink-on-surface: var(--color-ink);
+}

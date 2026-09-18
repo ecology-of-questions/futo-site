@@ -64,8 +64,10 @@ const { published, planned } = Astro.props;
   {
     published.map((entry) => (
       <a class={styles.entry} href={entry.href}>
+        <span class={styles.entryNumber} aria-hidden="true">{entry.number}</span>
+        <div class={styles.entryCopy}>
         <span class={styles.entryMeta}>
-          {entry.number}　{entry.updatedLabel}
+          研究断面 {entry.number}　{entry.updatedLabel}
         </span>
         <h2 class={styles.entryTitle}>{entry.title}</h2>
         <span class={styles.entrySubtitle}>── {entry.subtitle}</span>
@@ -76,6 +78,7 @@ const { published, planned } = Astro.props;
             →
           </span>
         </span>
+        </div>
       </a>
     ))
   }

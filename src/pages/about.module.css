@@ -68,3 +68,10 @@
 .statementLink :global(a) {
   margin-top: var(--space-1);
 }
+
+.heading { font-size: var(--page-title); max-width: var(--reading-width); margin-bottom: var(--space-2); }
+.eyebrow { font-size: var(--home-label-size); }
+.body { max-width: var(--reading-width); line-height: var(--reading-leading); gap: var(--space-3); margin-top: var(--space-3); }
+.statementLink { max-width: var(--reading-width); }
+
+.heading { text-wrap: balance; }
