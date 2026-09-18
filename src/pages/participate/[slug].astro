@@ -14,35 +14,21 @@
  *      依存しない)
  *   2. category(Eyebrow)・ノート名(h1)・「現在つくっているもの」
  *      (description)・共通のノート説明文(commonNotebookDescription)
- *   3. 「書かれたこと」: 「ふ、と」自身の記録(`src/data/labNotebooks.ts`
- *      の静的`entries`、kind: "studio")と、訪問者が書き残した記録
- *      (Cloudflare D1に保存、`kind: "visitor"`)を、区別する見出しを
- *      設けずに同じ時系列の一覧として表示する(交換ノートのような
- *      構成)。静的な記録をビルド時に表示し、訪問者の記録はページ表示後に
- *      `GET /api/notebooks/:slug/entries`から取得して追記する
- *      (2026-09-13、Decision Log 0141。既存の静的entriesと二重管理に
- *      ならないよう、訪問者の書き込みは静的データへ手動転記しない)。
- *   4. 「ふと思い出したことを書き残す」: 通常の縦長フォームページに
- *      遷移させず、このページ内で完結する軽量な書き足しUI。本文
- *      (必須)のみを常時表示し、「どんなときに思い出した？」「URLを
- *      添える」は「＋」ボタンで個別に展開する任意項目にした(名前・
- *      メールアドレス・公開可否チェックボックスは収集しない)。送信は
- *      `POST /api/notebooks/:slug/entries`(Cloudflare Pages Function
- *      + D1、Decision Log 0141)へJSONで送る。このノート機能だけ
- *      Formspreeを使わない(他ページのFormspree利用には影響しない)。
- *
- *      【即時公開する】保存に成功すると、ページ遷移せずその場で
- *      このノートの一覧に新しい書き込みを追記する(永続ストレージが
- *      D1にできたため、Decision Log 0140時点の「確認・手動掲載」前提を
- *      この機能に限り更新した)。非公開化(荒らし対応)は管理画面を
- *      作らず、D1へ直接SQLを実行して`status`を`hidden`にする運用
- *      (Decision Log 0141参照)。
- *   5. 「他のノートを見る」: 残り2冊への小さなテキストリンク
+ *   3. 「他のノートを見る」: 残り2冊への小さなテキストリンク
  *      (カルーセル・カード一覧にはしない)。
+ *
+ * 【交換ノート機能(「書かれたこと」一覧+「ふと思い出したことを
+ * 書き残す」投稿フォーム)を撤去(2026-09-18)】3ノート共通のこの
+ * テンプレートから、Decision Log 0141で追加した交換ノートUIを削除した
+ * (プロジェクトオーナーの指示、Decision Log 0178参照)。
+ * `POST/GET /api/notebooks/:slug/entries`のCloudflare Pages Function +
+ * D1、および`src/data/labNotebooks.ts`の`entries`データ自体は
+ * このコミットでは削除していない(Cloudflare連携設定の変更は別途の
+ * 判断が必要なため)。
  *
  * 【Googleスライド埋め込み(2026-09-17、Decision Log 0171)】旧Miro
  * 埋め込み構想(コメントのみで実装は無かった)の置き換えとして、
- * 「書かれたこと」の前に、任意でGoogleスライドの区画を追加した。
+ * ノート本文の前に、任意でGoogleスライドの区画を追加した。
  * `notebook.slidesEmbedUrl`が無いノートには区画自体を表示しない。
  *
  * 【スライドを主役にした初期表示(2026-09-17、Decision Log 0173)】
@@ -86,19 +72,6 @@ interface Props {
 
 const { notebook } = Astro.props;
 const otherNotebooks = labNotebooks.filter((n) => n.slug !== notebook.slug);
-
-const visibleEntries = notebook.entries
-  .filter((entry) => entry.visible)
-  .sort((a, b) => a.publishedAt.localeCompare(b.publishedAt));
-
-/** URL表示用のホスト名。大きなOGPカードは作らず、ドメイン名程度の静かなリンクにする。 */
-function hostnameOf(url: string): string {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
-  }
-}
 
 /**
  * Googleスライドの埋め込み用URL(「ウェブに公開」で取得したもの)に、
@@ -170,109 +143,6 @@ const slidesEmbedSrc = notebook.slidesEmbedUrl ? buildSlidesEmbedSrc(notebook.sl
     )
   }
 
-  <ResearchSection ariaLabel="書かれたこと" id="notebook-entries">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>書かれたこと</h2>
-    <div class={styles.entryList} data-entry-list data-notebook-slug={notebook.slug}>
-      {
-        visibleEntries.map((entry) => (
-          <div class={styles.entry}>
-            <p class={styles.entryBody}>{entry.body}</p>
-            {entry.context && <p class={styles.entryContext}>{entry.context}</p>}
-            {entry.url && (
-              <p class={styles.entryUrl}>
-                <a href={entry.url} target="_blank" rel="ugc nofollow noopener noreferrer">
-                  {hostnameOf(entry.url)}
-                </a>
-              </p>
-            )}
-          </div>
-        ))
-      }
-    </div>
-    <div class={styles.entryEmptyState} data-entry-empty-state hidden={visibleEntries.length > 0}>
-      <p class={styles.entryEmpty}>
-        まだこのノートに書き足された記録はありません。読んで、ふと思い出したことがあれば書き残してください。
-      </p>
-    </div>
-    <template data-entry-template>
-      <div class={styles.entry}>
-        <p class={styles.entryBody} data-field="body" />
-        <p class={styles.entryContext} data-field="context" hidden />
-        <p class={styles.entryUrl} data-field="url-wrap" hidden>
-          <a data-field="url-link" target="_blank" rel="ugc nofollow noopener noreferrer" />
-        </p>
-      </div>
-    </template>
-  </ResearchSection>
-
-  <ResearchSection ariaLabel="ふと思い出したことを書き残す" id="notebook-write">
-    <h2 class={`${styles.sectionHeading} ${styles.sectionRule}`}>ふと思い出したことを書き残す</h2>
-
-    <form class={styles.form} data-entry-form>
-      <input type="text" name="_gotcha" class={styles.honeypot} tabindex="-1" autocomplete="off" aria-hidden="true" />
-
-      <label class={styles.srOnly} for="entry-body">
-        ここにそのまま書いてください。
-      </label>
-      <textarea
-        class={styles.textarea}
-        id="entry-body"
-        name="message"
-        rows="4"
-        placeholder="ここにそのまま書いてください。"
-        required
-      />
-
-      <div class={styles.optionalField}>
-        <button
-          type="button"
-          class={styles.expandTrigger}
-          data-optional-trigger
-          data-label="どんなときに思い出した？"
-          aria-expanded="false"
-          aria-controls="entry-context-wrap"
-        >
-          ＋ どんなときに思い出した？
-        </button>
-        <div id="entry-context-wrap" class={styles.expandWrap} data-optional-wrap hidden>
-          <label class={styles.srOnly} for="entry-context">
-            どんなときに思い出した？
-          </label>
-          <input class={styles.input} type="text" id="entry-context" name="context" placeholder="どんなときに思い出した？" />
-        </div>
-      </div>
-
-      <div class={styles.optionalField}>
-        <button
-          type="button"
-          class={styles.expandTrigger}
-          data-optional-trigger
-          data-label="URLを添える"
-          aria-expanded="false"
-          aria-controls="entry-url-wrap"
-        >
-          ＋ URLを添える
-        </button>
-        <div id="entry-url-wrap" class={styles.expandWrap} data-optional-wrap hidden>
-          <label class={styles.srOnly} for="entry-url">
-            URL
-          </label>
-          <input class={styles.input} type="url" id="entry-url" name="url" placeholder="https://" />
-        </div>
-      </div>
-
-      <button class={styles.submit} type="submit">書き残す <span aria-hidden="true">→</span></button>
-      <p class={styles.status} data-entry-status role="status" aria-live="polite" />
-
-      <p class={styles.privacyNote}>
-        書き残していただいた内容は、このノートにそのまま公開されます。不適切な内容や誤って公開されたものは、後から非表示にすることがあります。
-      </p>
-      <p class={styles.privacyNote}>
-        送信いただいた情報は、<a class={styles.privacyLink} href="/privacy">個人情報の取り扱い</a>に基づいて管理します。
-      </p>
-    </form>
-  </ResearchSection>
-
   <ResearchSection ariaLabel="他のノートを見る" id="notebook-others">
     <nav aria-label="他のノートを見る">
       <p class={styles.otherNotebooksLabel}>他のノートを見る</p>
@@ -290,143 +160,3 @@ const slidesEmbedSrc = notebook.slidesEmbedUrl ? buildSlidesEmbedSrc(notebook.sl
     </nav>
   </ResearchSection>
 </DefaultLayout>
-
-<script>
-  const triggers = document.querySelectorAll<HTMLButtonElement>("[data-optional-trigger]");
-  triggers.forEach((trigger) => {
-    const targetId = trigger.getAttribute("aria-controls");
-    const wrap = targetId ? document.getElementById(targetId) : null;
-    if (!wrap) return;
-
-    trigger.addEventListener("click", () => {
-      const expanded = trigger.getAttribute("aria-expanded") === "true";
-      trigger.setAttribute("aria-expanded", expanded ? "false" : "true");
-      wrap.hidden = expanded;
-      const label = trigger.dataset.label ?? "";
-      trigger.textContent = `${expanded ? "＋" : "－"} ${label}`;
-      if (!expanded) {
-        wrap.querySelector<HTMLInputElement>("input")?.focus();
-      }
-    });
-  });
-
-  // 「書かれたこと」の永続化・即時反映(2026-09-13、Decision Log 0141)。
-  // Cloudflare Pages Function(/api/notebooks/:slug/entries) + D1を
-  // 使う。このノートのslugだけをAPIの宛先に使う(取得したエントリの
-  // 表示以外に、slugをどこかへ送信することはない)。
-  const entryList = document.querySelector<HTMLElement>("[data-entry-list]");
-  const notebookSlug = entryList?.dataset.notebookSlug ?? "";
-  const apiUrl = `/api/notebooks/${notebookSlug}/entries`;
-
-  const emptyState = document.querySelector<HTMLElement>("[data-entry-empty-state]");
-  const template = document.querySelector<HTMLTemplateElement>("[data-entry-template]");
-
-  interface VisitorEntry {
-    body: string;
-    context?: string;
-    url?: string;
-  }
-
-  function hostnameOf(url: string): string {
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return url;
-    }
-  }
-
-  function appendEntry(entry: VisitorEntry) {
-    if (!entryList || !template) return;
-    const node = template.content.cloneNode(true) as DocumentFragment;
-
-    const bodyEl = node.querySelector<HTMLElement>('[data-field="body"]');
-    if (bodyEl) bodyEl.textContent = entry.body;
-
-    const contextEl = node.querySelector<HTMLElement>('[data-field="context"]');
-    if (contextEl) {
-      if (entry.context) {
-        contextEl.textContent = entry.context;
-        contextEl.hidden = false;
-      } else {
-        contextEl.hidden = true;
-      }
-    }
-
-    const urlWrap = node.querySelector<HTMLElement>('[data-field="url-wrap"]');
-    const urlLink = node.querySelector<HTMLAnchorElement>('[data-field="url-link"]');
-    if (entry.url && urlWrap && urlLink) {
-      urlLink.href = entry.url;
-      urlLink.textContent = hostnameOf(entry.url);
-      urlWrap.hidden = false;
-    } else if (urlWrap) {
-      urlWrap.hidden = true;
-    }
-
-    entryList.appendChild(node);
-    if (emptyState) emptyState.hidden = true;
-  }
-
-  // ページ表示時に、このノートへ訪問者が書き残した公開済みエントリを
-  // 取得して、静的な「ふ、と」自身の記録の後ろに追記する(時系列を
-  // 厳密に統合するのではなく、静的分→動的分の順で表示する簡略化。
-  // Decision Log 0141に記載)。
-  if (notebookSlug) {
-    fetch(apiUrl)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data: { entries?: VisitorEntry[] } | null) => {
-        if (!data?.entries) return;
-        data.entries.forEach(appendEntry);
-        if (entryList && entryList.children.length === 0 && emptyState) {
-          emptyState.hidden = false;
-        }
-      })
-      .catch(() => {
-        // 取得に失敗しても、静的な記録の表示自体は維持する。
-      });
-  }
-
-  const form = document.querySelector<HTMLFormElement>("[data-entry-form]");
-  const status = document.querySelector<HTMLElement>("[data-entry-status]");
-  const bodyField = document.querySelector<HTMLTextAreaElement>("#entry-body");
-  const contextField = document.querySelector<HTMLInputElement>("#entry-context");
-  const urlField = document.querySelector<HTMLInputElement>("#entry-url");
-  const gotchaField = document.querySelector<HTMLInputElement>('input[name="_gotcha"]');
-
-  if (form && status && bodyField) {
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-      submitButton?.setAttribute("disabled", "true");
-      status.textContent = "送信中...";
-
-      const payload = {
-        body: bodyField.value,
-        context: contextField?.value || undefined,
-        url: urlField?.value || undefined,
-        _gotcha: gotchaField?.value || "",
-      };
-
-      try {
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (response.ok) {
-          const data: { entry?: VisitorEntry } = await response.json();
-          if (data.entry) appendEntry(data.entry);
-          status.textContent = "書き残しました。";
-          form.reset();
-        } else {
-          status.textContent = "書き残せませんでした。もう一度お試しください。";
-        }
-      } catch {
-        status.textContent = "書き残せませんでした。もう一度お試しください。";
-      } finally {
-        submitButton?.removeAttribute("disabled");
-      }
-    });
-  }
-</script>
