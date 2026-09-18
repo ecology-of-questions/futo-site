@@ -1,417 +1,93 @@
-/**
- * index.module.css
- * ------------------------------------------------------------
- * Home専用のページレベルスタイル。
- *
- * 【v0.1公開仕様に合わせたTop全面刷新(2026-09-16、Decision Log 0150)】
- * 以前のバージョン(Decision Log 0111〜0149、編集的な再設計→4層構成→
- * ファーストビュー再設計)のスタイルは、この刷新に伴いすべて置き換えた。
- * 新しいTopはHero(抽象モーション)/3つの主要入口(領域ごとに異なる
- * 「物質」)/「この場所について」への静かな導線/研究便りの小さな入口、
- * という4区画のみで構成する。過去の変遷はgit履歴を参照。
- * ----------------------------- */
-
-/* -----------------------------
- * Hero: 抽象モーション+見出し+リード文。
- * モバイルでHero自体が画面を占有しすぎないよう、モーション領域は
- * 低めの高さ(28svh程度)に抑える。写真・外部アセットは使わず、
- * 既存トークンのcolor-mixのみで3枚の帯を表現する。
- * ----------------------------- */
-.hero {
-  max-width: var(--content-max-width);
-  margin-inline: auto;
-  padding-inline: var(--content-padding-inline);
-  padding-top: var(--space-3);
+.home { max-width: var(--home-width); padding-inline: var(--home-gutter); margin-inline: auto; }
+.home a { text-underline-offset: .35em; }
+.home a:focus-visible, .home button:focus-visible, .home input:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 5px; }
+.intro { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); padding-block: var(--home-intro-space); }
+.eyebrow { font-family: var(--font-sans); font-size: var(--home-label-size); letter-spacing: var(--home-tracking); color: var(--color-ink-muted); text-decoration: none; }
+.intro h1 { font-size: var(--home-heading); line-height: var(--lh-heading); letter-spacing: var(--home-heading-tracking); margin-top: 0; }
+.introAside { font-size: var(--fs-sm); line-height: var(--home-leading); padding-bottom: var(--space-1); }
+.introAside .textLink { margin-top: var(--space-3); }
+.textLink { display: inline-flex; gap: var(--space-3); align-items: center; font-size: var(--fs-sm); padding-block: var(--space-1); text-decoration: none; border-bottom: 1px solid var(--color-accent-beige); }
+.textLink:hover { border-color: var(--color-ink); }
+.feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.85fr); gap: var(--home-column-gap); align-items: center; padding-bottom: var(--home-section-space); }
+.featureCopy h2 { font-size: var(--home-feature-title); letter-spacing: var(--home-heading-tracking); margin-block: var(--space-3); }
+.featureCopy > p { font-size: var(--fs-sm); line-height: var(--home-leading); max-width: 24em; }
+.featureCopy .textLink { margin-top: var(--space-4); }
+.featureVisual { display: block; text-decoration: none; min-width: 0; background: var(--home-visual); }
+.featureVisual > img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
+.collections { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--home-column-gap); padding-block: var(--space-4) var(--home-section-space); border-top: 1px solid var(--color-accent-beige); }
+.sectionHead { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
+.sectionHead h2, .newsletter h2 { font-size: var(--home-section-title); letter-spacing: var(--home-heading-tracking); }
+.sectionHead > a { font-family: var(--font-sans); font-size: var(--home-label-size); white-space: nowrap; text-decoration: none; padding-block: var(--space-1); }
+.sectionHead > a:hover { text-decoration: underline; }
+.reviews { margin-top: var(--space-3); }
+.review { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr); gap: var(--space-2); padding-block: var(--space-3); }
+.review + .review { border-top: 1px solid var(--home-muted-rule); }
+.reviewNumber { font-size: var(--fs-xl); color: var(--color-ink-muted); font-style: italic; line-height: var(--lh-heading); }
+.review h3 { margin-top: var(--space-1); font-size: var(--home-article-title); line-height: var(--home-leading); }
+.review h3 a { text-decoration: none; }
+.review h3 a:hover { text-decoration: underline; }
+.reviewSubtitle { font-size: var(--fs-sm); color: var(--color-ink-muted); margin-top: var(--space-1); }
+.review .textLink { margin-top: var(--space-1); font-size: var(--home-label-size); }
+.bookshelf { border-left: 1px solid var(--color-accent-beige); padding-left: var(--home-column-gap); }
+.sectionDescription { font-size: var(--fs-sm); line-height: var(--home-leading); color: var(--color-ink-muted); margin-top: var(--space-1); }
+.readingLabel { font-size: var(--home-label-size); font-family: var(--font-sans); margin-top: var(--space-3); color: var(--color-ink-muted); }
+.books { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--home-book-gap); list-style: none; padding: 0; margin: var(--space-2) 0 0; }
+.books li { min-width: 0; }
+.newsletter { display: grid; grid-template-columns: 1fr 1.25fr; align-items: center; gap: var(--space-4); background: var(--home-newsletter); padding: var(--space-4); margin-bottom: var(--space-4); }
+.newsletter h2 { margin-top: var(--space-1); }
+.newsletterFields { min-width: 0; }
+.newsletterForm { display: flex; gap: var(--space-1); }
+.newsletterInput { flex: 1; min-width: 0; width: 100%; border: 1px solid var(--color-accent-beige); background: var(--color-surface); border-radius: 0; padding: var(--space-2); font: inherit; font-size: var(--fs-base); color: var(--color-ink); }
+.newsletterSubmit { border: 1px solid var(--color-ink-muted); background: transparent; color: var(--color-ink); padding: var(--space-2); font-size: var(--fs-sm); white-space: nowrap; cursor: pointer; }
+.newsletterSubmit:hover { background: var(--color-surface); }
+.newsletterSubmit:disabled { cursor: wait; opacity: .6; }
+.newsletterStatus { font-family: var(--font-sans); font-size: var(--home-label-size); margin-top: var(--space-1); }
+.newsletterStatus:empty { display: none; }
+.honeypot, .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 760px) {
+ .intro { display: block; }
+ .introAside { margin-top: var(--space-3); }
+ .introAside br { display: none; }
+ .introAside .textLink { margin-top: var(--space-1); }
+ .feature { grid-template-columns: 1fr; gap: var(--space-3); }
+ .featureCopy h2 { margin-block: var(--space-1); }
+ .featureCopy > p { max-width: none; }
+ .featureCopy .textLink { margin-top: var(--space-2); }
+ .collections { grid-template-columns: 1fr; gap: var(--space-4); }
+ .bookshelf { border-left: 0; padding-left: 0; border-top: 1px solid var(--color-accent-beige); padding-top: var(--space-4); }
+ .newsletter { grid-template-columns: 1fr; padding: var(--space-3); gap: var(--space-3); }
+}
+@media (max-width: 360px) { .newsletterForm { flex-direction: column; } }
+/* Give the three covers enough width before switching the entire feature to mobile. */
+@media (min-width: 761px) and (max-width: 1000px) {
+ .collections { grid-template-columns: 1fr; }
+ .bookshelf { border-left: 0; padding-left: 0; border-top: 1px solid var(--color-accent-beige); padding-top: var(--space-4); }
+ .books { max-width: 32rem; }
 }
 
-.heroMotion {
-  position: relative;
-  height: 28svh;
-  min-height: 8rem;
-  max-height: 14rem;
-  overflow: hidden;
-  border-radius: 4px;
+/* Compact, image-free feature until a meaningful image is supplied. */
+.featureWithoutImage { display: block; border-top: 1px solid var(--color-accent-beige); padding-block: var(--space-3) var(--space-4); }
+.featureWithoutImage .featureCopy { display: grid; grid-template-columns: 1fr auto; column-gap: var(--space-3); align-items: center; }
+.featureWithoutImage .eyebrow { grid-column: 1 / -1; }
+.featureWithoutImage h2 { margin-block: var(--space-1); }
+.featureWithoutImage .featureCopy > p { grid-column: 1; max-width: none; }
+.featureWithoutImage .textLink { grid-column: 2; grid-row: 2 / 4; margin-top: 0; }
+.bookshelfPhoto { display: block; margin-top: var(--space-2); }
+.bookshelfPhoto img { width: 100%; height: auto; }
+@media (max-width: 760px) {
+ .introAside { margin-top: var(--space-2); padding-bottom: 0; }
+ .featureWithoutImage .featureCopy { display: block; }
+ .featureWithoutImage .textLink { margin-top: var(--space-1); }
 }
 
-.heroPanel {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 30%;
-  left: 35%;
-  border-radius: 2px;
-  animation-duration: 2.4s;
-  animation-timing-function: ease-out;
-  animation-fill-mode: forwards;
-  animation-iteration-count: 1;
-}
-
-.heroPanelA {
-  background: color-mix(in srgb, var(--color-accent-beige) 70%, var(--color-paper));
-  animation-name: heroOpenA;
-}
-
-.heroPanelB {
-  background: color-mix(in srgb, var(--color-accent-green) 45%, var(--color-paper));
-  animation-name: heroOpenB;
-  animation-delay: 0.15s;
-}
-
-.heroPanelC {
-  background: color-mix(in srgb, var(--color-accent-blue) 25%, var(--color-paper));
-  animation-name: heroOpenC;
-  animation-delay: 0.3s;
-}
-
-@keyframes heroOpenA {
-  from {
-    left: 35%;
-  }
-  to {
-    left: 0%;
-  }
-}
-
-@keyframes heroOpenB {
-  from {
-    left: 35%;
-  }
-  to {
-    left: 35%;
-  }
-}
-
-@keyframes heroOpenC {
-  from {
-    left: 35%;
-  }
-  to {
-    left: 70%;
-  }
-}
-
-/* 中央に生まれる余白/光。帯が開き終わる頃合いにゆっくり浮かび上がる。 */
-.heroGlow {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 40%;
-  height: 60%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-paper) 100%, transparent) 0%,
-    transparent 70%
-  );
-  opacity: 0;
-  animation: heroGlowIn 1.8s ease-out 1.4s forwards;
-}
-
-@keyframes heroGlowIn {
-  to {
-    opacity: 1;
-  }
-}
-
-/* prefers-reduced-motion: reduceでは、アニメーションさせず最終状態
-   (開いた状態)を直接描画する。 */
-@media (prefers-reduced-motion: reduce) {
-  .heroPanel,
-  .heroGlow {
-    animation: none;
-  }
-  .heroPanelA {
-    left: 0%;
-  }
-  .heroPanelB {
-    left: 35%;
-  }
-  .heroPanelC {
-    left: 70%;
-  }
-  .heroGlow {
-    opacity: 1;
-  }
-}
-
-.heroHeading {
-  /* --font-hero-heading(Klee One)は「気づいたら、そこに問いがある」の
-     文字だけをサブセット化した自己ホストフォントで、この見出し
-     (「公開研究室ふ、と」)の文字はほとんど含まれていない。含まれない
-     文字ごとに--font-bodyへフォールバックすると、1つの見出しの中で
-     字形の異なる2つの書体が混在して見えてしまうため、この見出しには
-     使わず、通常の--font-bodyをそのまま使う。 */
-  margin: var(--space-3) 0 0;
-  font-size: var(--fs-2xl);
-  line-height: var(--lh-hero-heading);
-  font-weight: 500;
-}
-
-.heroLead {
-  margin: var(--space-2) 0 0;
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-  color: var(--color-ink-muted);
-  max-width: 32rem;
-}
-
-/* -----------------------------
- * 3つの主要入口(研究断面/実験室/本棚)。カード風に統一せず、
- * 領域ごとに異なる「物質」(紙面/線・痕跡/背表紙)で見せる。
- * ----------------------------- */
-.entries {
-  max-width: var(--content-max-width);
-  margin-inline: auto;
-  padding-inline: var(--content-padding-inline);
-  margin-top: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-@media (min-width: 900px) {
-  .entries {
-    flex-direction: row;
-    align-items: stretch;
-  }
-}
-
-.entry {
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-  color: inherit;
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-accent-beige);
-}
-
-@media (min-width: 900px) {
-  .entry {
-    flex: 1;
-    min-width: 0;
-  }
-}
-
-.entryLabel {
-  margin: 0;
-  font-size: var(--fs-lg);
-  font-weight: 600;
-}
-
-.entryDescription {
-  margin: var(--space-1) 0 0;
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
-  color: var(--color-ink-muted);
-}
-
-.entryLink {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: 4px;
-  margin-top: var(--space-2);
-  font-size: var(--fs-sm);
-  color: var(--color-accent-blue);
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 1px;
-}
-
-/* 研究断面: 「紙面」。実データ(最新の研究断面の説明文)を、
-   引用のような左罫線つきの組版で見せる(ResearchStatement.module.css
-   の.quoteと同じ考え方)。 */
-.entryQuote {
-  margin: var(--space-2) 0 0;
-  padding-left: var(--space-2);
-  border-left: 1px solid var(--color-accent-beige);
-  font-family: var(--font-body);
-  font-size: var(--fs-base);
-  line-height: var(--lh-body);
-  font-style: normal;
-}
-
-/* 実験室: 「線・痕跡」。手描きの軌跡のような1本の曲線をSVGで表現する
-   (装飾要素、aria-hidden)。 */
-.entryTrace {
-  display: block;
-  width: 100%;
-  max-width: 12rem;
-  height: auto;
-  margin-bottom: var(--space-2);
-}
-
-.entryTrace path {
-  fill: none;
-  stroke: var(--color-ink-muted);
-  stroke-width: 1;
-  stroke-linecap: round;
-}
-
-.entryTrace circle {
-  fill: var(--color-ink-muted);
-}
-
-/* 本棚: 「背表紙」。BookshelfFullList.module.css/participate.module.css
-   と同じcolor-mixのtone(warm/moss/sky)を、行の先頭に収まる小さな
-   背表紙として複製している(ページごとにスタイルを独立させる既存の
-   方針を踏襲)。 */
-.entrySpines {
-  display: flex;
-  gap: var(--space-1);
-  align-items: flex-end;
-  margin-bottom: var(--space-2);
-}
-
-.spine {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  aspect-ratio: 2 / 5;
-  padding: var(--space-1);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.spine[data-tone="warm"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
-  );
-}
-
-.spine[data-tone="moss"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
-  );
-}
-
-.spine[data-tone="sky"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
-  );
-}
-
-.spineTitle {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  line-height: 1.3;
-  color: var(--color-ink);
-}
-
-/* -----------------------------
- * 「この場所について」への静かな導線。大きなCTAにしない。
- * ----------------------------- */
-.closing {
-  max-width: var(--content-max-width);
-  margin-inline: auto;
-  padding-inline: var(--content-padding-inline);
-  margin-top: var(--space-5);
-}
-
-.closingLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--fs-base);
-  color: inherit;
-  text-decoration: none;
-  border-bottom: 1px solid var(--color-accent-beige);
-  padding-bottom: 2px;
-}
-
-/* -----------------------------
- * 研究便りの小さな入口。大きなメール登録フォームにしない
- * (ラベル+コンパクトな1行フォームのみ、背景面・見出しは使わない)。
- * ----------------------------- */
-.newsletter {
-  max-width: var(--content-max-width);
-  margin-inline: auto;
-  padding-inline: var(--content-padding-inline);
-  margin-top: var(--space-4);
-  padding-bottom: var(--space-4);
-}
-
-.newsletterLabel {
-  display: block;
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-.newsletterForm {
-  display: flex;
-  gap: var(--space-1);
-  margin-top: var(--space-1);
-  max-width: 24rem;
-}
-
-.newsletterInput {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-on-surface);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-accent-beige);
-  border-radius: 2px;
-  padding: var(--space-1);
-  transition: border-color var(--transition-base);
-}
-
-.newsletterInput:focus {
-  outline: 2px solid var(--color-accent-blue);
-  outline-offset: 1px;
-  border-color: var(--color-accent-blue);
-}
-
-.newsletterSubmit {
-  flex-shrink: 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-accent-blue);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-accent-blue);
-  border-radius: 2px;
-  padding: var(--space-1) var(--space-2);
-  cursor: pointer;
-  transition:
-    background-color var(--transition-base),
-    color var(--transition-base);
-}
-
-.newsletterSubmit:hover,
-.newsletterSubmit:focus-visible {
-  background-color: var(--color-accent-blue);
-  color: var(--color-surface);
-}
-
-.newsletterSubmit:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.newsletterStatus {
-  margin: var(--space-1) 0 0;
-  min-height: 1.2em;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-.honeypot {
-  /* Formspreeのハニーポット規約(name="_gotcha")。contact.module.css
-     の.honeypotと同じ考え方(Decision Log 0076)。 */
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
+/* Motion is a compact conceptual illustration, not an image placeholder. */
+.introAside { min-width: min(100%, var(--home-motion-width)); }
+.introAside .textLink { margin-top: 0; }
+.soundMotion { grid-column: 1; }
+.featureWithoutImage .textLink { grid-row: 2 / 5; }
+@media (max-width: 760px) {
+ .intro { padding-block: var(--space-3); }
+ .introAside { margin-top: 0; }
+ .featureWithoutImage { padding-bottom: var(--space-3); }
+ .featureWithoutImage .textLink { margin-top: 0; }
 }

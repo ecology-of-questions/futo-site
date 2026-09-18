@@ -107,3 +107,23 @@ button {
     scroll-behavior: auto !important;
   }
 }
+
+/* Home-only framing. Shared pages retain their original header/footer dimensions. */
+body[data-theme="editorial"] > header > div,
+body[data-theme="editorial"] > footer > div {
+  max-width: var(--home-width);
+  padding-inline: var(--home-gutter);
+}
+body[data-theme="editorial"] > footer { margin-top: var(--space-2); }
+body[data-theme="editorial"] > footer > div {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--space-3);
+}
+body[data-theme="editorial"] > footer nav { font-size: var(--home-label-size); }
+body[data-theme="editorial"] > footer p:last-child { font-size: var(--home-label-size); }
+@media (max-width: 760px) {
+  body[data-theme="editorial"] > footer > div { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+}

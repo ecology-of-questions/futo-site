@@ -1,0 +1,22 @@
+.motion { display: flex; align-items: center; width: min(100%, var(--home-motion-width)); color: var(--color-ink); }
+.motion svg { display: block; flex: 1; min-width: 0; height: var(--home-motion-height); overflow: visible; }
+.connections { opacity: .4; }
+.trail { opacity: .3; }
+.rippleOne, .rippleTwo { opacity: .35; transform-box: fill-box; transform-origin: center; }
+.walker { offset-path: path("M18 52 C52 52 55 25 96 25 S148 55 185 44 S242 14 297 29"); offset-distance: 100%; }
+.replay { flex: 0 0 var(--home-motion-control); height: var(--home-motion-control); border: 0; background: transparent; color: var(--color-ink-muted); cursor: pointer; font-size: var(--fs-base); }
+.replay[hidden] { display: none; }
+.replay:hover { color: var(--color-ink); }
+.motion[data-playing] .notice { animation: notice 4.8s ease both; animation-delay: calc(var(--order) * 160ms); }
+.motion[data-playing] .connections path { animation: connect 4.8s ease both; }
+.motion[data-playing] .question { animation: question 4.8s ease both; }
+.motion[data-playing] .walker { animation: walk 4.8s ease-in-out both; }
+.motion[data-playing] .rippleOne { animation: rippleOne 4.8s ease-out both; }
+.motion[data-playing] .rippleTwo { animation: rippleTwo 4.8s ease-out both; }
+@keyframes notice { 0%, 8% { opacity: 0; } 22%, 100% { opacity: 1; } }
+@keyframes connect { 0%, 24% { stroke-dasharray: 1; stroke-dashoffset: 1; } 68%, 100% { stroke-dasharray: 1; stroke-dashoffset: 0; } }
+@keyframes question { 0%, 60% { opacity: 0; transform: translateY(3px); } 85%, 100% { opacity: 1; transform: translateY(0); } }
+@keyframes walk { 0% { offset-distance: 0%; } 22%, 37% { offset-distance: 29%; } 58%, 74% { offset-distance: 60%; } 100% { offset-distance: 100%; } }
+@keyframes rippleOne { 0%, 22% { opacity: 0; transform: scale(.25); } 40% { opacity: .65; } 62%, 100% { opacity: .35; transform: scale(1); } }
+@keyframes rippleTwo { 0%, 58% { opacity: 0; transform: scale(.25); } 76% { opacity: .65; } 100% { opacity: .35; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .motion[data-playing] * { animation: none !important; } .replay { display: none; } }
