@@ -154,3 +154,9 @@ body[data-theme="editorial"] {
 @media (max-width: 360px) {
   body[data-theme="editorial"] { --home-heading: 1.5rem; }
 }
+
+body[data-theme="editorial"] {
+  --home-motion-width: 22rem;
+  --home-motion-height: 4rem;
+  --home-motion-control: 2.75rem;
+}

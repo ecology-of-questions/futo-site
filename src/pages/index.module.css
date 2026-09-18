@@ -79,3 +79,15 @@
  .featureWithoutImage .featureCopy { display: block; }
  .featureWithoutImage .textLink { margin-top: var(--space-1); }
 }
+
+/* Motion is a compact conceptual illustration, not an image placeholder. */
+.introAside { min-width: min(100%, var(--home-motion-width)); }
+.introAside .textLink { margin-top: 0; }
+.soundMotion { grid-column: 1; }
+.featureWithoutImage .textLink { grid-row: 2 / 5; }
+@media (max-width: 760px) {
+ .intro { padding-block: var(--space-3); }
+ .introAside { margin-top: 0; }
+ .featureWithoutImage { padding-bottom: var(--space-3); }
+ .featureWithoutImage .textLink { margin-top: 0; }
+}

@@ -1,0 +1,59 @@
+---
+import styles from './HomeMotion.module.css';
+interface Props { kind: 'question' | 'sound'; }
+const { kind } = Astro.props;
+const label = kind === 'question' ? '小さな気づきがつながり、問いになる' : '道を進み、立ち止まった場所から音が広がる';
+---
+<div class={styles.motion} data-home-motion data-kind={kind}>
+  <svg viewBox="0 0 320 76" role="img" aria-label={label}>
+    {kind === 'question' ? <>
+      <g class={styles.connections} fill="none" stroke="currentColor" stroke-width="1" pathLength="1">
+        <path d="M24 45 Q53 42 78 24 T141 40 T204 32 L259 32" pathLength="1" />
+        <path d="M78 24 Q102 66 141 40 M141 40 Q170 7 204 32" pathLength="1" />
+      </g>
+      {[{x:24,y:45},{x:78,y:24},{x:141,y:40},{x:204,y:32}].map((p,i)=><circle class={styles.notice} style={`--order:${i}`} cx={p.x} cy={p.y} r={i+2} fill="currentColor" />)}
+      <g class={styles.question} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M272 25 C273 10 298 11 297 26 C297 35 283 35 283 45" />
+        <circle cx="283" cy="55" r="1.5" fill="currentColor" stroke="none" />
+      </g>
+    </> : <>
+      <path class={styles.trail} d="M18 52 C52 52 55 25 96 25 S148 55 185 44 S242 14 297 29" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 5" />
+      <circle cx="96" cy="25" r="3" fill="currentColor" />
+      <circle cx="185" cy="44" r="3" fill="currentColor" />
+      <g class={styles.rippleOne} fill="none" stroke="currentColor" stroke-width="1"><circle cx="96" cy="25" r="11"/><circle cx="96" cy="25" r="20"/></g>
+      <g class={styles.rippleTwo} fill="none" stroke="currentColor" stroke-width="1"><circle cx="185" cy="44" r="12"/><circle cx="185" cy="44" r="23"/></g>
+      <circle class={styles.walker} cx="0" cy="0" r="4" fill="currentColor" />
+    </>}
+  </svg>
+  <button type="button" class={styles.replay} aria-label={`${label}：もう一度再生`} hidden>↻</button>
+</div>
+<script>
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const elements = document.querySelectorAll<HTMLElement>('[data-home-motion]');
+  const play = (element: HTMLElement) => {
+    element.removeAttribute('data-playing');
+    if (reduced.matches) return;
+    // Restart CSS timelines on an explicit replay; geometry never changes.
+    void element.offsetWidth;
+    element.setAttribute('data-playing', 'true');
+  };
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) if (entry.isIntersecting) {
+      play(entry.target as HTMLElement);
+      observer.unobserve(entry.target);
+    }
+  }, { threshold: 0.6 });
+  elements.forEach((element) => {
+    const button = element.querySelector<HTMLButtonElement>('button');
+    if (button) {
+      button.hidden = reduced.matches;
+      button.addEventListener('click', () => play(element));
+    }
+    observer.observe(element);
+  });
+  reduced.addEventListener('change', () => elements.forEach((element) => {
+    element.removeAttribute('data-playing');
+    const button = element.querySelector<HTMLButtonElement>('button');
+    if (button) button.hidden = reduced.matches;
+  }));
+</script>

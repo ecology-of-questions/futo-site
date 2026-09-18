@@ -1,5 +1,6 @@
 ---
 import DefaultLayout from "@layouts/DefaultLayout.astro";
+import HomeMotion from "@components/HomeMotion.astro";
 import HomeBook from "@components/HomeBook.astro";
 import styles from "./index.module.css";
 import { publishedReviews } from "@/data/researchReviews";
@@ -24,6 +25,7 @@ const bookshelfPhoto: string | undefined = undefined;
         <h1 id="home-title">日々の気づきから、<br />問いを育てる。</h1>
       </div>
       <div class={styles.introAside}>
+        <HomeMotion kind="question" />
         <a class={styles.textLink} href="/about">この場所について <span aria-hidden="true">↗</span></a>
       </div>
     </section>
@@ -33,6 +35,7 @@ const bookshelfPhoto: string | undefined = undefined;
         <a class={styles.eyebrow} href="/participate">実験室</a>
         <h2 id="feature-title">{featured.title}</h2>
         <p>誰かの気づきを、音から辿る。</p>
+        <div class={styles.soundMotion}><HomeMotion kind="sound" /></div>
         <a class={styles.textLink} href={`/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
       </div>
       {featureImage && <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label="音の道のノートを開く">
