@@ -79,6 +79,17 @@
   white-space: nowrap;
 }
 
+/* モバイル幅ではタイトル・著者を横並びにすると、タイトルが著者名との
+   兼ね合いで不自然な位置で改行されるため、縦積みにする
+   (2026-09-18、Decision Log 0181)。 */
+@media (max-width: 760px) {
+  .textLink {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+}
+
 /* 【Amazonアソシエイト開示文言】実際にアソシエイトタグ付きリンクを
    表示する場合のみ描画される(BookshelfShelf.astroのhasAffiliate
    Disclosure参照)。一覧全体に対する注記のため末尾に1つだけ置く。 */
