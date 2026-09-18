@@ -3,7 +3,7 @@
 .home a:focus-visible, .home button:focus-visible, .home input:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 5px; }
 .intro { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); padding-block: var(--home-intro-space); }
 .eyebrow { font-family: var(--font-sans); font-size: var(--home-label-size); letter-spacing: var(--home-tracking); color: var(--color-ink-muted); text-decoration: none; }
-.intro h1 { font-size: var(--home-heading); line-height: var(--lh-heading); letter-spacing: var(--home-heading-tracking); margin-top: var(--space-2); }
+.intro h1 { font-size: var(--home-heading); line-height: var(--lh-heading); letter-spacing: var(--home-heading-tracking); margin-top: 0; }
 .introAside { font-size: var(--fs-sm); line-height: var(--home-leading); padding-bottom: var(--space-1); }
 .introAside .textLink { margin-top: var(--space-3); }
 .textLink { display: inline-flex; gap: var(--space-3); align-items: center; font-size: var(--fs-sm); padding-block: var(--space-1); text-decoration: none; border-bottom: 1px solid var(--color-accent-beige); }
@@ -14,16 +14,6 @@
 .featureCopy .textLink { margin-top: var(--space-4); }
 .featureVisual { display: block; text-decoration: none; min-width: 0; background: var(--home-visual); }
 .featureVisual > img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
-.visualStudy { position: relative; aspect-ratio: 3 / 2; overflow: hidden; color: var(--color-ink); }
-.visualStudy svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.visualLabel, .visualIndex { position: absolute; left: var(--space-3); font-size: var(--home-label-size); letter-spacing: var(--home-tracking); font-family: var(--font-sans); }
-.visualLabel { top: var(--space-3); }
-.visualIndex { bottom: var(--space-3); }
-.visualArrow { position: absolute; right: var(--space-3); bottom: var(--space-3); font-size: var(--fs-lg); }
-.trace { stroke: var(--color-ink); stroke-width: 1.3; }
-.traceSoft { stroke: var(--color-ink-muted); stroke-width: .6; opacity: .4; }
-.tracePoint { fill: var(--color-ink); }
-.traceMarker { stroke: var(--color-ink-muted); stroke-width: .6; }
 .collections { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--home-column-gap); padding-block: var(--space-4) var(--home-section-space); border-top: 1px solid var(--color-accent-beige); }
 .sectionHead { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
 .sectionHead h2, .newsletter h2 { font-size: var(--home-section-title); letter-spacing: var(--home-heading-tracking); }
@@ -73,4 +63,19 @@
  .collections { grid-template-columns: 1fr; }
  .bookshelf { border-left: 0; padding-left: 0; border-top: 1px solid var(--color-accent-beige); padding-top: var(--space-4); }
  .books { max-width: 32rem; }
+}
+
+/* Compact, image-free feature until a meaningful image is supplied. */
+.featureWithoutImage { display: block; border-top: 1px solid var(--color-accent-beige); padding-block: var(--space-3) var(--space-4); }
+.featureWithoutImage .featureCopy { display: grid; grid-template-columns: 1fr auto; column-gap: var(--space-3); align-items: center; }
+.featureWithoutImage .eyebrow { grid-column: 1 / -1; }
+.featureWithoutImage h2 { margin-block: var(--space-1); }
+.featureWithoutImage .featureCopy > p { grid-column: 1; max-width: none; }
+.featureWithoutImage .textLink { grid-column: 2; grid-row: 2 / 4; margin-top: 0; }
+.bookshelfPhoto { display: block; margin-top: var(--space-2); }
+.bookshelfPhoto img { width: 100%; height: auto; }
+@media (max-width: 760px) {
+ .introAside { margin-top: var(--space-2); padding-bottom: 0; }
+ .featureWithoutImage .featureCopy { display: block; }
+ .featureWithoutImage .textLink { margin-top: var(--space-1); }
 }

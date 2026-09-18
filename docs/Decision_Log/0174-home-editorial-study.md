@@ -17,3 +17,6 @@
 
 ## Scope / validation
 編集テーマは body[data-theme="editorial"] に限定。本文データ、ルート、Worker、D1、Cloudflare設定は維持。検証結果は同梱の IMPLEMENTATION.md を参照。
+
+## Status update
+導入コピー・見出しサイズ・仮線画の方針は superseded (→ 0175)。研究断面・テーマの限定適用等は維持。

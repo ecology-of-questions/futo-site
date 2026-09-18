@@ -12,6 +12,8 @@ const reading = books.filter((book) => book.status === "reading").slice(0, 3);
 const featured = labNotebooks.find((notebook) => notebook.slug === "oto-no-michi");
 // Replace only this asset URL when the owner selects the main visual.
 const featureImage: string | undefined = undefined;
+// Owner-provided photo of the actual book spines; leave unset until supplied.
+const bookshelfPhoto: string | undefined = undefined;
 ---
 
 <DefaultLayout title="公開研究室ふ、と｜誰もが探究を続けられる場所へ"
@@ -19,38 +21,23 @@ const featureImage: string | undefined = undefined;
   <div class={styles.home}>
     <section class={styles.intro} aria-labelledby="home-title">
       <div>
-        <p class={styles.eyebrow}>公開研究室ふ、と</p>
-        <h1 id="home-title">日々の気づきから、<br />問いが育つ。</h1>
+        <h1 id="home-title">日々の気づきから、<br />問いを育てる。</h1>
       </div>
       <div class={styles.introAside}>
-        <p>個人の探究をひらき、<br />誰もがふらっと立ち寄り、<br />ともに探究を深められる場です。</p>
         <a class={styles.textLink} href="/about">この場所について <span aria-hidden="true">↗</span></a>
       </div>
     </section>
 
-    {featured && <section class={styles.feature} aria-labelledby="feature-title">
+    {featured && <section class:list={[styles.feature, !featureImage && styles.featureWithoutImage]} aria-labelledby="feature-title">
       <div class={styles.featureCopy}>
-        <a class={styles.eyebrow} href="/participate">実験室 <span aria-hidden="true">/</span> つくっている途中</a>
+        <a class={styles.eyebrow} href="/participate">実験室</a>
         <h2 id="feature-title">{featured.title}</h2>
-        <p>{featured.description}</p>
+        <p>誰かの気づきを、音から辿る。</p>
         <a class={styles.textLink} href={`/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
       </div>
-      <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label="音の道のノートを開く">
-        {featureImage ? <img src={featureImage} alt="" width="960" height="640" fetchpriority="high" /> :
-          <div class={styles.visualStudy} aria-hidden="true">
-            <span class={styles.visualLabel}>ふ、と / 音の道</span>
-            <svg viewBox="0 0 800 500" fill="none" preserveAspectRatio="xMidYMid meet">
-              <path class={styles.traceSoft} d="M-20 358C92 356 153 58 272 115S344 367 475 327 624 151 834 219" />
-              <path class={styles.trace} d="M-20 370C103 377 154 79 271 132S348 380 482 344 637 166 834 229" />
-              <path class={styles.traceSoft} d="M-20 384C91 405 170 99 276 151S365 393 491 363 653 189 834 244" />
-              <circle cx="271" cy="132" r="5" class={styles.tracePoint}/>
-              <circle cx="482" cy="344" r="5" class={styles.tracePoint}/>
-              <path class={styles.traceMarker} d="M271 102V53M482 374V428M247 53H295M458 428H506" />
-            </svg>
-            <span class={styles.visualIndex}>01 <span aria-hidden="true">—</span> 実験のノート</span>
-            <span class={styles.visualArrow}>↗</span>
-          </div>}
-      </a>
+      {featureImage && <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label="音の道のノートを開く">
+        <img src={featureImage} alt="" width="960" height="640" fetchpriority="high" />
+      </a>}
     </section>}
 
     <div class={styles.collections}>
@@ -71,7 +58,9 @@ const featureImage: string | undefined = undefined;
         <div class={styles.sectionHead}><h2 id="bookshelf-title">本棚</h2><a href="/bookshelf">本棚へ <span aria-hidden="true">→</span></a></div>
         <p class={styles.sectionDescription}>読んでいる本、これから読みたい本。</p>
         <p class={styles.readingLabel}>いま読んでいる</p>
-        <ul class={styles.books}>{reading.map((book) => <li><HomeBook book={book} /></li>)}</ul>
+        {bookshelfPhoto ? <a class={styles.bookshelfPhoto} href="/bookshelf">
+          <img src={bookshelfPhoto} alt={reading.map((book) => book.title).join("、") + "の背表紙。本棚を見る"} loading="lazy" />
+        </a> : <ul class={styles.books}>{reading.map((book) => <li><HomeBook book={book} /></li>)}</ul>}
       </section>
     </div>
 
