@@ -3,136 +3,80 @@
  * ------------------------------------------------------------
  * BookshelfShelf.astro(「研究の本棚」本体)のスタイル。
  *
- * 【ブクログ風の書影グリッドに刷新(2026-09-17、Decision Log 0167)】
- * それまでの「いま読んでいる」Hero区画(横並びの棚)+status別の
- * 行リスト(書影+タイトル+著者+reason+アクション)という構成をやめ、
- * すべてのstatusを同じ「書影(仮カバー)」だけのカードグリッドで表示
- * する形に統一した。reason・「一緒に読みたい」・「この本から生まれた
- * 記録」は、このグリッドには表示しない(BookActions.module.cssは
- * 削除せず残しているが、このファイルからは参照しなくなった)。
- *
- * 【画像下のキャプションを削除(2026-09-17、Decision Log 0168)】
- * 0167時点にあった書影下のタイトル・著者キャプション(.caption・
- * .author・.contributedTag)を削除し、書影のみのカードにした。
- *
- * 【実際の書影表示、object-fit: contain化(2026-09-17、Decision Log
- * 0170)】.coverImageのobject-fitを、色面プレースホルダー前提の
- * coverからcontainに変更した。実際の書影(縦横比が3:4と異なる場合が
- * ある)を、切り取らず全体が見えるようにするため。containで余った
- * 部分は.coverのtoneグラデーション背景がそのまま透けて見える(枠が
- * 空白になるのではなく、色面のフレームとして機能する)。
+ * 【テキストのみの行リストに変更(2026-09-18、Decision Log 0179)】
+ * 書影グリッド(色面プレースホルダー・縦書きタイトル、Decision Log
+ * 0167〜0170)をやめ、タイトル・著者だけを罫線区切りの1行リストで
+ * 見せる形にした。書影・色面・container query等、画像表示に関する
+ * スタイルは全て削除している。
  * ------------------------------------------------------------
  */
 
 .section {
-  margin-top: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-accent-beige);
 }
 
 .sectionRule {
-  border-top: 1px solid var(--color-accent-beige);
-  padding-top: var(--space-2);
+  border: 0;
+  padding-top: 0;
 }
 
 .sectionHeading {
-  font-size: var(--fs-xl);
+  font-size: var(--page-section-title);
   line-height: var(--lh-heading);
   font-weight: 500;
   margin: 0;
 }
 
 /* -----------------------------
- * 書影グリッド。カードグリッドにはせず余白と文字で見せる、という
- * 0154の元々の方針から転換し、ブクログ等の書影一覧のように、表紙を
- * 並べるだけのシンプルなグリッドにした(2026-09-17、Decision Log
- * 0167)。1列あたりの枚数は固定せず、`auto-fill`でビューポート幅に
- * 応じて自動的に折り返す。
+ * タイトル・著者だけの行リスト。1行=1冊、罫線で区切る
+ * (2026-09-18、Decision Log 0179)。
  * ----------------------------- */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
-  gap: var(--space-3) var(--space-2);
-  margin: calc(var(--space-1) / 2) 0 0;
+.textList {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-2) 0 0;
   padding: 0;
   list-style: none;
+  max-width: var(--reading-width);
 }
 
-.gridItem {
-  min-width: 0;
+.textRow {
+  border-top: 1px solid var(--color-accent-beige);
 }
 
-.card {
-  display: block;
-  height: 100%;
+.textRow:first-child {
+  border-top: none;
+}
+
+.textLink {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
   text-decoration: none;
   color: inherit;
 }
 
-/* 表紙を押すと外部サイトへ遷移する場合(purchaseUrlがある本)のみ
-   <a>になる。無い本は<div>のまま(存在しないリンクを作らない)。
-   どちらも同じ見た目にするため、hoverの効果は<a>側にのみ適用する。 */
-a.card:hover .cover,
-a.card:focus-visible .cover {
-  opacity: 0.85;
+.textLink:hover .textTitle,
+.textLink:focus-visible .textTitle {
+  text-decoration: underline;
 }
 
-.cover {
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  padding: var(--space-2);
-  border-radius: 2px;
-  overflow: hidden;
-  transition: opacity var(--transition-base);
+.textTitle {
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.coverImage {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.cover[data-tone="warm"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-beige) 85%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-beige) 60%, var(--color-ink) 10%) 100%
-  );
-}
-
-.cover[data-tone="moss"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-green) 55%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-green) 70%, var(--color-ink) 15%) 100%
-  );
-}
-
-.cover[data-tone="sky"] {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--color-accent-blue) 30%, var(--color-paper)) 0%,
-    color-mix(in srgb, var(--color-accent-blue) 55%, var(--color-ink) 10%) 100%
-  );
-}
-
-.coverTitle {
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.textAuthor {
+  font-family: var(--font-sans);
   font-size: var(--fs-sm);
-  font-weight: 500;
-  line-height: 1.3;
-  color: var(--color-ink);
-}
-
-/* .coverTitleが常時display: -webkit-boxを持つため、UAスタイルシートの
-   [hidden] { display: none }がカスケードで負けてしまう(author origin
-   がUA originに勝つため)。Decision Log 0161で発見した[hidden]の
-   落とし穴と同じ問題のため、明示的に上書きする。 */
-.coverTitle[hidden] {
-  display: none;
+  color: var(--color-ink-muted);
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 /* 【Amazonアソシエイト開示文言】実際にアソシエイトタグ付きリンクを
@@ -144,19 +88,3 @@ a.card:focus-visible .cover {
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
 }
-
-.section { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--color-accent-beige); }
-.sectionHeading { font-size: var(--page-section-title); }
-.sectionRule { border: 0; padding-top: 0; }
-.grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--home-book-gap); max-width: var(--shelf-width); margin-top: var(--space-3); padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-accent-beige); }
-.cover { position: relative; container-type: inline-size; aspect-ratio: 2 / 3; padding: 0; border-radius: 0; }
-.cover[data-tone="warm"] { background: var(--home-book-warm); }
-.cover[data-tone="moss"] { background: var(--home-book-moss); }
-.cover[data-tone="sky"] { background: var(--home-book-sky); }
-.coverType { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-2) var(--space-1); border-left: 3px double var(--color-accent-beige); }
-.coverType > span { writing-mode: vertical-rl; align-self: center; font-size: var(--home-book-title); letter-spacing: var(--home-tracking); max-height: 80%; }
-.coverType small { font-family: var(--font-sans); font-size: var(--home-book-author); text-align: center; }
-.coverImage { position: absolute; inset: 0; opacity: 0; }
-.cover[data-loaded] .coverImage { opacity: 1; }
-.cover[data-loaded] .coverType { visibility: hidden; }
-@container (max-width: 110px) { .coverType small { display: none; } .coverType > span { max-height: 100%; flex-shrink: 0; } }
