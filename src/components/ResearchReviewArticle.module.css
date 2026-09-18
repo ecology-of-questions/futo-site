@@ -362,3 +362,22 @@
 .reviewNavLink:focus-visible {
   text-decoration: underline;
 }
+
+.title { font-size: var(--page-title); color: var(--color-ink); max-width: var(--reading-width); line-height: var(--home-leading); }
+.subtitle { font-size: var(--fs-base); color: var(--color-ink-muted); max-width: var(--reading-width); }
+.article { gap: var(--space-5); margin-top: var(--space-4); min-width: 0; }
+.section { padding-top: var(--space-3); border-top: 1px solid var(--color-accent-beige); min-width: 0; }
+.sectionHeading { font-size: var(--page-section-title); line-height: var(--home-leading); }
+.paragraph, .list, .quote { max-width: var(--reading-width); line-height: var(--reading-leading); }
+.row { grid-template-columns: 1fr; gap: var(--space-3); min-width: 0; }
+.row .image { max-width: var(--reading-width); margin-inline: 0; }
+.row .table { table-layout: auto; }
+.row .table th:first-child, .row .table td:first-child { width: auto; }
+.table { overflow-wrap: anywhere; }
+.tocDesktop { padding-left: var(--space-3); border-left: 1px solid var(--color-accent-beige); margin-top: var(--space-4); }
+.tocList { line-height: var(--home-leading); font-size: var(--home-label-size); }
+.tocMobile { padding-block: var(--space-2); border-block: 1px solid var(--color-accent-beige); }
+.related { margin-top: var(--space-5); }
+.relatedList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+@media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) 14rem; gap: var(--space-5); } }
+@media (max-width: 760px) { .relatedList { grid-template-columns: 1fr; gap: 0; } .table th, .table td { padding-inline: var(--space-1); font-size: var(--fs-sm); } }

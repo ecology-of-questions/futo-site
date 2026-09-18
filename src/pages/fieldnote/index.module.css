@@ -241,3 +241,11 @@
   grid-column: 1 / -1;
   opacity: 0.7;
 }
+
+.setupView, .listView { max-width: var(--reading-width); margin-inline: auto; padding-inline: var(--home-gutter); }
+.setupHeading, .listHeading { font-size: var(--page-title); font-weight: 500; }
+.eyebrow { font-size: var(--home-label-size); opacity: 1; color: var(--color-ink-muted); }
+.back { font-size: var(--fs-sm); color: var(--color-ink-muted); text-underline-offset: .3em; margin-bottom: var(--space-3); }
+.setupForm { max-width: none; }
+.titleInput { font-size: var(--fs-base); border-color: var(--color-accent-beige); background: var(--color-surface); border-radius: 0; min-width: 0; width: 100%; }
+:global(a:focus-visible), :global(button:focus-visible), :global(input:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: 4px; }

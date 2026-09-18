@@ -118,3 +118,9 @@
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
 }
+
+.pageTitle { font-size: var(--page-title); }
+.eyebrow { font-size: var(--home-label-size); }
+.lead { font-size: var(--fs-base); }
+.body { line-height: var(--reading-leading); max-width: var(--reading-width); }
+@media (min-width: 900px) { .block { padding-block: var(--space-4); } }

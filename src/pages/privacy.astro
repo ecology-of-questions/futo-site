@@ -33,16 +33,14 @@
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
-import NightBackground from "@components/NightBackground.astro";
 import styles from "./privacy.module.css";
 ---
 
 <DefaultLayout
   title="個人情報の取り扱い ｜ 公開研究室ふ、と"
   description="公開研究室ふ、とにおける個人情報の取り扱いについて。"
-  theme="night"
+  theme="editorial"
 >
-  <NightBackground />
   <ResearchSection ariaLabel="Privacy">
     <div class={styles.pageHeader}>
       <p class={styles.eyebrow}>PRIVACY</p>

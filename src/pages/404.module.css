@@ -35,3 +35,6 @@
 .link {
   margin-top: var(--space-3);
 }
+
+.heading { font-size: var(--page-title); }
+.section { padding-block: var(--page-space); }

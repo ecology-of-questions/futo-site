@@ -1,0 +1,9 @@
+---
+import styles from './PageHeading.module.css';
+interface Props { label: string; title: string; description?: string; }
+const {label, title, description} = Astro.props;
+---
+<header class={styles.heading}>
+ <p class={styles.label}>{label}</p>
+ <div class={styles.row}><h1>{title}</h1>{description && <p class={styles.description}>{description}</p>}</div>
+</header>

@@ -130,31 +130,17 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
           // 入れ、書影自体が本の名前を伝えるアクセシブルネームになる
           // ようにしている(「持ち寄られた本」の情報もaltに残す)。
           const accessibleTitle = book.contributed ? `${book.title}(持ち寄られた本)` : book.title;
-          const coverInner = book.image ? (
-            <img class={styles.coverImage} src={book.image} alt={accessibleTitle} loading="lazy" />
-          ) : book.externalCoverUrl ? (
-            <img class={styles.coverImage} src={book.externalCoverUrl} alt={accessibleTitle} loading="lazy" />
-          ) : book.isbn13 ? (
-            <>
-              <img
-                class={styles.coverImage}
-                src={openLibraryCoverUrl(book.isbn13)}
-                alt={accessibleTitle}
-                loading="lazy"
-                data-cover-fallback
-              />
-              <span class={styles.coverTitle} data-cover-placeholder hidden>
-                {accessibleTitle}
-              </span>
-            </>
-          ) : (
-            <span class={styles.coverTitle}>{accessibleTitle}</span>
-          );
+          const coverUrl = book.image || book.externalCoverUrl || (book.isbn13 ? openLibraryCoverUrl(book.isbn13) : undefined);
+          const coverInner = <>
+            <span class={styles.coverType} aria-hidden="true"><span>{book.title}</span><small>{book.author}</small></span>
+            {coverUrl && <img class={styles.coverImage} src={coverUrl} alt="" loading="lazy" decoding="async" data-shelf-cover />}
+          </>;
           return (
             <li class={styles.gridItem}>
               {href ? (
                 <a
                   class={styles.card}
+                  aria-label={`${accessibleTitle} — 購入先を開く`}
                   href={href}
                   target="_blank"
                   rel={isAffiliate ? "noopener noreferrer sponsored" : "noopener noreferrer"}
@@ -164,7 +150,7 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
                   </span>
                 </a>
               ) : (
-                <div class={styles.card}>
+                <div class={styles.card} role="img" aria-label={accessibleTitle}>
                   <span class={styles.cover} data-tone={tone}>
                     {coverInner}
                   </span>
@@ -187,22 +173,9 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
 }
 
 <script>
-  // Open Library Covers APIから取得を試みた書影(data-cover-fallback)が
-  // 404等で読み込めなかった場合、隣接する仮カバー用テキスト
-  // (data-cover-placeholder、hidden属性で最初は非表示)に切り替える。
-  // 既存の「本棚に本を持ち寄る」トグル等と同じ、hidden属性+JSの
-  // パターンを踏襲している。
-  document.querySelectorAll<HTMLImageElement>("[data-cover-fallback]").forEach((img) => {
-    img.addEventListener(
-      "error",
-      () => {
-        const placeholder = img.nextElementSibling as HTMLElement | null;
-        img.remove();
-        if (placeholder) {
-          placeholder.hidden = false;
-        }
-      },
-      { once: true },
-    );
-  });
+ document.querySelectorAll<HTMLImageElement>('[data-shelf-cover]').forEach((img) => {
+   const reveal = () => { if (img.naturalWidth > 1) img.parentElement?.setAttribute('data-loaded', ''); };
+   if (img.complete) reveal();
+   else img.addEventListener('load', reveal, {once: true});
+ });
 </script>

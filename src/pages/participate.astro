@@ -74,9 +74,9 @@
  * 0155)、「音の道」専用の埋め込み・探究マップ体験は実装していない。
  * ------------------------------------------------------------
  */
+import PageHeading from "@components/PageHeading.astro";
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
-import NightBackground from "@components/NightBackground.astro";
 import LabNotebookList from "@components/LabNotebookList.astro";
 import styles from "./participate.module.css";
 import { labNotebooks } from "@/data/labNotebooks";
@@ -111,16 +111,11 @@ const consideringNotebooks = labNotebooks.filter((notebook) => !liveExperimentSl
 <DefaultLayout
   title="実験室 ｜ 公開研究室ふ、と"
   description="「ふ、と」がいま考えていること・試していることに、ふらっと触れられる場所。"
-  theme="night"
+  theme="editorial"
 >
-  <NightBackground />
 
   <ResearchSection ariaLabel="Lab" id="lab-hero">
-    <p class={styles.eyebrow}>LAB</p>
-    <div class={styles.heroRow}>
-      <h1 class={styles.heading}>実験室</h1>
-      <p class={styles.lead}>考えるために、つくったり、試したりする場所。</p>
-    </div>
+    <PageHeading label="LAB" title="実験室" description="考えるために、つくったり、試したりする場所。" />
 
     {
       liveExperiments.length > 0 && (

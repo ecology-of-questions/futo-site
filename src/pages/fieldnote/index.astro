@@ -31,7 +31,7 @@ import styles from "./index.module.css";
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
     <meta
       name="description"
@@ -43,11 +43,12 @@ import styles from "./index.module.css";
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Fieldnote" />
-    <meta name="theme-color" content="#2b2a26" />
+    <meta name="theme-color" content="#f7f5ef" />
   </head>
-  <body>
+  <body data-theme="editorial">
     <div id="fieldnote-app" class={styles.app}>
       <section id="view-setup" class={styles.setupView}>
+        <a class={styles.back} href="/participate/fieldnote">← 実験室のノートへ</a>
         <p class={styles.eyebrow}>FIELDNOTE READING</p>
         <h1 class={styles.setupHeading}>読んでいる本</h1>
         <form id="setup-form" class={styles.setupForm}>

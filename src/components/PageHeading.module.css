@@ -1,0 +1,6 @@
+.heading { margin-bottom: var(--space-4); }
+.label { font: inherit; font-family: var(--font-sans); font-size: var(--home-label-size); letter-spacing: var(--home-tracking); color: var(--color-ink-muted); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: var(--space-3); margin-top: var(--space-2); }
+.row h1 { font-size: var(--page-title); letter-spacing: var(--home-heading-tracking); }
+.description { font-size: var(--fs-sm); line-height: var(--home-leading); color: var(--color-ink-muted); max-width: var(--reading-width); }
+@media (max-width: 760px) { .row { grid-template-columns: 1fr; gap: var(--space-2); } }
