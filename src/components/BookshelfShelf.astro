@@ -11,55 +11,36 @@
  * 「見にくい」という指摘によりDecision Log 0166で0154の状態(Hero+
  * 行リスト)まで差し戻した。
  *
- * 【ブクログ風の書影グリッドに刷新(2026-09-17、Decision Log 0167)】
- * プロジェクトオーナーから、ブクログ(書籍管理サービス)の表示方法を
- * 参考に、次の3点の指示を受けた。
- * - 本の表紙を並べるだけのグリッド表示にする(Hero区画・行リストの
- *   構成自体をやめる)。
- * - 「一緒に読みたい」ボタンは一回削除する(「一回」= 恒久的な廃止では
- *   なく、いったん外す、という指示と理解した)。
- * - 表紙を押すと、その本の外部ページ(公式サイト・購入ページなど)に
- *   遷移する想定。
+ * 【ブクログ風の書影グリッドに刷新(2026-09-17、Decision Log 0167〜
+ * 0170)】その後、書影(実画像→Open Library Covers API→色面プレース
+ * ホルダーの優先順位)を並べるグリッド表示を採用したが、以下の経緯で
+ * テキストのみの行リストに戻した(2026-09-18、Decision Log 0179)。
  *
- * 対応として、status(「いま読んでいる」「読みたい」等)ごとの
- * 見出しは維持しつつ、各status内は「表紙(仮カバー)」だけのカードを
- * CSS Gridで並べる形に統一した(Heroの特別扱い・行リストの詳細表示は
- * 廃止)。`reason`(なぜ読みたいか)・「一緒に読みたい」ボタン・
- * 「この本から生まれた記録」リンクは、このグリッドには表示しない。
+ * 【テキストのみの行リストに変更(2026-09-18、Decision Log 0179)】
+ * プロジェクトオーナーから「表紙は見にくいかもしれない」という懸念の
+ * 相談を受け、画像を入れた場合(3列グリッド)・プレースホルダーのみの
+ * 場合(縦書きタイトル)双方のモックアップを検討した結果、色面カード・
+ * 縦書きタイトルの表現をやめ、タイトル・著者だけを罫線区切りの1行
+ * リストで見せる形に変更した。検討中、縦書きタイトルが`max-height`の
+ * 制約で長いタイトル(例:「生きていること――動く、知る、記述する」)
+ * において折り返し・重なりを起こす見た目の問題も見つかっており、今回の
+ * 変更でこの問題も解消される。
  *
- * 【画像下のキャプション(タイトル・著者)を削除(2026-09-17、
- * Decision Log 0168)】0167時点では書影の下にタイトル・著者名の
- * キャプションを表示していたが、ブクログのように書影のみを並べる
- * 見た目にするため削除した。タイトルは各`img`の`alt`(画像が無い本は
- * `coverTitle`の可視テキスト)に引き継ぎ、情報自体は失っていない。
+ * 書影(`book.image`・`book.externalCoverUrl`)・ISBN
+ * (`book.isbn13`)・Open Library Covers APIからの取得・色面`tone`は、
+ * このコンポーネントの表示からは使わなくなった。データ自体
+ * (`src/data/bookshelf.ts`・`src/types/bookshelf.ts`)は削除していない
+ * (実在する書誌情報であり、将来書影表示に戻す可能性のため)。
  *
- * 表紙の遷移先は、既存の`purchaseUrl`(購入先URL、
- * `src/config/site.ts`の`buildPurchaseUrl`でAmazonアソシエイトタグを
- * 付加)をそのまま「公式サイト/購入ページへの外部リンク」として使う。
- * 新しいフィールドは追加していない。`purchaseUrl`が無い本の表紙は
- * リンクにならない(存在しないURLへのリンクを作らない、実在する
- * データだけを見せる方針)。
+ * 表紙タップ時の遷移先だった`purchaseUrl`(`src/config/site.ts`の
+ * `buildPurchaseUrl`)は、行全体のリンク先としてそのまま引き継いでいる。
+ * `purchaseUrl`が無い本の行はリンクにならない(存在しないリンクを
+ * 作らない、実在するデータだけを見せる方針は維持)。
  *
  * `BookActions.astro`(購入リンク・この本から生まれた記録・
  * 「一緒に読みたい」フォーム)は、このコンポーネントからの呼び出しを
  * 止めただけで、ファイル自体・Formspree連携ロジックは削除していない
- * (「一回」削除という指示のため、再度必要になった際にすぐ戻せる状態
- * を残す)。
- *
- * 書影は、実際の書影画像(`book.image`)→正規に取得した外部URL
- * (`book.externalCoverUrl`)→ISBNから引ける公開書影(Open Library
- * Covers API)→仮カバー(tone、color-mixの色面)の優先順位で表示する。
- *
- * 【実際の書影表示(2026-09-17、Decision Log 0170)】プロジェクト
- * オーナーからの指示書(v0.2)に基づき、`book.isbn13`が判明している
- * 本については、Open Library Covers API(`covers.openlibrary.org`、
- * ISBNから書影を引ける無料の公開API。認証・契約不要で、Amazon PA-API
- * のような適格販売要件が無い)から書影を取得する優先順位を追加した。
- * ISBN自体は「ふ、と」が読んでいる本の書誌情報として実在する事実
- * (架空のIDではない)であり、対応する書影がOpen Library側に存在
- * しない場合は、下記スクリプトの`error`イベント処理により、画像を
- * 諦めて仮カバー(tone)表示に切り替える(存在しない書影を無理に
- * それらしく見せない)。
+ * (Decision Log 0167の「一回」削除という判断を維持)。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfShelf.module.css";
@@ -72,27 +53,15 @@ interface Props {
 
 const { books } = Astro.props;
 
-const tones = ["warm", "moss", "sky"] as const;
-const toneForIndex = (i: number) => tones[i % tones.length];
-
-/** Open Library Covers APIの書影URLを組み立てる。`default=false`を
-    付けることで、該当書影が無い場合にプレースホルダー画像ではなく
-    404を返すようにし、下記スクリプトのerrorイベントで仮カバー表示に
-    切り替えられるようにしている。 */
-function openLibraryCoverUrl(isbn13: string) {
-  return `https://covers.openlibrary.org/b/isbn/${isbn13}-L.jpg?default=false`;
-}
-
-function toCard(book: BookEntry, i: number) {
+function toRow(book: BookEntry) {
   return {
     book,
-    tone: book.tone ?? toneForIndex(i),
     href: buildPurchaseUrl(book),
     isAffiliate: isActiveAffiliateLink(book),
   };
 }
 
-const cards = books.map(toCard);
+const rows = books.map(toRow);
 
 /** 見出しは基本的にbookStatusLabelsを使うが、「reading」だけは
     このページ独自の「いま読んでいる」という表現を使う(既存の文言を
@@ -110,9 +79,9 @@ const groups = statusOrder
   .map((status) => ({
     status,
     heading: headings[status],
-    cards: cards.filter((card) => card.book.status === status),
+    rows: rows.filter((row) => row.book.status === status),
   }))
-  .filter((group) => group.cards.length > 0);
+  .filter((group) => group.rows.length > 0);
 
 const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book));
 ---
@@ -123,37 +92,25 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
       <h2 class={groupIndex === 0 ? styles.sectionHeading : `${styles.sectionHeading} ${styles.sectionRule}`}>
         {group.heading}
       </h2>
-      <ul class={styles.grid}>
-        {group.cards.map(({ book, tone, href, isAffiliate }) => {
-          // 画像下のキャプション(タイトル・著者)を廃止したため、
-          // book.imageやexternalCoverUrlがある場合もaltにタイトルを
-          // 入れ、書影自体が本の名前を伝えるアクセシブルネームになる
-          // ようにしている(「持ち寄られた本」の情報もaltに残す)。
-          const accessibleTitle = book.contributed ? `${book.title}(持ち寄られた本)` : book.title;
-          const coverUrl = book.image || book.externalCoverUrl || (book.isbn13 ? openLibraryCoverUrl(book.isbn13) : undefined);
-          const coverInner = <>
-            <span class={styles.coverType} aria-hidden="true"><span>{book.title}</span><small>{book.author}</small></span>
-            {coverUrl && <img class={styles.coverImage} src={coverUrl} alt="" loading="lazy" decoding="async" data-shelf-cover />}
-          </>;
+      <ul class={styles.textList}>
+        {group.rows.map(({ book, href, isAffiliate }) => {
+          const titleLine = book.contributed ? `${book.title}(持ち寄られた本)` : book.title;
           return (
-            <li class={styles.gridItem}>
+            <li class={styles.textRow}>
               {href ? (
                 <a
-                  class={styles.card}
-                  aria-label={`${accessibleTitle} — 購入先を開く`}
+                  class={styles.textLink}
                   href={href}
                   target="_blank"
                   rel={isAffiliate ? "noopener noreferrer sponsored" : "noopener noreferrer"}
                 >
-                  <span class={styles.cover} data-tone={tone}>
-                    {coverInner}
-                  </span>
+                  <span class={styles.textTitle}>{titleLine}</span>
+                  <span class={styles.textAuthor}>{book.author}</span>
                 </a>
               ) : (
-                <div class={styles.card} role="img" aria-label={accessibleTitle}>
-                  <span class={styles.cover} data-tone={tone}>
-                    {coverInner}
-                  </span>
+                <div class={styles.textLink}>
+                  <span class={styles.textTitle}>{titleLine}</span>
+                  <span class={styles.textAuthor}>{book.author}</span>
                 </div>
               )}
             </li>
@@ -171,11 +128,3 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
     </p>
   )
 }
-
-<script>
- document.querySelectorAll<HTMLImageElement>('[data-shelf-cover]').forEach((img) => {
-   const reveal = () => { if (img.naturalWidth > 1) img.parentElement?.setAttribute('data-loaded', ''); };
-   if (img.complete) reveal();
-   else img.addEventListener('load', reveal, {once: true});
- });
-</script>

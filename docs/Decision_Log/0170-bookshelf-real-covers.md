@@ -1,7 +1,9 @@
 # 0170. 本棚: ISBNから実際の書影を表示(Open Library Covers API)
 
 - 日付: 2026-09-17
-- 状態: 採用
+- 状態: 採用; superseded(→ 0179。2026-09-18、書影表示自体をテキスト
+  のみの行リストに置き換え。`image`/`externalCoverUrl`/`isbn13`
+  フィールドとデータは維持)
 - 関連: Decision Log 0138(`image`/`externalCoverUrl`/`isbn13`フィールドの
   新設、当時は書影API連携は未実装)。Decision Log 0167(ブクログ風の
   書影グリッド、当時は6冊とも仮カバー(tone)表示)。Decision Log 0168
