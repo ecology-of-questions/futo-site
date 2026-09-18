@@ -25,8 +25,8 @@
 .sectionHeading {
   font-size: var(--page-section-title);
   line-height: var(--lh-heading);
-  font-weight: 500;
-  margin: 0;
+  font-weight: 700;
+  margin: 0 0 var(--space-1);
 }
 
 /* -----------------------------
