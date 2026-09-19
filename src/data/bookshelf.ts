@@ -28,6 +28,17 @@
  * 「定本」版のISBNを採用した(データ上のtitleは版を区別していないため、
  * この判断はDecision Log 0170に記録している)。
  *
+ * 【購入導線を各出版元のページに変更(2026-09-19、Decision Log 0183)】
+ * プロジェクトオーナーの発案「本の詳細ページ、各出版元のサイトに
+ * 繋がるのがいいかな」を受け、6冊すべてに`purchaseUrl`を追加した。
+ * Amazonアソシエイトが未設定のまま(`affiliate`は付与せず)、
+ * `purchaseProvider: "other"`として扱う。5冊は出版社自身のサイト
+ * (講談社・水声社・みすず書房・左右社・ひつじ書房)の該当書籍ページ。
+ * 「想像の共同体」のみ出版元(書籍工房早山)自体の公式サイトが見つから
+ * なかったため、プロジェクトオーナーの判断で出版書誌データベース
+ * (Books、`isbn13`と一致する記録)のページを代用している。詳細は
+ * Decision Log 0183を参照。
+ *
  * 【2026-09-11、「読みたい・未所蔵」の本を3冊追加(Decision Log 0118)】
  * インゴルド等の「読みたい本」(このコメントは当初「未確定のため
  * 追加していない」としていたが、プロジェクトオーナーから所有状況の
@@ -80,6 +91,9 @@ export const books: BookEntry[] = [
     tone: "warm",
     // 講談社学術文庫版(市村尚久訳、2004年)
     isbn13: "9784061596801",
+    // 講談社の書籍詳細ページ
+    purchaseUrl: "https://www.kodansha.co.jp/book/products/0000151271",
+    purchaseProvider: "other",
   },
   {
     id: "chousateki-kansei-jutsu",
@@ -93,6 +107,9 @@ export const books: BookEntry[] = [
     tone: "moss",
     // 水声社版(中井悠訳、2024年)
     isbn13: "9784801007659",
+    // 水声社の公式Webストア(プロジェクトオーナー確認済みURL)
+    purchaseUrl: "https://comet-bc.stores.jp/items/684baabee99ff90001b34c89",
+    purchaseProvider: "other",
   },
   {
     id: "souzou-no-kyoudoutai",
@@ -106,6 +123,11 @@ export const books: BookEntry[] = [
     tone: "sky",
     // 「定本 想像の共同体」書籍工房早山版(白石さや・白石隆訳、2007年)
     isbn13: "9784904701089",
+    // 出版元(書籍工房早山)自体の公式サイトが見つからなかったため、
+    // 出版書誌データベース(Books)の該当書誌ページで代用
+    // (プロジェクトオーナー判断、Decision Log 0183)
+    purchaseUrl: "https://www.books.or.jp/book-details/9784904701089",
+    purchaseProvider: "other",
   },
   {
     id: "matsutake",
@@ -121,6 +143,9 @@ export const books: BookEntry[] = [
     tone: "warm",
     // みすず書房版(赤嶺淳訳、2019年)
     isbn13: "9784622088318",
+    // みすず書房の書籍詳細ページ
+    purchaseUrl: "https://www.msz.co.jp/book/detail/08831/",
+    purchaseProvider: "other",
   },
   {
     id: "ikiteiru-koto",
@@ -136,6 +161,9 @@ export const books: BookEntry[] = [
     tone: "moss",
     // 左右社版(柴田崇ほか訳、2021年)
     isbn13: "9784865280371",
+    // 左右社の書籍詳細ページ
+    purchaseUrl: "https://sayusha.com/books/-/isbn9784865280371",
+    purchaseProvider: "other",
   },
   {
     id: "ito-sei-fukushi",
@@ -151,5 +179,8 @@ export const books: BookEntry[] = [
     tone: "sky",
     // ひつじ書房版(ひつじ研究叢書 言語編193、2023年)
     isbn13: "9784823411717",
+    // ひつじ書房の書籍詳細ページ(プロジェクトオーナー確認済みURL)
+    purchaseUrl: "https://www.hituzi.co.jp/hituzibooks/ISBN978-4-8234-1171-7.htm",
+    purchaseProvider: "other",
   },
 ];
