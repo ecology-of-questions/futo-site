@@ -51,10 +51,11 @@ const laneLabels: Record<string, string> = {
 };
 
 const chartWidth = 600;
-const laneHeight = 46;
-const chartTop = 10;
-const chartBottom = chartTop + lanes.length * laneHeight;
-const chartHeight = chartBottom + 10;
+/** 3レーン(左・右・音)の想定で高さ180px程度に収まるように調整。
+    unknownレーンが増える場合は比例して高くなる(実測データが増えた際の
+    許容範囲として、今回のデモでは3レーン=180pxのみ使用)。 */
+const laneHeight = 60;
+const chartHeight = laneHeight * lanes.length;
 
 function laneIndexOf(side: "left" | "right" | "unknown"): number {
   const key: LaneKind = side === "unknown" && !hasUnknownLane ? "left" : side;
@@ -62,7 +63,7 @@ function laneIndexOf(side: "left" | "right" | "unknown"): number {
 }
 
 function laneY(side: "left" | "right" | "unknown"): number {
-  return chartTop + laneHeight * laneIndexOf(side) + laneHeight / 2;
+  return laneHeight * laneIndexOf(side) + laneHeight / 2;
 }
 
 function xForMs(atMs: number): number {
@@ -88,19 +89,25 @@ const timeLabel = `${formatTime(0)} / ${formatTime(durationSec)}`;
   </div>
 
   <div class={styles.chart}>
-    <div class={styles.laneLabels} aria-hidden="true" style={`grid-template-rows: repeat(${lanes.length}, 1fr)`}>
+    <div
+      class={styles.laneLabels}
+      aria-hidden="true"
+      style={`height: ${chartHeight}px; grid-template-rows: repeat(${lanes.length}, 1fr)`}
+    >
       {lanes.map((lane) => <span>{laneLabels[lane]}</span>)}
     </div>
     <div class={styles.svgArea}>
       <svg
         class={styles.svg}
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+        preserveAspectRatio="none"
+        style={`height: ${chartHeight}px`}
         role="img"
         aria-label={score.caption}
       >
         <g stroke="var(--color-accent-beige)" stroke-width="1">
           {lanes.map((_lane, i) => (
-            <line x1="0" x2={chartWidth} y1={chartTop + laneHeight * i + laneHeight / 2} y2={chartTop + laneHeight * i + laneHeight / 2} />
+            <line x1="0" x2={chartWidth} y1={laneHeight * i + laneHeight / 2} y2={laneHeight * i + laneHeight / 2} />
           ))}
         </g>
         <g data-walking-score-marks>
@@ -120,8 +127,8 @@ const timeLabel = `${formatTime(0)} / ${formatTime(durationSec)}`;
           data-walking-score-playhead
           x1="0"
           x2="0"
-          y1={chartTop}
-          y2={chartBottom}
+          y1="0"
+          y2={chartHeight}
           stroke="var(--color-accent-blue)"
           stroke-width="1.5"
         />
@@ -193,6 +200,10 @@ const timeLabel = `${formatTime(0)} / ${formatTime(durationSec)}`;
     let lastTick = 0;
     let raf = 0;
     let intervalId = 0;
+    // 再生を一度も開始していない間は、進行演出(未到達ステップを薄く
+    // 表示)を適用しない。全ステップを不透明度1のまま(JS無効時と同じ
+    // 見え方)に保ち、「再生前でも読める濃さ」を確実にする。
+    let started = false;
 
     function draw() {
       const x = (position / durationSec) * chartWidth;
@@ -200,10 +211,14 @@ const timeLabel = `${formatTime(0)} / ${formatTime(durationSec)}`;
       playhead!.setAttribute("x2", String(x));
       seek!.value = String(position);
       timeLabel!.textContent = `${formatTime(position)} / ${formatTime(durationSec)}`;
-      marksGroup!.querySelectorAll<SVGEllipseElement>("ellipse").forEach((mark) => {
-        const t = Number(mark.dataset.t ?? "0");
-        mark.setAttribute("opacity", t <= position ? "1" : "0.3");
-      });
+      if (started) {
+        marksGroup!.querySelectorAll<SVGEllipseElement>("ellipse").forEach((mark) => {
+          const t = Number(mark.dataset.t ?? "0");
+          // 到達済みでなくても薄すぎて読めなくならない濃さ(0.55)に
+          // とどめる。1(到達済み)との差は保ちつつ視認性を優先する。
+          mark.setAttribute("opacity", t <= position ? "1" : "0.55");
+        });
+      }
     }
 
     function setPlayingVisual(isPlaying: boolean) {
@@ -243,6 +258,7 @@ const timeLabel = `${formatTime(0)} / ${formatTime(durationSec)}`;
       }
       if (position >= durationSec) position = 0;
       playing = true;
+      started = true;
       setPlayingVisual(true);
       if (reducedMotion) {
         intervalId = window.setInterval(discreteTick, 1000);
@@ -255,10 +271,18 @@ const timeLabel = `${formatTime(0)} / ${formatTime(durationSec)}`;
     resetButton.addEventListener("click", () => {
       stop();
       position = 0;
+      started = false;
       draw();
+      // draw()はstarted=falseの間ellipseのopacityを変更しないため、
+      // 直前までのopacity(0.55/1)が残ってしまう。最初に戻す操作では
+      // 明示的に全ステップを不透明度1へ戻す。
+      marksGroup!.querySelectorAll<SVGEllipseElement>("ellipse").forEach((mark) => {
+        mark.setAttribute("opacity", "1");
+      });
     });
 
     seek.addEventListener("input", () => {
+      started = true;
       position = Number(seek.value);
       lastTick = 0;
       draw();

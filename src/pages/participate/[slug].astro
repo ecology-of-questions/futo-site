@@ -90,11 +90,10 @@ const hasSupport = isSupportConfigured(supportConfig);
   {
     slidesEmbedSrc ? (
       <ResearchSection ariaLabel={notebook.title} id="notebook-top">
-        <a class={styles.back} href="/participate">
+        <a class:list={[styles.back, styles.backTight]} href="/participate">
           ← 実験室
         </a>
-        <p class={styles.eyebrow}>{notebook.category}</p>
-        <h1 class={styles.heading}>{notebook.title}</h1>
+        <h1 class:list={[styles.heading, styles.headingTight]}>{notebook.title}</h1>
         <p class={styles.intro}>{notebook.description}</p>
 
         <div class:list={[styles.layout, !hasSupport && styles.layoutSingle]}>

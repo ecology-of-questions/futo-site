@@ -11,6 +11,9 @@
   border-top: 1px solid var(--color-accent-beige);
   padding-top: var(--space-3);
   margin-top: var(--space-3);
+  /* 支援欄が無く1カラムになった場合でも、譜が際限なく横に広がらない
+     ように上限を設ける(本文と同じ読みやすい幅の基準を流用)。 */
+  max-width: var(--reading-width);
 }
 
 .top {
@@ -34,12 +37,19 @@
 .chart {
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: start;
   gap: var(--space-2);
   margin-top: var(--space-2);
 }
 
+/* .laneLabelsは.svgと同じ明示的な高さ(JS側で計算したchartHeight、
+   インラインstyleで指定)を持たせ、align-self: startでグリッドの
+   stretchを打ち消す。こうしないと.svgArea(SVG本体+下の時刻目盛)の
+   合計の高さに.laneLabelsが引き伸ばされ、ラベルの行中心とSVG内の
+   レーン中心がずれてしまう。 */
 .laneLabels {
   display: grid;
+  align-self: start;
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
@@ -54,10 +64,12 @@
   min-width: 0;
 }
 
+/* preserveAspectRatio="none" + 明示的なheight(インラインstyle)により、
+   横幅はコンテナに追従して伸縮するが、縦幅は画面幅に比例して拡大
+   しない(常に一定のpxの高さを保つ)。 */
 .svg {
   display: block;
   width: 100%;
-  height: auto;
 }
 
 .ticks {
