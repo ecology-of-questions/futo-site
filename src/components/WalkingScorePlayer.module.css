@@ -1,0 +1,154 @@
+/**
+ * WalkingScorePlayer.module.css
+ * ------------------------------------------------------------
+ * 身体譜プレイヤーv0のスタイル(2026-09-18、Decision Log 0182)。
+ * レーン名・時刻目盛はHTML側(.laneLabels/.ticks)に置き、SVGは
+ * 罫線・点・再生位置線のみを描く(320pxでのSVG内文字縮小を避ける)。
+ * ------------------------------------------------------------
+ */
+
+.wrapper {
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-3);
+  margin-top: var(--space-3);
+  /* 支援欄が無く1カラムになった場合でも、譜が際限なく横に広がらない
+     ように上限を設ける(本文と同じ読みやすい幅の基準を流用)。 */
+  max-width: var(--reading-width);
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+}
+
+.topLabel {
+  color: var(--color-ink);
+}
+
+.topNote {
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* .laneLabelsは.svgと同じ明示的な高さ(JS側で計算したchartHeight、
+   インラインstyleで指定)を持たせ、align-self: startでグリッドの
+   stretchを打ち消す。こうしないと.svgArea(SVG本体+下の時刻目盛)の
+   合計の高さに.laneLabelsが引き伸ばされ、ラベルの行中心とSVG内の
+   レーン中心がずれてしまう。 */
+.laneLabels {
+  display: grid;
+  align-self: start;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.laneLabels span {
+  display: flex;
+  align-items: center;
+}
+
+.svgArea {
+  min-width: 0;
+}
+
+/* preserveAspectRatio="none" + 明示的なheight(インラインstyle)により、
+   横幅はコンテナに追従して伸縮するが、縦幅は画面幅に比例して拡大
+   しない(常に一定のpxの高さを保つ)。 */
+.svg {
+  display: block;
+  width: 100%;
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  margin-top: var(--space-1);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+  background: var(--color-accent-beige);
+}
+
+.iconButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.time {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+}
+
+.seek {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-2);
+  accent-color: var(--color-accent-blue);
+  min-height: 32px;
+}
+
+.caption {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  max-width: var(--reading-width);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 400px) {
+  .chart {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+}

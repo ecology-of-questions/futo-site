@@ -1,0 +1,297 @@
+---
+/**
+ * WalkingScorePlayer.astro
+ * ------------------------------------------------------------
+ * 「散歩譜」身体譜プレイヤーv0(2026-09-18、Decision Log 0182)。
+ * 横軸は経過秒、縦に左右ステップのレーン+将来の公開音声用のレーン。
+ * 各ステップを細い楕円で表し、点の間隔が時間間隔、ステップがない
+ * 区間は余白として保つ。
+ *
+ * 【JSなしでの表示】SVGのステップは初期状態で全て不透明度1
+ * (完成した譜がそのまま見える)。JSが有効な場合のみ、再生位置に応じて
+ * 未到達のステップを薄く表示する進行演出を追加する(progressive
+ * enhancement)。操作(再生/一時停止/最初へ/シーク)はJS前提だが、
+ * JSが動かない場合でも譜そのものとデモ注記は静的に読める。
+ *
+ * 【レーン名・目盛をHTML側に】SVG内に文字を入れると320px幅で縮小され
+ * 読みにくくなるため、レーン名(左/右/音)と時刻目盛はHTML側の要素に
+ * 置き、SVGは罫線・点・再生位置線のみを描画する。
+ *
+ * 【アイコン操作】再生/一時停止/最初へは▶/Ⅱ/↶の軽量SVGアイコン
+ * (文字ボタンにしない、指示書の指定)。各ボタンは48×48 CSS px、
+ * aria-label/titleを持ち、再生状態に応じてラベルが切り替わる。
+ *
+ * 【prefers-reduced-motion】再生中の演出をrequestAnimationFrameの
+ * 滑らかな補間ではなく、1秒刻みの離散更新にする(装飾的な補間・自動
+ * 移動を抑える)。シークバーによる手動操作はどちらの場合も同じ。
+ * ------------------------------------------------------------
+ */
+import type { WalkingScore } from "@/types/walkingScore";
+import styles from "./WalkingScorePlayer.module.css";
+
+interface Props {
+  score: WalkingScore;
+}
+
+const { score } = Astro.props;
+
+const durationSec = score.durationMs / 1000;
+const hasUnknownLane = score.steps.some((step) => step.side === "unknown");
+
+type LaneKind = "left" | "right" | "unknown" | "audio";
+
+/** レーンは常に「左・右・音」を含み、unknown側のステップがある場合だけ「共通」レーンを挟む。 */
+const lanes: LaneKind[] = hasUnknownLane ? ["left", "unknown", "right", "audio"] : ["left", "right", "audio"];
+
+const laneLabels: Record<string, string> = {
+  left: "左",
+  right: "右",
+  unknown: "共通",
+  audio: "音",
+};
+
+const chartWidth = 600;
+/** 3レーン(左・右・音)の想定で高さ180px程度に収まるように調整。
+    unknownレーンが増える場合は比例して高くなる(実測データが増えた際の
+    許容範囲として、今回のデモでは3レーン=180pxのみ使用)。 */
+const laneHeight = 60;
+const chartHeight = laneHeight * lanes.length;
+
+function laneIndexOf(side: "left" | "right" | "unknown"): number {
+  const key: LaneKind = side === "unknown" && !hasUnknownLane ? "left" : side;
+  return lanes.indexOf(key);
+}
+
+function laneY(side: "left" | "right" | "unknown"): number {
+  return laneHeight * laneIndexOf(side) + laneHeight / 2;
+}
+
+function xForMs(atMs: number): number {
+  if (durationSec <= 0) return 0;
+  return (atMs / 1000 / durationSec) * chartWidth;
+}
+
+function formatTime(totalSeconds: number): string {
+  const clamped = Math.max(0, Math.round(totalSeconds));
+  const minutes = Math.floor(clamped / 60);
+  const seconds = clamped % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+const demoNote = score.kind === "demo" ? "デモ・架空データ・音声なし" : undefined;
+const timeLabel = `${formatTime(0)} / ${formatTime(durationSec)}`;
+---
+
+<div class={styles.wrapper} data-walking-score data-duration-sec={durationSec}>
+  <div class={styles.top}>
+    <span class={styles.topLabel}>ある散歩のリズム</span>
+    {demoNote && <span class={styles.topNote}>{demoNote}</span>}
+  </div>
+
+  <div class={styles.chart}>
+    <div
+      class={styles.laneLabels}
+      aria-hidden="true"
+      style={`height: ${chartHeight}px; grid-template-rows: repeat(${lanes.length}, 1fr)`}
+    >
+      {lanes.map((lane) => <span>{laneLabels[lane]}</span>)}
+    </div>
+    <div class={styles.svgArea}>
+      <svg
+        class={styles.svg}
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+        preserveAspectRatio="none"
+        style={`height: ${chartHeight}px`}
+        role="img"
+        aria-label={score.caption}
+      >
+        <g stroke="var(--color-accent-beige)" stroke-width="1">
+          {lanes.map((_lane, i) => (
+            <line x1="0" x2={chartWidth} y1={laneHeight * i + laneHeight / 2} y2={laneHeight * i + laneHeight / 2} />
+          ))}
+        </g>
+        <g data-walking-score-marks>
+          {score.steps.map((step) => (
+            <ellipse
+              cx={xForMs(step.atMs)}
+              cy={laneY(step.side)}
+              rx="4"
+              ry="8"
+              fill="var(--color-ink)"
+              opacity="1"
+              data-t={step.atMs / 1000}
+            />
+          ))}
+        </g>
+        <line
+          data-walking-score-playhead
+          x1="0"
+          x2="0"
+          y1="0"
+          y2={chartHeight}
+          stroke="var(--color-accent-blue)"
+          stroke-width="1.5"
+        />
+      </svg>
+      <div class={styles.ticks} aria-hidden="true">
+        <span>0:00</span>
+        <span>{formatTime(durationSec)}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class={styles.controls}>
+    <button class={styles.iconButton} type="button" data-walking-score-play aria-label="譜を再生" title="再生">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-icon-play><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" data-icon-pause style="display: none"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /></svg>
+    </button>
+    <span class={styles.time} data-walking-score-time>{timeLabel}</span>
+    <button class={styles.iconButton} type="button" data-walking-score-reset aria-label="最初に戻す" title="最初に戻す">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z" fill="currentColor" /></svg>
+    </button>
+  </div>
+
+  <label class={styles.srOnly} for={`walking-score-seek-${score.id}`}>経過時間</label>
+  <input
+    id={`walking-score-seek-${score.id}`}
+    class={styles.seek}
+    type="range"
+    min="0"
+    max={durationSec}
+    step="0.1"
+    value="0"
+    data-walking-score-seek
+  />
+
+  <p class={styles.caption}>{score.caption}</p>
+</div>
+
+<script>
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function formatTime(totalSeconds: number): string {
+    const clamped = Math.max(0, Math.round(totalSeconds));
+    const minutes = Math.floor(clamped / 60);
+    const seconds = clamped % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-walking-score]").forEach((root) => {
+    const durationSec = Number(root.dataset.durationSec ?? "0");
+    if (!(durationSec > 0)) return;
+
+    const svg = root.querySelector<SVGSVGElement>("svg");
+    const marksGroup = root.querySelector<SVGGElement>("[data-walking-score-marks]");
+    const playhead = root.querySelector<SVGLineElement>("[data-walking-score-playhead]");
+    const playButton = root.querySelector<HTMLButtonElement>("[data-walking-score-play]");
+    const resetButton = root.querySelector<HTMLButtonElement>("[data-walking-score-reset]");
+    const seek = root.querySelector<HTMLInputElement>("[data-walking-score-seek]");
+    const timeLabel = root.querySelector<HTMLElement>("[data-walking-score-time]");
+    const playIcon = playButton?.querySelector<SVGElement>("[data-icon-play]");
+    const pauseIcon = playButton?.querySelector<SVGElement>("[data-icon-pause]");
+
+    if (!svg || !marksGroup || !playhead || !playButton || !resetButton || !seek || !timeLabel || !playIcon || !pauseIcon) return;
+
+    const viewBox = svg.viewBox.baseVal;
+    const chartWidth = viewBox.width || 600;
+
+    let playing = false;
+    let position = 0;
+    let lastTick = 0;
+    let raf = 0;
+    let intervalId = 0;
+    // 再生を一度も開始していない間は、進行演出(未到達ステップを薄く
+    // 表示)を適用しない。全ステップを不透明度1のまま(JS無効時と同じ
+    // 見え方)に保ち、「再生前でも読める濃さ」を確実にする。
+    let started = false;
+
+    function draw() {
+      const x = (position / durationSec) * chartWidth;
+      playhead!.setAttribute("x1", String(x));
+      playhead!.setAttribute("x2", String(x));
+      seek!.value = String(position);
+      timeLabel!.textContent = `${formatTime(position)} / ${formatTime(durationSec)}`;
+      if (started) {
+        marksGroup!.querySelectorAll<SVGEllipseElement>("ellipse").forEach((mark) => {
+          const t = Number(mark.dataset.t ?? "0");
+          // 到達済みでなくても薄すぎて読めなくならない濃さ(0.55)に
+          // とどめる。1(到達済み)との差は保ちつつ視認性を優先する。
+          mark.setAttribute("opacity", t <= position ? "1" : "0.55");
+        });
+      }
+    }
+
+    function setPlayingVisual(isPlaying: boolean) {
+      playIcon!.style.display = isPlaying ? "none" : "";
+      pauseIcon!.style.display = isPlaying ? "" : "none";
+      playButton!.setAttribute("aria-label", isPlaying ? "一時停止" : "譜を再生");
+      playButton!.title = isPlaying ? "一時停止" : "再生";
+    }
+
+    function stop() {
+      playing = false;
+      cancelAnimationFrame(raf);
+      window.clearInterval(intervalId);
+      setPlayingVisual(false);
+    }
+
+    function smoothTick(t: number) {
+      if (!playing) return;
+      if (lastTick) position = Math.min(durationSec, position + (t - lastTick) / 1000);
+      lastTick = t;
+      draw();
+      if (position >= durationSec) stop();
+      else raf = requestAnimationFrame(smoothTick);
+    }
+
+    function discreteTick() {
+      if (!playing) return;
+      position = Math.min(durationSec, position + 1);
+      draw();
+      if (position >= durationSec) stop();
+    }
+
+    playButton.addEventListener("click", () => {
+      if (playing) {
+        stop();
+        return;
+      }
+      if (position >= durationSec) position = 0;
+      playing = true;
+      started = true;
+      setPlayingVisual(true);
+      if (reducedMotion) {
+        intervalId = window.setInterval(discreteTick, 1000);
+      } else {
+        lastTick = 0;
+        raf = requestAnimationFrame(smoothTick);
+      }
+    });
+
+    resetButton.addEventListener("click", () => {
+      stop();
+      position = 0;
+      started = false;
+      draw();
+      // draw()はstarted=falseの間ellipseのopacityを変更しないため、
+      // 直前までのopacity(0.55/1)が残ってしまう。最初に戻す操作では
+      // 明示的に全ステップを不透明度1へ戻す。
+      marksGroup!.querySelectorAll<SVGEllipseElement>("ellipse").forEach((mark) => {
+        mark.setAttribute("opacity", "1");
+      });
+    });
+
+    seek.addEventListener("input", () => {
+      started = true;
+      position = Number(seek.value);
+      lastTick = 0;
+      draw();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop();
+    });
+
+    draw();
+  });
+</script>

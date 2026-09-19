@@ -37,7 +37,7 @@ const bookshelfPhoto: string | undefined = undefined;
         <div class={styles.soundMotion}><HomeMotion kind="sound" /></div>
         <a class={styles.textLink} href={`/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
       </div>
-      {featureImage && <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label="音の道のノートを開く">
+      {featureImage && <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label={`${featured.title}のノートを開く`}>
         <img src={featureImage} alt="" width="960" height="640" fetchpriority="high" />
       </a>}
     </section>}

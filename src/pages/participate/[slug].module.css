@@ -2,11 +2,14 @@
  * [slug].module.css
  * ------------------------------------------------------------
  * 「実験室」ノート詳細ページ(`/participate/[slug]`、共通テンプレート)
- * 専用のスタイル(2026-09-13、Decision Log 0140)。participate.
- * module.css(表紙一覧)とは別ファイルにし、既存ページと同様
- * ページ(ここでは「テンプレート」)ごとにstyleを独立させる方針を
- * 踏襲している。フォーム関連のクラス名は、旧participate.module.css
- * (Decision Log 0128・0135・0139)と同じ命名・見た目を踏襲した。
+ * 専用のスタイル(2026-09-13、Decision Log 0140)。
+ *
+ * 【散歩譜の新レイアウト(2026-09-18、Decision Log 0182)】旧
+ * 「スライドを1画面に収める」制約(Decision Log 0173、.heroViewport・
+ * .slideAreaの高さベースの縮小計算)を撤去し、身体譜+スライドの主列
+ * (.main)と支援欄の副列(.aside)を横に並べる通常のグリッド(.layout)に
+ * 変更した。.slidesEmbedは画面高さを基準にした縮小をやめ、
+ * aspect-ratioのみで比率を保つ常時表示の埋め込みに戻した。
  * ------------------------------------------------------------
  */
 
@@ -59,72 +62,60 @@
 }
 
 /* -----------------------------
- * スライドを主役にした初期表示(2026-09-17、Decision Log 0173)。
- * `slidesEmbedSrc`があるノートだけ、Hero区画を#notebook-heroという
- * 別のidにし、通常のResearchSectionのpadding-block(既定
- * var(--space-6)、96px上下)をこのidだけ縮めて上部の余白を抑える。
- * :global()が無いとCSS Modules側がIDセレクタをハッシュ化してしまい
- * 実際のDOMのid属性と一致しなくなる(2026-09-17、Decision Log 0161で
- * 発見した問題と同種)。
+ * 散歩譜の紹介文。17px以上・通常の行間・本文と同程度以上のコントラスト
+ * (指示書の規定。eyebrowや12pxの注記スタイルを適用しない)。
  * ----------------------------- */
-:global(#notebook-hero) {
-  padding-block: var(--space-2) var(--space-3);
+.intro {
+  margin: var(--space-2) 0 0;
+  font-size: 1.0625rem;
+  line-height: var(--lh-body);
+  color: var(--color-ink);
+  max-width: var(--reading-width);
 }
 
-/* .heroViewport: タイトル(自然な高さ)+スライド(残り全部)+コメント
-   リンク(自然な高さ)を縦のflexで並べ、画面の高さ(ヘッダー・この
-   区画のpadding-block分を除く)にちょうど収まるmin-heightを持たせる。
-   dvhを先に書けないブラウザ向けにvhを先に、対応ブラウザ向けにdvhを
-   後に書く(値が無効な行は無視されるだけなので、後勝ちで上書きされる
-   進行的強化)。 */
-.heroViewport {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - var(--header-height) - var(--space-2) - var(--space-3));
-  min-height: calc(100dvh - var(--header-height) - var(--space-2) - var(--space-3));
+/* -----------------------------
+ * 主列(身体譜+スライド)・副列(支援欄)の2カラムレイアウト。
+ * 支援欄が未設定(fail-closed)の間は.layoutSingleを付与し、
+ * 副列自体を出さない1カラムにする。
+ * ----------------------------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(260px, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  align-items: start;
 }
 
-.heroTitle {
-  flex: 0 0 auto;
+.layoutSingle {
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.heroTitle .back {
-  margin-bottom: var(--space-1);
+.main {
+  min-width: 0;
 }
 
-.headingCompact {
-  margin: calc(var(--space-1) / 2) 0 0;
-  font-size: var(--fs-xl);
+.aside {
+  min-width: 0;
+}
+
+.record {
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.recordHeading {
+  margin: var(--space-1) 0 0;
+  font-size: var(--page-section-title);
   line-height: var(--lh-heading);
-  font-weight: 500;
-}
-
-/* .slideArea: 残りの縦幅をすべて確保する(flex: 1 1 auto)。中は縦の
-   flexにして、.slidesEmbed(スライド本体)と.slidesComment(コメント
-   リンク)を上詰めでひとまとまりに配置する(「コメントする」リンクを
-   スライドの直下に置く指示への対応)。横方向はcenterで中央揃え。
-   .slidesEmbedはaspect-ratioで16:9を維持しつつ、width: 100%(横に
-   はみ出さない)とmax-height: 100%(.slideAreaの高さを超えない)の
-   両方を満たすよう、ブラウザがaspect-ratioを介して両方の制約から
-   縮小後のサイズを計算する(JSでの高さ計測は不要)。画面が余った分は
-   .slideAreaの下側の余白として現れる(スライドとコメントの間には
-   出ない)。 */
-.slideArea {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  margin-top: var(--space-2);
+  font-weight: 700;
 }
 
 .slidesEmbed {
-  flex: 0 1 auto;
-  min-height: 0;
-  aspect-ratio: 16 / 9;
+  margin-top: var(--space-2);
+  aspect-ratio: 960 / 569;
   width: 100%;
-  max-height: 100%;
+  background: var(--home-visual);
 }
 
 .slidesEmbed iframe {
@@ -135,23 +126,7 @@
 }
 
 .slidesComment {
-  flex: 0 0 auto;
-  width: 100%;
-  margin-top: var(--space-1);
-}
-
-.slidesCommentNote {
-  margin: var(--space-1) 0 0;
-  font-family: var(--font-sans);
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
-/* #notebook-about(スライドの下に移した説明文)では、.leadが区画の
-   最初の要素になるため、h1の直後に置かれる場合のmargin-topを打ち消し、
-   ResearchSectionの通常のpadding-topだけで間隔を取る。 */
-:global(#notebook-about) .lead {
-  margin-top: 0;
+  margin-top: var(--space-2);
 }
 
 /* -----------------------------
@@ -172,8 +147,9 @@
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
 }
 
 .otherNotebookLink {
@@ -187,13 +163,49 @@
   text-decoration: underline;
 }
 
-.heading, .headingCompact { font-size: var(--page-title); }
-.eyebrow, .back { font-size: var(--home-label-size); }
-.lead { font-size: var(--fs-base); max-width: var(--reading-width); line-height: var(--reading-leading); }
-.commonNote { font-size: var(--fs-sm); max-width: var(--reading-width); }
-.heroViewport { min-height: 0; }
-.slidesEmbed { aspect-ratio: 960 / 569; width: min(100%, calc((100svh - var(--header-height) - 13rem) * 960 / 569)); min-width: min(100%, 16rem); background: var(--home-visual); }
-.slidesComment { width: min(100%, calc((100svh - var(--header-height) - 13rem) * 960 / 569)); min-width: min(100%, 16rem); }
-.slideArea { align-items: flex-start; }
-.slidesCommentNote { font-size: var(--home-label-size); }
-.otherNotebooksList { flex-direction: row; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.heading {
+  font-size: var(--page-title);
+}
+
+.eyebrow,
+.back {
+  font-size: var(--home-label-size);
+}
+
+.lead {
+  font-size: var(--fs-base);
+  max-width: var(--reading-width);
+  line-height: var(--reading-leading);
+}
+
+.commonNote {
+  font-size: var(--fs-sm);
+  max-width: var(--reading-width);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .intro {
+    font-size: 1.0625rem;
+  }
+}
+
+/* -----------------------------
+ * 散歩譜のみ: 「実験」eyebrowを削除した分、見出し前後の余白を
+ * 詰める。.back/.headingは他の2ノート(Fieldnote・研究断面をひらく)
+ * とも共有するクラスのため上書きはせず、専用クラスを追加で当てる
+ * (ファイル末尾に置き、.back/.heading本体の宣言よりカスケードで
+ * 優先させる)。
+ * ----------------------------- */
+.backTight {
+  margin-bottom: var(--space-2);
+}
+
+.headingTight {
+  margin-top: var(--space-1);
+}
