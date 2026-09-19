@@ -35,6 +35,12 @@
  *
  * `slidesEmbedSrc`が無いノート(現状Fieldnote・研究断面をひらく)は、
  * 従来通りのHero構成のまま変更していない(今回の指示は散歩譜が対象)。
+ *
+ * 【Fieldnoteに体験デモを追加(2026-09-19、Decision Log 0184)】
+ * Fieldnote(slug === "fieldnote")のみ、Hero構成の末尾に
+ * `FieldnoteMemoDemo`を追加した。プロジェクトオーナーが用意した
+ * アプリ構想のモックアップを、サイト内で完結する静的なデモとして
+ * 移植したもの。研究断面をひらくには対象外。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -43,9 +49,11 @@ import ArrowLink from "@components/ArrowLink.astro";
 import WalkingScorePlayer from "@components/WalkingScorePlayer.astro";
 import SupportSection from "@components/SupportSection.astro";
 import SupportLedger from "@components/SupportLedger.astro";
+import FieldnoteMemoDemo from "@components/FieldnoteMemoDemo.astro";
 import styles from "./[slug].module.css";
 import { labNotebooks, commonNotebookDescription } from "@/data/labNotebooks";
 import { walkingScoreDemo } from "@/data/walkingScoreDemo";
+import { fieldnoteMemoSessions } from "@/data/fieldnoteMemoDemo";
 import { supportConfig, isSupportConfigured } from "@/config/support";
 import type { LabNotebook } from "@/types/labNotebook";
 
@@ -131,6 +139,7 @@ const hasSupport = isSupportConfigured(supportConfig);
         <h1 class={styles.heading}>{notebook.title}</h1>
         <p class={styles.lead}>{notebook.description}</p>
         <p class={styles.commonNote}>{commonNotebookDescription}</p>
+        {notebook.slug === "fieldnote" && <FieldnoteMemoDemo sessions={fieldnoteMemoSessions} />}
       </ResearchSection>
     )
   }

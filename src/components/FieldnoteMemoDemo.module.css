@@ -1,0 +1,651 @@
+/**
+ * FieldnoteMemoDemo.module.css
+ * ------------------------------------------------------------
+ * 「Fieldnote」体験デモのスタイル(2026-09-19、Decision Log 0184)。
+ * 元のモックアップは独自の配色(緑・赤のアクセント、Google Fontsの
+ * Shippori Mincho B1/Zen Kaku Gothic New)を使っていたが、CLAUDE.mdの
+ * 「色・書体を独自にハードコードしない」方針に従い、tokens.cssの
+ * 既存トークンのみで配色し直している。アクセントは1色
+ * (--color-accent-blue)に統一し、緑=肯定/赤=削除という元の色分けは
+ * 削除機能ごと無くしたため引き継いでいない。
+ * ------------------------------------------------------------
+ */
+
+.wrapper {
+  margin-top: var(--space-3);
+  max-width: 390px;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--space-2);
+}
+
+.topLabel {
+  color: var(--color-ink);
+}
+
+.topNote {
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+.frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 700px;
+  overflow: hidden;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 20px;
+  background: var(--color-paper);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+
+.screen {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* -----------------------------
+ * セッション画面
+ * ----------------------------- */
+.sessionBlock {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  flex-shrink: 0;
+}
+
+.headerTile {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--color-accent-beige);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-family: var(--font-body);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+
+.tabbar {
+  display: flex;
+  border-bottom: 1px solid var(--color-accent-beige);
+  padding: 0 var(--space-1);
+  flex-shrink: 0;
+}
+
+.tabButton {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 44px;
+  padding: 0 var(--space-1);
+  border: 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tabButton[aria-selected="true"] {
+  font-weight: 700;
+  color: var(--color-ink);
+  border-bottom-color: var(--color-accent-blue);
+}
+
+.tabPanels {
+  flex: 1;
+  min-height: 0;
+}
+
+.panel {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.placeholder {
+  color: var(--color-ink-muted);
+}
+
+.panelLabel {
+  flex-shrink: 0;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--color-ink-muted);
+}
+
+.notesUpdated {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+/* 概要タブ */
+.overviewCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 14px;
+  padding: var(--space-3);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+.overviewCard p {
+  margin: 0;
+}
+
+/* たどるタブ */
+.traceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dayHeader {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--color-ink-muted);
+  padding-top: var(--space-1);
+}
+
+.entryRow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.entryTime {
+  width: 40px;
+  flex-shrink: 0;
+  padding-top: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryCard {
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 14px;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+button.entryCard {
+  cursor: pointer;
+}
+
+.entryKind {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryMemo {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.entryMemoClamp {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.entryBadge {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-ink-muted);
+}
+
+.entryUrlRow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.entryUrlIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--color-accent-beige);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.entryDomain {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+/* 自分のまとめタブ */
+.notesHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+.notesHead .notesUpdated {
+  text-align: right;
+}
+
+.notesCard {
+  box-sizing: border-box;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-accent-blue);
+  border-radius: 14px;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+.notesCard p {
+  margin: 0;
+}
+
+.notesFooter {
+  margin: var(--space-2) 0 0;
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+/* 育つタブ */
+.growHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--space-2);
+}
+
+.growEmpty {
+  box-sizing: border-box;
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 14px;
+  padding: var(--space-2);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+}
+
+.growSubheading {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 700;
+  margin: var(--space-2) 0 var(--space-1);
+}
+
+.growCard {
+  box-sizing: border-box;
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 14px;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.growQuestionText {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  line-height: var(--lh-body);
+}
+
+.growMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.growTag,
+.growTagIdle {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 11px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.growTag {
+  background: var(--color-accent-beige);
+  color: var(--color-accent-blue);
+}
+.growTagIdle {
+  background: var(--color-accent-beige);
+  color: var(--color-ink-muted);
+}
+
+.growTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.growLinkedTag {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-accent-beige);
+  font-size: 0.75rem;
+}
+
+/* -----------------------------
+ * 追記を見る画面
+ * ----------------------------- */
+.editPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.editHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.editHeaderTitle {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+.editDoneButton {
+  min-width: 44px;
+  height: 40px;
+  padding: 0 var(--space-1);
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-blue);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.editMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+}
+
+.editKind {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+.editPreview {
+  margin-top: var(--space-2);
+  height: 140px;
+  border-radius: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  color: var(--color-ink-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.editPreviewCaption {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.editSection {
+  margin-top: var(--space-3);
+}
+
+.readingCard {
+  margin-top: var(--space-1);
+  box-sizing: border-box;
+  background: var(--color-accent-beige);
+  border-radius: 12px;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--color-ink);
+}
+.readingCard p {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+}
+
+.readingMeta {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted) !important;
+}
+
+.noteInput {
+  margin-top: var(--space-1);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-accent-blue);
+  border-radius: 12px;
+  padding: var(--space-2);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  color: var(--color-ink);
+}
+
+/* -----------------------------
+ * 下部バー・シート
+ * ----------------------------- */
+.bottomBar {
+  flex-shrink: 0;
+  margin: var(--space-2) var(--space-3);
+  height: 56px;
+  box-sizing: border-box;
+  border-radius: 28px;
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  font-family: inherit;
+  text-align: left;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.bottomBarDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-accent-blue);
+  flex-shrink: 0;
+}
+
+.bottomBarLabels {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.bottomBarCaption {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+.bottomBarTitle {
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+.sheetWrap {
+  position: absolute;
+  inset: 0;
+}
+
+.sheetBackdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background: color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  max-height: 80%;
+  overflow-y: auto;
+  background: var(--color-paper);
+  border-radius: 20px 20px 0 0;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.sheetHandle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-accent-beige);
+  margin: 0 auto var(--space-2);
+}
+
+.sheetTitle {
+  font-family: var(--font-body);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  margin: 0 0 var(--space-1);
+}
+
+.sheetRow {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 4px;
+  border: 0;
+  border-bottom: 1px solid var(--color-accent-beige);
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  height: 60px;
+}
+.sheetRow:last-child {
+  border-bottom: 0;
+}
+
+.sheetTile {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--color-accent-beige);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sheetRowTitle {
+  flex: 1;
+  font-size: var(--fs-base);
+}
+
+.sheetRowUpdated {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+.caption {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  max-width: var(--reading-width);
+}
+
+@media (max-width: 400px) {
+  .wrapper {
+    max-width: none;
+  }
+}
