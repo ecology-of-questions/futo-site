@@ -15,8 +15,16 @@
 
 /** 撮影画像の長辺の上限(px)。OCRでの可読性を保ちつつ、IndexedDBの
  *  容量・メモリ消費を抑えるための上限(2026-09-02、PRセルフレビュー
- *  で追加)。 */
-const MAX_CAPTURE_DIMENSION = 1600;
+ *  で追加)。
+ *
+ *  【2026-09-20、Decision Log 0193で1600→2600に変更】実機(iPhone)での
+ *  縦書きOCR精度不足の調査で、この上限が原因の一つと判明した。
+ *  iPhoneのカメラは通常この値よりはるかに高い解像度で撮影できるため、
+ *  1600pxへの縮小は密な縦書き(1ページに数十列)の各文字の画素数を
+ *  過度に減らし、複雑な字画を持つ漢字の認識を妨げていた可能性が高い。
+ *  数値を上げるとIndexedDBの保存容量・OCRの所要時間も増えるため、
+ *  無制限に上げず段階的な値とした(実機での再検証が必要)。 */
+const MAX_CAPTURE_DIMENSION = 2600;
 const CAPTURE_JPEG_QUALITY = 0.85;
 
 export class FieldnoteCameraError extends Error {}
