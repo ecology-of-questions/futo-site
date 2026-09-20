@@ -236,22 +236,16 @@
   font-size: var(--fs-sm);
 }
 
-.captureGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
-  gap: var(--space-2);
+/* ---------- Entry list(記録の一覧。写真グリッドから、抜粋を主役に
+   したカードの縦積みへ変更、2026-09-20、Decision Log 0187) ---------- */
+.entryList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
   margin-bottom: var(--space-4);
 }
 
-.captureGrid img {
-  width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  border: 1px solid var(--color-ink);
-}
-
-.captureGrid p {
-  grid-column: 1 / -1;
+.entryList > p {
   opacity: 0.7;
 }
 
@@ -376,4 +370,303 @@
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   cursor: pointer;
+}
+
+/* -----------------------------
+ * 抜粋・コメント・まとめ・公開プレビュー(2026-09-20、Decision Log
+ * 0187)。記録カードの中身はJSで動的に作るため、data属性で
+ * スタイルを当てる。
+ * ----------------------------- */
+
+.textarea {
+  font-size: var(--fs-base);
+  font-family: var(--font-sans);
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-radius: 0;
+  width: 100%;
+  resize: vertical;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--fs-sm);
+  font-family: var(--font-sans);
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  cursor: pointer;
+}
+
+.secondaryButton:hover,
+.secondaryButton:focus-visible {
+  background: var(--color-accent-beige);
+}
+
+.quickEntry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 28rem;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.quickEntryHeading {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--color-ink-muted);
+}
+
+.setupLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.backupRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.backupStatus {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  min-height: 1.2em;
+}
+
+.publishNote {
+  margin: var(--space-2) 0 0;
+  max-width: 28rem;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  min-height: 44px;
+}
+
+.publishCitation {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.publishOutput {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}
+
+.collectionPicker {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+/* ---------- 記録カード(entry-list配下、JSが生成) ---------- */
+
+.entryList [data-entry-card] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+}
+
+.entryList [data-entry-meta] {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryList [data-entry-photo] {
+  align-self: flex-start;
+}
+
+.entryList [data-entry-photo] summary {
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+  cursor: pointer;
+}
+
+.entryList [data-entry-photo] img {
+  display: block;
+  width: 100%;
+  max-width: 16rem;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid var(--color-ink);
+  margin-top: var(--space-1);
+}
+
+.entryList [data-entry-url] {
+  color: var(--color-accent-blue);
+  word-break: break-word;
+}
+
+.entryList [data-entry-excerpt] {
+  font-size: var(--fs-base);
+  font-family: var(--font-sans);
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border-radius: 0;
+  width: 100%;
+  resize: vertical;
+}
+
+.entryList [data-entry-page] {
+  font-size: var(--fs-sm);
+  font-family: var(--font-sans);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border-radius: 0;
+  max-width: 16rem;
+  min-height: 44px;
+}
+
+.entryList [data-field-heading] {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--color-ink-muted);
+}
+
+.entryList [data-comments-list],
+.entryList [data-related-list] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.entryList [data-comment-row] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.entryList [data-comment-body] {
+  margin: 0;
+  flex: 1 1 100%;
+  font-size: var(--fs-base);
+}
+
+.entryList [data-comment-meta] {
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryList [data-comment-empty],
+.entryList [data-related-empty] {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryList [data-related-row] {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.entryList [data-comment-input],
+.entryList input[type="text"] {
+  font-size: var(--fs-sm);
+  font-family: var(--font-sans);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  border-radius: 0;
+  width: 100%;
+  min-height: 44px;
+}
+
+.entryList button {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  font-size: var(--fs-sm);
+  font-family: var(--font-sans);
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  cursor: pointer;
+}
+
+.entryList [data-entry-publish] {
+  color: var(--color-accent-blue);
+  border-color: var(--color-accent-blue);
+}
+
+/* ---------- 過去の記録・まとめの行(共通) ---------- */
+
+.historyList [data-collection-row] {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.historyList [data-collection-row-title] {
+  font-size: var(--fs-base);
+}
+
+.historyList [data-collection-row-meta] {
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+/* ---------- 公開プレビュー(つながりのチェックボックス) ---------- */
+
+#publish-related-list [data-publish-related-row] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  min-height: 44px;
 }
