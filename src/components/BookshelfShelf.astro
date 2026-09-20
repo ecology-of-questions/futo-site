@@ -62,6 +62,17 @@
  * (`authorReflection`)を主役に、任意で引用(`quote`/`quoteLocation`)・
  * 関連記録(`relatedRecords`)を表示するようにした。書影グリッドを
  * 再導入しない(Decision Log 0179の判断を維持)方針は変えていない。
+ *
+ * 【本人限定の公開APIからの動的表示を追加(2026-09-20、Decision Log
+ * 0189)】`src/data/publicReadingNotes.ts`(ビルド時の手動キュレー
+ * ション、静的)に加えて、`/api/reading-notes?bookId=`(Cloudflare
+ * Worker + D1、実行時)から取得した公開メモも表示する
+ * (`../../lib/bookshelf/publicNotesClient.ts`、progressive
+ * enhancement——JSが動かない/APIが未配線の環境でも、静的キュレーション
+ * 分はそのまま表示され続ける)。各行に`data-book-row`を付け、
+ * クライアントスクリプトがその本のAPI結果を追記する。同じ本に静的な
+ * メモとAPI経由のメモの両方がある場合、それぞれ別の「読書メモを読む」
+ * として並ぶ(統合はしない、単純さを優先)。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfShelf.module.css";
@@ -119,7 +130,7 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
         {group.rows.map(({ book, href, isAffiliate, notes }) => {
           const titleLine = book.contributed ? `${book.title}(持ち寄られた本)` : book.title;
           return (
-            <li class={styles.textRow}>
+            <li class={styles.textRow} data-book-row={book.id}>
               {href ? (
                 <a
                   class={styles.textLink}
@@ -183,3 +194,5 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
     </p>
   )
 }
+
+<script src="../lib/bookshelf/publicNotesClient.ts"></script>
