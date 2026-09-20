@@ -22,12 +22,21 @@
  * Log 0187)】画面(`view-*`)が増えた分、動的に作る要素は全て
  * data属性でCSSフックする(CSS Modulesのハッシュ化されたクラス名を
  * このファイルから参照しない、既存の書き方を踏襲)。
+ *
+ * 【OCR(文字の読み取り)を追加(2026-09-20、Decision Log 0188)】
+ * 写真記録の抜粋欄に、Tesseract.jsによる読み取り結果を「下書き」として
+ * 提案する`buildOcrBlock`を追加した。`./ocr.ts`は動的import
+ * (`await import("tesseract.js")`)しており、OCRを使わない利用者は
+ * 追加のJS/WASM/学習データを一切ダウンロードしない。認識結果は
+ * 既存の抜粋欄(`excerptInput`)に値を入れるだけで、保存は既存の
+ * blurハンドラに委ねる(このファイルが独自に保存処理を持たない)。
  * ------------------------------------------------------------
  */
 import { IndexedDbFieldnoteStore } from "./indexedDbStore";
 import { FieldnoteCamera, FieldnoteCameraError } from "./camera";
 import { books } from "../../data/bookshelf";
 import type { FieldnoteExportBundle } from "./store";
+import { recognizeExcerpt, type OcrOrientation } from "./ocr";
 import type { FieldnoteCapture, FieldnoteCollection, FieldnoteSession } from "../../types/fieldnote";
 
 const store = new IndexedDbFieldnoteStore();
@@ -377,6 +386,119 @@ function renderRelatedLinks(capture: FieldnoteCapture, container: HTMLElement): 
   });
 }
 
+/**
+ * 写真記録に「文字を読み取る」ブロックを追加する。読み取り結果は
+ * `excerptInput`に値を入れるだけで、保存はしない(呼び出し側が持つ
+ * 既存のblurハンドラで保存される)。実測(Decision Log 0187)で、傾き・
+ * ノイズ・JPEG圧縮を加えただけでも精度が大きく落ちることを確認して
+ * いるため、常に「下書き・要確認」であることを明示する。
+ */
+function buildOcrBlock(
+  capture: FieldnoteCapture,
+  image: Blob,
+  excerptInput: HTMLTextAreaElement,
+  pageInput: HTMLInputElement,
+): HTMLElement {
+  const wrap = document.createElement("div");
+  wrap.dataset.ocrBlock = "true";
+
+  const controls = document.createElement("div");
+  controls.dataset.ocrControls = "true";
+
+  const orientationSelect = document.createElement("select");
+  orientationSelect.setAttribute("aria-label", "文字の向き");
+  const optHorizontal = document.createElement("option");
+  optHorizontal.value = "horizontal";
+  optHorizontal.textContent = "横書き";
+  const optVertical = document.createElement("option");
+  optVertical.value = "vertical";
+  optVertical.textContent = "縦書き";
+  orientationSelect.append(optHorizontal, optVertical);
+  controls.append(orientationSelect);
+
+  const runBtn = document.createElement("button");
+  runBtn.type = "button";
+  runBtn.dataset.ocrRun = "true";
+  runBtn.textContent = "文字を読み取る(実験的)";
+  controls.append(runBtn);
+  wrap.append(controls);
+
+  const note = document.createElement("p");
+  note.dataset.ocrNote = "true";
+  note.textContent =
+    "実験的機能です。読み取り結果は下書きとして抜粋欄に入ります。誤読があるので、必ず確認・修正してから使ってください。初回は文字向きごとに約2MBのデータをダウンロードします。";
+  wrap.append(note);
+
+  const status = document.createElement("p");
+  status.dataset.ocrStatus = "true";
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
+  wrap.append(status);
+
+  const pageCandidateRow = document.createElement("div");
+  pageCandidateRow.dataset.ocrPageCandidate = "true";
+  pageCandidateRow.hidden = true;
+  const pageCandidateLabel = document.createElement("span");
+  const pageCandidateValue = document.createElement("strong");
+  pageCandidateLabel.append("ページ番号の候補: ", pageCandidateValue);
+  pageCandidateRow.append(pageCandidateLabel);
+  const usePageCandidateBtn = document.createElement("button");
+  usePageCandidateBtn.type = "button";
+  usePageCandidateBtn.dataset.ocrPageUse = "true";
+  usePageCandidateBtn.textContent = "ページ欄に使う";
+  usePageCandidateBtn.addEventListener("click", () => {
+    pageInput.value = pageCandidateValue.textContent ?? "";
+    void store.updateCapture(capture.id, { pageLabel: pageInput.value }).then((updated) => {
+      capture.pageLabel = updated.pageLabel;
+    });
+    pageCandidateRow.hidden = true;
+  });
+  pageCandidateRow.append(usePageCandidateBtn);
+  wrap.append(pageCandidateRow);
+
+  runBtn.addEventListener("click", () => {
+    void (async () => {
+      if (excerptInput.value.trim() !== "") {
+        const proceed = window.confirm("既存の抜粋を読み取り結果の下書きで置き換えますか?");
+        if (!proceed) return;
+      }
+
+      runBtn.disabled = true;
+      pageCandidateRow.hidden = true;
+      status.textContent = "読み取りの準備をしています…";
+
+      const orientation = orientationSelect.value as OcrOrientation;
+      try {
+        const result = await recognizeExcerpt(image, orientation, (progress) => {
+          const percent = Math.round(progress.progress * 100);
+          status.textContent = `${progress.status || "読み取り中"}…${percent}%`;
+        });
+
+        if (!result.text) {
+          status.textContent = "文字を読み取れませんでした。傾きや明るさを変えて撮り直すか、手入力してください。";
+          return;
+        }
+
+        excerptInput.value = result.text;
+        excerptInput.focus();
+        status.textContent = `読み取りました(下書き・信頼度の目安${Math.round(result.confidence)}%)。内容を確認し、必要なら修正してください。ここを離れると保存されます。`;
+
+        if (result.pageCandidate) {
+          pageCandidateValue.textContent = result.pageCandidate;
+          pageCandidateRow.hidden = false;
+        }
+      } catch (error) {
+        status.textContent = "読み取りに失敗しました。お使いのブラウザが対応していない可能性があります。";
+        console.error("OCR failed", error);
+      } finally {
+        runBtn.disabled = false;
+      }
+    })();
+  });
+
+  return wrap;
+}
+
 async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
   const card = document.createElement("article");
   card.dataset.entryCard = "true";
@@ -426,7 +548,6 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
       capture.excerptText = updated.excerptText;
     });
   });
-  card.append(excerptInput);
 
   const pageInput = document.createElement("input");
   pageInput.type = "text";
@@ -439,6 +560,12 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
       capture.pageLabel = updated.pageLabel;
     });
   });
+
+  if (kind === "photo" && capture.image) {
+    card.append(buildOcrBlock(capture, capture.image, excerptInput, pageInput));
+  }
+
+  card.append(excerptInput);
   card.append(pageInput);
 
   const commentsHeading = document.createElement("p");

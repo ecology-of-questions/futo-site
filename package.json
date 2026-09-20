@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "astro": "^5.0.0"
+    "astro": "^5.0.0",
+    "tesseract.js": "^5.1.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
