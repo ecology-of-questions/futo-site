@@ -489,6 +489,47 @@
   color: var(--color-ink);
 }
 
+.publishAdmin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-blue);
+}
+
+#publish-existing-notes [data-publish-existing-empty] {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+#publish-existing-notes [data-publish-existing-row] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+#publish-existing-notes [data-publish-existing-row] p {
+  margin: 0;
+  flex: 1 1 100%;
+  font-size: var(--fs-sm);
+}
+
+#publish-existing-notes [data-publish-existing-row] button {
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  font-size: var(--fs-sm);
+  font-family: var(--font-sans);
+  background: transparent;
+  color: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  cursor: pointer;
+}
+
 /* ---------- 記録カード(entry-list配下、JSが生成) ---------- */
 
 .entryList [data-entry-card] {
