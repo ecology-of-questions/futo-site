@@ -100,7 +100,10 @@ function buildTraceRows(entries: FieldnoteEntry[]): TraceRow[] {
   return rows;
 }
 
-const editableEntries = sessions.flatMap((session) => session.entries.filter(isEditableEntry));
+const editableEntries = sessions.flatMap((session) =>
+  session.entries.filter(isEditableEntry).map((entry) => ({ entry, session })),
+);
+const publishableEntries = editableEntries.filter(({ entry }) => Boolean(entry.excerpt));
 ---
 
 <div class={styles.wrapper} data-fieldnote-memo>
@@ -292,7 +295,7 @@ const editableEntries = sessions.flatMap((session) => session.entries.filter(isE
 
     <div class={styles.screen} data-screen="edit" style="display: none">
       {
-        editableEntries.map((entry) => (
+        editableEntries.map(({ entry }) => (
           <div class={styles.editPanel} data-entry-panel={entry.id} style="display: none">
             <div class={styles.editHeader}>
               <button type="button" aria-label="閉じる" class={styles.iconButton} data-close-edit>
@@ -300,7 +303,7 @@ const editableEntries = sessions.flatMap((session) => session.entries.filter(isE
                   <path d="M6 6l12 12M18 6L6 18" />
                 </svg>
               </button>
-              <div class={styles.editHeaderTitle}>追記を見る</div>
+              <div class={styles.editHeaderTitle}>記録を見る</div>
               <button type="button" class={styles.editDoneButton} data-close-edit>
                 閉じる
               </button>
@@ -325,23 +328,117 @@ const editableEntries = sessions.flatMap((session) => session.entries.filter(isE
               <p class={styles.editPreviewCaption}>{entry.type === "photo" ? "写真のプレビュー（デモ）" : "手書きのプレビュー（デモ）"}</p>
             </div>
 
-            <div class={styles.editSection}>
-              <p class={styles.panelLabel}>AIが読んだこと</p>
-              <div class={styles.readingCard}>
-                {(entry.reading ?? []).map((line) => (
-                  <p>{line}</p>
-                ))}
-                <p class={styles.readingMeta}>{entry.readingMeta}</p>
+            <div class={styles.entryTabbar} role="tablist">
+              <button type="button" role="tab" data-entry-tab-button="excerpt" class={styles.tabButton} aria-selected="true">
+                抜粋
+              </button>
+              <button type="button" role="tab" data-entry-tab-button="comments" class={styles.tabButton} aria-selected="false">
+                コメント
+              </button>
+              <button type="button" role="tab" data-entry-tab-button="connections" class={styles.tabButton} aria-selected="false">
+                つながり
+              </button>
+            </div>
+
+            <div data-entry-tab-panel="excerpt" class={styles.editSection}>
+              {entry.excerpt ? (
+                <p class={styles.excerptText}>{entry.excerpt}</p>
+              ) : (
+                <p class={styles.placeholder}>まだ書いていません。</p>
+              )}
+            </div>
+
+            <div data-entry-tab-panel="comments" class={styles.editSection} style="display: none">
+              <div class={styles.commentsList}>
+                {entry.comments && entry.comments.length > 0 ? (
+                  entry.comments.map((comment) => (
+                    <div class={styles.commentRow}>
+                      <p>{comment.body}</p>
+                      <span class={styles.notesUpdated}>{comment.time}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p class={styles.placeholder}>コメントはまだありません。</p>
+                )}
               </div>
+              <textarea class={styles.noteInput} placeholder="コメントを追加(このデモでは保存されません)"></textarea>
+            </div>
+
+            <div data-entry-tab-panel="connections" class={styles.editSection} style="display: none">
+              {entry.connections && entry.connections.length > 0 ? (
+                <div class={styles.connectionsList}>
+                  {entry.connections.map((connection) =>
+                    connection.href.startsWith("#entry:") ? (
+                      <button
+                        type="button"
+                        class={styles.connectionLink}
+                        data-open-entry={connection.href.replace("#entry:", "")}
+                      >
+                        {connection.label}
+                      </button>
+                    ) : (
+                      <a class={styles.connectionLink} href={connection.href}>
+                        {connection.label}
+                      </a>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <p class={styles.placeholder}>つながりはまだありません。</p>
+              )}
+            </div>
+
+            {entry.excerpt && (
+              <button type="button" class={styles.editDoneButton} data-open-publish-preview={entry.id}>
+                公開プレビューを見る →
+              </button>
+            )}
+          </div>
+        ))
+      }
+    </div>
+
+    <div class={styles.screen} data-screen="publish" style="display: none">
+      {
+        publishableEntries.map(({ entry, session }) => (
+          <div class={styles.editPanel} data-publish-panel={entry.id} style="display: none">
+            <div class={styles.editHeader}>
+              <button type="button" aria-label="閉じる" class={styles.iconButton} data-close-publish>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+              <div class={styles.editHeaderTitle}>公開プレビュー</div>
+              <button type="button" class={styles.editDoneButton} data-close-publish>
+                閉じる
+              </button>
+            </div>
+
+            <p class={styles.publishDemoNote}>デモです。実際には公開されません。</p>
+
+            <div class={styles.editSection}>
+              <p class={styles.panelLabel}>自分の考え</p>
+              <p class={styles.excerptText}>{entry.comments?.[0]?.body ?? entry.excerpt}</p>
             </div>
 
             <div class={styles.editSection}>
-              <div class={styles.notesHead}>
-                <span class={styles.panelLabel}>私のメモ</span>
-                <span class={styles.notesUpdated}>自由に書けます（このデモでは保存されません）</span>
-              </div>
-              <textarea class={styles.noteInput} placeholder="訂正や補足を書けます。">{entry.note || ""}</textarea>
+              <p class={styles.panelLabel}>引用</p>
+              <blockquote class={styles.publishQuoteBlock}>
+                <p>{entry.excerpt}</p>
+                {session.bookCitation && <cite>{session.bookCitation}</cite>}
+              </blockquote>
             </div>
+
+            {entry.connections && entry.connections.length > 0 && (
+              <div class={styles.editSection}>
+                <p class={styles.panelLabel}>関連記録</p>
+                <div class={styles.connectionsList}>
+                  {entry.connections.map((connection) => (
+                    <span class={styles.connectionLink}>{connection.label}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))
       }
@@ -389,10 +486,11 @@ const editableEntries = sessions.flatMap((session) => session.entries.filter(isE
   document.querySelectorAll<HTMLElement>("[data-fieldnote-memo]").forEach((root) => {
     const sessionScreen = root.querySelector<HTMLElement>('[data-screen="session"]');
     const editScreen = root.querySelector<HTMLElement>('[data-screen="edit"]');
+    const publishScreen = root.querySelector<HTMLElement>('[data-screen="publish"]');
     const bottomBar = root.querySelector<HTMLElement>("[data-open-sheet]");
     const sheet = root.querySelector<HTMLElement>("[data-sheet]");
     const currentTitleEl = root.querySelector<HTMLElement>("[data-current-session-title]");
-    if (!sessionScreen || !editScreen || !bottomBar || !sheet || !currentTitleEl) return;
+    if (!sessionScreen || !editScreen || !publishScreen || !bottomBar || !sheet || !currentTitleEl) return;
 
     function activateTab(sessionBlock: HTMLElement, tabKey: string) {
       sessionBlock.querySelectorAll<HTMLElement>("[data-tab-button]").forEach((btn) => {
@@ -413,6 +511,7 @@ const editableEntries = sessions.flatMap((session) => session.entries.filter(isE
 
     function openEntry(entryId: string) {
       sessionScreen!.style.display = "none";
+      publishScreen!.style.display = "none";
       editScreen!.style.display = "";
       editScreen!.querySelectorAll<HTMLElement>("[data-entry-panel]").forEach((panel) => {
         panel.style.display = panel.dataset.entryPanel === entryId ? "" : "none";
@@ -434,6 +533,51 @@ const editableEntries = sessions.flatMap((session) => session.entries.filter(isE
     });
 
     root.querySelectorAll<HTMLElement>("[data-close-edit]").forEach((btn) => btn.addEventListener("click", closeEntry));
+
+    // 記録詳細内の「抜粋・コメント・つながり」タブ(2026-09-20、Decision Log 0190)。
+    function activateEntryTab(panel: HTMLElement, tabKey: string) {
+      panel.querySelectorAll<HTMLElement>("[data-entry-tab-button]").forEach((btn) => {
+        btn.setAttribute("aria-selected", btn.dataset.entryTabButton === tabKey ? "true" : "false");
+      });
+      panel.querySelectorAll<HTMLElement>("[data-entry-tab-panel]").forEach((tabPanel) => {
+        tabPanel.style.display = tabPanel.dataset.entryTabPanel === tabKey ? "" : "none";
+      });
+    }
+
+    root.querySelectorAll<HTMLElement>("[data-entry-tab-button]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const panel = btn.closest<HTMLElement>("[data-entry-panel]");
+        const tabKey = btn.dataset.entryTabButton;
+        if (panel && tabKey) activateEntryTab(panel, tabKey);
+      });
+    });
+
+    // 公開プレビューを見る(2026-09-20、Decision Log 0190)。
+    function openPublishPreview(entryId: string) {
+      editScreen!.style.display = "none";
+      publishScreen!.style.display = "";
+      publishScreen!.querySelectorAll<HTMLElement>("[data-publish-panel]").forEach((panel) => {
+        panel.style.display = panel.dataset.publishPanel === entryId ? "" : "none";
+      });
+      bottomBar!.style.display = "none";
+    }
+
+    function closePublishPreview() {
+      publishScreen!.style.display = "none";
+      sessionScreen!.style.display = "";
+      bottomBar!.style.display = "";
+    }
+
+    root.querySelectorAll<HTMLElement>("[data-open-publish-preview]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const entryId = btn.dataset.openPublishPreview;
+        if (entryId) openPublishPreview(entryId);
+      });
+    });
+
+    root
+      .querySelectorAll<HTMLElement>("[data-close-publish]")
+      .forEach((btn) => btn.addEventListener("click", closePublishPreview));
 
     function openSheet() {
       sheet!.style.display = "";
