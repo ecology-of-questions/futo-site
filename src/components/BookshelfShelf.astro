@@ -55,6 +55,13 @@
  * その場に展開する読み取り専用の「読書メモを読む」を表示する。公開
  * メモが無い本には何も表示しない(無効ボタン・0件バッジ・ダミーは
  * 置かない)。編集・削除・投稿にはつながっていない、静的な表示のみ。
+ *
+ * 【表示をPublicReadingNoteの新しい形に合わせて更新(2026-09-20、
+ * Decision Log 0187)】`title`/`body`/`image`(Decision Log 0186時点の
+ * 仮の形)を廃止した`PublicReadingNote`に合わせ、本人の考え
+ * (`authorReflection`)を主役に、任意で引用(`quote`/`quoteLocation`)・
+ * 関連記録(`relatedRecords`)を表示するようにした。書影グリッドを
+ * 再導入しない(Decision Log 0179の判断を維持)方針は変えていない。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfShelf.module.css";
@@ -135,10 +142,27 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
                   <div class={styles.readingNotesBody}>
                     {notes.map((note) => (
                       <article class={styles.readingNote}>
-                        <h3 class={styles.readingNoteTitle}>{note.title}</h3>
                         <p class={styles.readingNoteMeta}>{note.publishedAt}</p>
-                        {note.image && <img class={styles.readingNoteImage} src={note.image} alt="" loading="lazy" />}
-                        <p class={styles.readingNoteBodyText}>{note.body}</p>
+                        <p class={styles.readingNoteBodyText}>{note.authorReflection}</p>
+                        {note.quote && (
+                          <blockquote class={styles.readingNoteQuote}>
+                            <p class={styles.readingNoteQuoteText}>{note.quote}</p>
+                            {note.quoteLocation && (
+                              <cite class={styles.readingNoteQuoteCite}>{note.quoteLocation}</cite>
+                            )}
+                          </blockquote>
+                        )}
+                        {note.relatedRecords && note.relatedRecords.length > 0 && (
+                          <ul class={styles.readingNoteRelated}>
+                            {note.relatedRecords.map((link) => (
+                              <li>
+                                <a class={styles.readingNoteRelatedLink} href={link.href}>
+                                  {link.label}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </article>
                     ))}
                   </div>
