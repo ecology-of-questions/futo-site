@@ -487,26 +487,86 @@ button.entryCard {
   margin-top: var(--space-3);
 }
 
-.readingCard {
-  margin-top: var(--space-1);
-  box-sizing: border-box;
-  background: var(--color-accent-beige);
-  border-radius: 12px;
-  padding: var(--space-2);
+/* 記録詳細の「抜粋・コメント・つながり」タブ(2026-09-20、Decision Log 0190)。
+   セッションのタブと同じ見た目(.tabbar/.tabButtonを再利用)。 */
+.entryTabbar {
+  display: flex;
+  border-bottom: 1px solid var(--color-accent-beige);
+  padding: 0 var(--space-1);
+  margin-top: var(--space-2);
+  flex-shrink: 0;
+}
+
+.excerptText {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  white-space: pre-line;
+}
+
+.commentsList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  color: var(--color-ink);
+  gap: var(--space-1);
 }
-.readingCard p {
-  margin: 0;
+
+.commentRow {
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--color-accent-beige);
+}
+.commentRow:first-child {
+  border-top: 0;
+}
+.commentRow p {
+  margin: 0 0 2px;
   font-size: var(--fs-base);
   line-height: var(--lh-body);
 }
 
-.readingMeta {
-  font-size: 0.75rem;
-  color: var(--color-ink-muted) !important;
+.connectionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.connectionLink {
+  align-self: flex-start;
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+button.connectionLink:hover,
+button.connectionLink:focus-visible {
+  text-decoration: underline;
+}
+
+.publishDemoNote {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.publishQuoteBlock {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-2);
+  border-left: 2px solid var(--color-accent-blue);
+}
+.publishQuoteBlock p {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  font-style: italic;
+}
+.publishQuoteBlock cite {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  font-style: normal;
+  color: var(--color-ink-muted);
 }
 
 .noteInput {

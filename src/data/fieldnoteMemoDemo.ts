@@ -11,12 +11,15 @@
  * 「育つ」の内容が詳しい。他5セッションは記録(entries)のみで、
  * 概要・まとめは未記入、「育つ」は「まだ見つかっていません」の
  * 状態のまま(元のモックアップの非対称をそのまま再現)。
+ *
+ * 【記録詳細を抜粋・コメント・つながりに刷新(2026-09-20、Decision
+ * Log 0190)】各記録の`reading`/`readingMeta`(AIの自動読み取り)を
+ * `excerpt`/`comments`/`connections`に置き換えた。内容は元のモック
+ * アップの文脈(同じ日・同じ話題)を保ったまま作り直している(実装済み
+ * 画面のキャプチャではなく、架空の体験デモである点は変わらない)。
  * ------------------------------------------------------------
  */
 import type { FieldnoteSession } from "@/types/fieldnoteMemo";
-
-const NO_TEXT_FOUND = "テキストは見つかりませんでした";
-const UNREADABLE = "[判読できない箇所あり]";
 
 export const fieldnoteMemoSessions: FieldnoteSession[] = [
   {
@@ -24,6 +27,7 @@ export const fieldnoteMemoSessions: FieldnoteSession[] = [
     title: "デューイ読書",
     icon: "book",
     updatedLabel: "今日 9:31",
+    bookCitation: "ジョン・デューイ『経験と教育』",
     overview: "『経験と教育』を読みながら、子どもの遊びの観察とつなげて考える。",
     notes: [
       "経験の連続性というのは、前の経験が次の経験の土台になる、ということだと思う。",
@@ -63,9 +67,16 @@ export const fieldnoteMemoSessions: FieldnoteSession[] = [
         time: "9:31",
         memo: "第3章 該当ページ",
         count: 13,
-        reading: ["経験の連続性（continuity）", "相互作用（interaction）", "教育的経験の基準 ― " + UNREADABLE],
-        readingMeta: "仮説です・Claude Vision・v2・今日 9:33",
-        note: "「相互作用」は、子どもと環境の両方向の話。自分で補足。判読できない箇所は「基準」の続き。",
+        excerpt:
+          "経験の連続性――ひとつの経験が、次の経験の質を決める。ただし、どんな経験でもよいわけではない。",
+        comments: [
+          { body: "「相互作用」は、子どもと環境、両方向の働きかけの話だと思う。", time: "今日 9:33" },
+          { body: "続きが判読できなかった箇所は、次にページを撮り直す。", time: "今日 9:40" },
+        ],
+        connections: [
+          { label: "手書き｜連続性と相互作用を図にした", href: "#entry:d2" },
+          { label: "音声｜前の経験が次の質を決める", href: "#entry:d3" },
+        ],
       },
       {
         id: "d2",
@@ -73,9 +84,9 @@ export const fieldnoteMemoSessions: FieldnoteSession[] = [
         day: "今日・9月19日",
         time: "9:20",
         memo: "連続性と相互作用を図にした",
-        reading: ["図：連続性 → 相互作用", UNREADABLE],
-        readingMeta: "仮説です・Claude Vision・v1・今日 9:22",
-        note: "",
+        excerpt: "図: 連続性 → 相互作用(矢印でつないだだけのラフなメモ)",
+        comments: [],
+        connections: [{ label: "写真｜第3章 該当ページ", href: "#entry:d1" }],
       },
       {
         id: "d3",
@@ -120,9 +131,9 @@ export const fieldnoteMemoSessions: FieldnoteSession[] = [
         time: "16:20",
         memo: "入口の解説パネル",
         count: 6,
-        reading: ["展示解説パネル", "制作の過程を見せる構成", UNREADABLE],
-        readingMeta: "仮説です・Claude Vision・v1・昨日 16:22",
-        note: "",
+        excerpt: "展示解説パネル。完成品だけでなく、制作の過程を見せる構成になっている。",
+        comments: [{ body: "途中が見えるのが良かった。自分の研究にも応用できそう。", time: "昨日 16:22" }],
+        connections: [],
       },
       {
         id: "x2",
@@ -151,9 +162,9 @@ export const fieldnoteMemoSessions: FieldnoteSession[] = [
         day: "9月17日",
         time: "15:30",
         memo: "遊びの流れをメモ",
-        reading: ["積み木 → 崩す → 作り直す", UNREADABLE],
-        readingMeta: "仮説です・Claude Vision・v1・9月17日 15:32",
-        note: "",
+        excerpt: "積み木 → 崩す → 作り直す、の繰り返し。",
+        comments: [{ body: "崩れてもすぐ作り直すところが面白い。", time: "9月17日 15:32" }],
+        connections: [{ label: "音声｜積み木を崩してから、また作り直していた", href: "#entry:k2" }],
       },
       {
         id: "k2",
@@ -183,9 +194,8 @@ export const fieldnoteMemoSessions: FieldnoteSession[] = [
         time: "8:25",
         memo: "ベランダの芽",
         count: 3,
-        reading: [NO_TEXT_FOUND],
-        readingMeta: "仮説です・Claude Vision・v1・9月12日 8:26",
-        note: "",
+        comments: [],
+        connections: [],
       },
       {
         id: "p2",
@@ -250,9 +260,8 @@ export const fieldnoteMemoSessions: FieldnoteSession[] = [
         time: "17:40",
         memo: "川沿いの道",
         count: 4,
-        reading: [NO_TEXT_FOUND],
-        readingMeta: "仮説です・Claude Vision・v1・8月30日 17:41",
-        note: "",
+        comments: [],
+        connections: [{ label: "音声｜橋の下で風向きが変わった", href: "#entry:l1" }],
       },
     ],
   },
