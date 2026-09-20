@@ -86,13 +86,18 @@ human reference — keep both in sync when it changes.)
   checking the actual dashboard state), but the build must stay a
   portable static site (no Cloudflare-specific adapters/features).
   **Scoped exception (2026-09-13, Decision Log 0141; execution
-  platform corrected 2026-09-13, Decision Log 0143):** the lab
-  notebooks' exchange-notebook persistence and API (`worker/index.ts`,
-  `wrangler.toml`, `migrations/`) use a Cloudflare Worker + Workers
-  Static Assets + D1 and are Cloudflare-specific. Astro itself stays
-  `output: "static"`; every other page remains a portable static
-  build served as static assets. Do not extend this Cloudflare
-  dependency to other features without a new Decision Log entry.
+  platform corrected 2026-09-13, Decision Log 0143; extended
+  2026-09-20, Decision Log 0189):** the lab notebooks'
+  exchange-notebook persistence and API, and the public bookshelf's
+  owner-only publish/update/retract API for reading notes
+  (`worker/index.ts`, `wrangler.toml`, `migrations/`), use a
+  Cloudflare Worker + Workers Static Assets + D1 and are
+  Cloudflare-specific. Astro itself stays `output: "static"`; every
+  other page remains a portable static build served as static
+  assets, progressively enhanced at runtime by client-side fetches to
+  `/api/*` where needed (e.g. `src/lib/bookshelf/publicNotesClient.ts`).
+  Do not extend this Cloudflare dependency to other features without
+  a new Decision Log entry.
 
 ---
 

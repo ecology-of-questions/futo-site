@@ -201,3 +201,107 @@
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
 }
+
+/* -----------------------------
+ * 実行時にAPI(/api/reading-notes)から取得して追記する読書メモ
+ * (`../lib/bookshelf/publicNotesClient.ts`、Decision Log 0189)。
+ * 上の.readingNotes*(ビルド時の静的キュレーション分)と見た目を
+ * 揃えているが、CSS ModulesのハッシュされたクラスをJSから直接
+ * 参照できないため、data属性セレクタとして別途定義している。
+ * ----------------------------- */
+.textRow [data-dynamic-reading-notes] {
+  padding: 0 0 var(--space-2);
+}
+
+.textRow [data-dynamic-reading-notes-summary] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 0 var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+  cursor: pointer;
+  list-style: none;
+}
+
+.textRow [data-dynamic-reading-notes-summary]::-webkit-details-marker {
+  display: none;
+}
+
+.textRow [data-dynamic-reading-notes-summary]:hover,
+.textRow [data-dynamic-reading-notes-summary]:focus-visible {
+  text-decoration: underline;
+}
+
+.textRow [data-dynamic-reading-notes-body] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  margin-top: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+}
+
+.textRow [data-dynamic-reading-note] + [data-dynamic-reading-note] {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.textRow [data-dynamic-reading-note-meta] {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.textRow [data-dynamic-reading-note-body] {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  white-space: pre-line;
+}
+
+.textRow [data-dynamic-reading-note-quote] {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-2);
+  border-left: 2px solid var(--color-accent-blue);
+}
+
+.textRow [data-dynamic-reading-note-quote] p {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  font-style: italic;
+  white-space: pre-line;
+}
+
+.textRow [data-dynamic-reading-note-quote] cite {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-style: normal;
+  color: var(--color-ink-muted);
+}
+
+.textRow [data-dynamic-reading-note-related] {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.textRow [data-dynamic-reading-note-related] a {
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+}
+
+.textRow [data-dynamic-reading-note-related] a:hover,
+.textRow [data-dynamic-reading-note-related] a:focus-visible {
+  text-decoration: underline;
+}

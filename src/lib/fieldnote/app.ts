@@ -37,6 +37,19 @@ import { FieldnoteCamera, FieldnoteCameraError } from "./camera";
 import { books } from "../../data/bookshelf";
 import type { FieldnoteExportBundle } from "./store";
 import { recognizeExcerpt, type OcrOrientation } from "./ocr";
+import {
+  adminLogin,
+  adminLogout,
+  recoverAdminSession,
+  fetchPublishedNotes,
+  publishNote,
+  updateNote,
+  retractNote,
+  PublishApiError,
+  type AdminSession,
+  type PublishedNoteRecord,
+  type ReadingNoteDraft,
+} from "./publishApi";
 import type { FieldnoteCapture, FieldnoteCollection, FieldnoteSession } from "../../types/fieldnote";
 
 const store = new IndexedDbFieldnoteStore();
@@ -119,6 +132,16 @@ const publishOutput = byId<HTMLElement>("publish-output");
 const publishCopyBtn = byId<HTMLButtonElement>("publish-copy-btn");
 const publishCopyStatus = byId<HTMLElement>("publish-copy-status");
 const publishBackBtn = byId<HTMLButtonElement>("publish-back-btn");
+
+const publishLoginBlock = byId<HTMLElement>("publish-login-block");
+const publishAdminPassword = byId<HTMLInputElement>("publish-admin-password");
+const publishLoginBtn = byId<HTMLButtonElement>("publish-login-btn");
+const publishAuthedBlock = byId<HTMLElement>("publish-authed-block");
+const publishSessionStatus = byId<HTMLElement>("publish-session-status");
+const publishExistingNotes = byId<HTMLElement>("publish-existing-notes");
+const publishSubmitBtn = byId<HTMLButtonElement>("publish-submit-btn");
+const publishLogoutBtn = byId<HTMLButtonElement>("publish-logout-btn");
+const publishAdminStatus = byId<HTMLElement>("publish-admin-status");
 
 function showView(name: "setup" | "camera" | "list" | "history" | "collections" | "publish"): void {
   setupView.hidden = name !== "setup";
@@ -940,11 +963,9 @@ function renderPublishRelatedList(): void {
   });
 }
 
-function updatePublishOutput(): void {
-  if (!publishSession || !publishCapture) {
-    publishOutput.textContent = "";
-    return;
-  }
+/** フォームの現在の内容から、公開用データの形(サーバーへ送る形と同じ)を組み立てる。 */
+function buildPublishDraft(): ReadingNoteDraft | null {
+  if (!publishSession?.bookId || !publishCapture) return null;
   const reflection = publishReflection.value.trim();
   const includeQuote = publishQuoteToggle.checked;
   const quote = includeQuote ? publishQuote.value.trim() : "";
@@ -956,20 +977,27 @@ function updatePublishOutput(): void {
     .filter((checkbox) => checkbox.checked)
     .map((checkbox) => publishCapture!.relatedLinks![Number(checkbox.dataset.publishRelatedCheckbox)]);
 
-  const note: Record<string, unknown> = {
-    id: "REPLACE-ME",
-    bookId: publishSession.bookId ?? "",
+  const draft: ReadingNoteDraft = {
+    bookId: publishSession.bookId,
     authorReflection: reflection,
-    publishedAt: new Date().toISOString().slice(0, 10),
   };
   if (quote) {
-    note.quote = quote;
-    if (quoteLocation) note.quoteLocation = quoteLocation;
+    draft.quote = quote;
+    if (quoteLocation) draft.quoteLocation = quoteLocation;
   }
   if (relatedRecords.length > 0) {
-    note.relatedRecords = relatedRecords;
+    draft.relatedRecords = relatedRecords;
   }
+  return draft;
+}
 
+function updatePublishOutput(): void {
+  const draft = buildPublishDraft();
+  if (!draft) {
+    publishOutput.textContent = "";
+    return;
+  }
+  const note = { id: "REPLACE-ME", ...draft, publishedAt: new Date().toISOString().slice(0, 10) };
   publishOutput.textContent = JSON.stringify(note, null, 2);
 }
 
@@ -985,6 +1013,9 @@ async function openPublishPreview(capture: FieldnoteCapture): Promise<void> {
   renderPublishRelatedList();
   updatePublishOutput();
   publishCopyStatus.textContent = "";
+  publishAdminStatus.textContent = "";
+  renderAdminAuthState();
+  void renderExistingNotesForBook();
   showView("publish");
 }
 
@@ -995,6 +1026,192 @@ async function copyPublishOutput(): Promise<void> {
     publishCopyStatus.textContent = "コピーしました。";
   } catch {
     publishCopyStatus.textContent = "コピーできませんでした。上のテキストを選択してコピーしてください。";
+  }
+}
+
+// ----------------------------------------------------------------------
+// 本人限定の公開機能(2026-09-20、Decision Log 0189)。
+// サーバー側(Cloudflare Worker + D1)のsecret設定が完了していない
+// 環境では、ログイン自体がfail closedで失敗する。その場合はエラーを
+// 捕捉して案内を出し、下にある「この内容をコピーする」(手動反映)へ
+// 誘導する。
+// ----------------------------------------------------------------------
+let adminSession: AdminSession | null = null;
+
+function renderAdminAuthState(): void {
+  const loggedIn = adminSession !== null;
+  publishLoginBlock.hidden = loggedIn;
+  publishAuthedBlock.hidden = !loggedIn;
+  if (loggedIn && adminSession) {
+    const expires = new Date(adminSession.expiresAt);
+    publishSessionStatus.textContent = `ログイン中(有効期限: ${expires.toLocaleString("ja-JP")})`;
+  }
+}
+
+async function renderExistingNotesForBook(): Promise<void> {
+  publishExistingNotes.replaceChildren();
+  if (!publishSession?.bookId) return;
+
+  let notes: PublishedNoteRecord[];
+  try {
+    notes = await fetchPublishedNotes(publishSession.bookId);
+  } catch {
+    // GETは認証不要のため、失敗はサーバー未配線・通信不可を意味する。
+    // ここでは静かに諦める(ログインボタン側のエラー表示に任せる)。
+    return;
+  }
+
+  if (notes.length === 0) {
+    const empty = document.createElement("p");
+    empty.dataset.publishExistingEmpty = "true";
+    empty.textContent = "この本の公開メモはまだありません。";
+    publishExistingNotes.append(empty);
+    return;
+  }
+
+  const heading = document.createElement("p");
+  heading.dataset.fieldHeading = "true";
+  heading.textContent = "この本の公開済みメモ(いまの内容で更新・取り下げできます)";
+  publishExistingNotes.append(heading);
+
+  notes.forEach((note) => {
+    const row = document.createElement("div");
+    row.dataset.publishExistingRow = "true";
+
+    const preview = document.createElement("p");
+    preview.textContent = `${note.publishedAt} ${note.authorReflection.slice(0, 40)}${note.authorReflection.length > 40 ? "…" : ""}`;
+    row.append(preview);
+
+    const updateBtn = document.createElement("button");
+    updateBtn.type = "button";
+    updateBtn.textContent = "この内容で更新する";
+    updateBtn.addEventListener("click", () => void handleUpdateExisting(note));
+    row.append(updateBtn);
+
+    const retractBtn = document.createElement("button");
+    retractBtn.type = "button";
+    retractBtn.textContent = "取り下げる";
+    retractBtn.addEventListener("click", () => void handleRetractExisting(note));
+    row.append(retractBtn);
+
+    publishExistingNotes.append(row);
+  });
+}
+
+async function refreshAdminSection(): Promise<void> {
+  renderAdminAuthState();
+  await renderExistingNotesForBook();
+}
+
+async function handleAdminLoginClick(): Promise<void> {
+  const password = publishAdminPassword.value;
+  if (!password) {
+    publishAdminStatus.textContent = "パスワードを入力してください。";
+    return;
+  }
+  publishLoginBtn.disabled = true;
+  publishAdminStatus.textContent = "ログイン中…";
+  try {
+    adminSession = await adminLogin(password);
+    publishAdminPassword.value = "";
+    publishAdminStatus.textContent = "";
+    await refreshAdminSection();
+  } catch (error) {
+    if (error instanceof PublishApiError && error.status === 401) {
+      publishAdminStatus.textContent = "パスワードが違います。";
+    } else if (error instanceof PublishApiError && error.status === 429) {
+      publishAdminStatus.textContent = "試行回数が多すぎます。しばらく待ってから試してください。";
+    } else if (error instanceof PublishApiError && error.status === 500) {
+      publishAdminStatus.textContent =
+        "サーバー側の設定が未完了です(本番未配線)。下の「この内容をコピーする」で手動反映してください。";
+    } else {
+      publishAdminStatus.textContent =
+        "通信できませんでした。この環境ではAPIが使えない可能性があります。下の「この内容をコピーする」で手動反映してください。";
+    }
+  } finally {
+    publishLoginBtn.disabled = false;
+  }
+}
+
+async function handleAdminLogoutClick(): Promise<void> {
+  if (!adminSession) return;
+  await adminLogout(adminSession.csrfToken).catch(() => {});
+  adminSession = null;
+  publishAdminStatus.textContent = "ログアウトしました。";
+  renderAdminAuthState();
+}
+
+async function handlePublishSubmit(): Promise<void> {
+  if (!adminSession) {
+    publishAdminStatus.textContent = "ログインしてください。";
+    return;
+  }
+  const draft = buildPublishDraft();
+  if (!draft) {
+    publishAdminStatus.textContent = "本が選ばれていない記録は公開できません(本棚に紐づく記録のみ対象です)。";
+    return;
+  }
+  if (!draft.authorReflection) {
+    publishAdminStatus.textContent = "「自分の考え」を入力してください。";
+    return;
+  }
+  publishSubmitBtn.disabled = true;
+  publishAdminStatus.textContent = "公開しています…";
+  try {
+    await publishNote(adminSession.csrfToken, draft);
+    publishAdminStatus.textContent = "公開しました。本棚に反映されています。";
+    await renderExistingNotesForBook();
+  } catch (error) {
+    publishAdminStatus.textContent =
+      error instanceof PublishApiError ? `公開に失敗しました: ${error.message}` : "公開に失敗しました(通信エラー)。";
+  } finally {
+    publishSubmitBtn.disabled = false;
+  }
+}
+
+async function handleUpdateExisting(note: PublishedNoteRecord): Promise<void> {
+  if (!adminSession) {
+    publishAdminStatus.textContent = "ログインしてください。";
+    return;
+  }
+  const draft = buildPublishDraft();
+  if (!draft) return;
+  publishAdminStatus.textContent = "更新しています…";
+  try {
+    await updateNote(adminSession.csrfToken, note.id, draft, note.updatedAt);
+    publishAdminStatus.textContent = "更新しました。";
+    await renderExistingNotesForBook();
+  } catch (error) {
+    if (error instanceof PublishApiError && error.status === 409) {
+      publishAdminStatus.textContent = "他の場所で先に更新されていました。一覧を読み込み直しました。";
+      await renderExistingNotesForBook();
+    } else {
+      publishAdminStatus.textContent =
+        error instanceof PublishApiError ? `更新に失敗しました: ${error.message}` : "更新に失敗しました(通信エラー)。";
+    }
+  }
+}
+
+async function handleRetractExisting(note: PublishedNoteRecord): Promise<void> {
+  if (!adminSession) {
+    publishAdminStatus.textContent = "ログインしてください。";
+    return;
+  }
+  const proceed = window.confirm("この公開メモを取り下げますか?本棚から表示されなくなります。");
+  if (!proceed) return;
+  publishAdminStatus.textContent = "取り下げています…";
+  try {
+    await retractNote(adminSession.csrfToken, note.id, note.updatedAt);
+    publishAdminStatus.textContent = "取り下げました。";
+    await renderExistingNotesForBook();
+  } catch (error) {
+    if (error instanceof PublishApiError && error.status === 409) {
+      publishAdminStatus.textContent = "他の場所で先に更新されていました。一覧を読み込み直しました。";
+      await renderExistingNotesForBook();
+    } else {
+      publishAdminStatus.textContent =
+        error instanceof PublishApiError ? `取り下げに失敗しました: ${error.message}` : "取り下げに失敗しました(通信エラー)。";
+    }
   }
 }
 
@@ -1152,6 +1369,26 @@ publishCopyBtn.addEventListener("click", () => {
 
 publishBackBtn.addEventListener("click", () => {
   showView("list");
+});
+
+publishLoginBtn.addEventListener("click", () => {
+  void handleAdminLoginClick();
+});
+publishLogoutBtn.addEventListener("click", () => {
+  void handleAdminLogoutClick();
+});
+publishSubmitBtn.addEventListener("click", () => {
+  void handlePublishSubmit();
+});
+
+// ページ読み込み時、有効なセッションCookieが残っていればパスワード再
+// 入力なしで復元する(公開プレビューを開く前でも構わない、非同期に
+// 裏で確認するだけ)。
+void recoverAdminSession().then((session) => {
+  if (session) {
+    adminSession = session;
+    renderAdminAuthState();
+  }
 });
 
 exportBtn.addEventListener("click", () => {

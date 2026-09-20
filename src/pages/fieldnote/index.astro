@@ -36,12 +36,19 @@
  * - 複数の記録を手動でまとめる「まとめ」画面(`view-collections`)。
  * - 「書き出し/読み込み」(写真を含むJSONバックアップ)。
  * - 「公開プレビュー」(`view-publish`)。選んだ内容を公開用の形に
- *   整えてコピーできる。**実際に本棚へ反映する自動公開APIは今回
- *   実装していない**(本人認証を伴うサーバー側の仕組みが必要なため。
- *   Decision Log 0187に設計方針を記録し、次回以降の実装とする)。
- *   コピーした内容は、これまでどおり`src/data/publicReadingNotes.ts`
- *   に運営が手動で反映する。
- * - OCR(写真からの自動文字起こし)は未実装のまま。抜粋は手入力。
+ *   整えて確認できる。
+ *
+ * 【OCR・本人限定の公開APIを追加(2026-09-20、Decision Log 0188・0189)】
+ * - 写真記録に「文字を読み取る(実験的)」を追加した(Decision Log
+ *   0188)。読み取り結果は抜粋欄への下書きに留まり、保存は既存の
+ *   blur保存に委ねる。詳細・実測はDecision Log 0188参照。
+ * - 公開プレビュー画面に、本人限定ログイン(`/api/admin/login`)+
+ *   `/api/reading-notes`(Cloudflare Worker + D1)による実際の
+ *   公開・更新・取り下げボタンを追加した(Decision Log 0189)。
+ *   サーバー側のsecret設定が完了していない環境では、ログイン自体が
+ *   fail closedで失敗する。その場合に備え、「この内容をコピーする」
+ *   による手動反映(`src/data/publicReadingNotes.ts`への追記)も
+ *   引き続き残している(フォールバック、最終形ではない)。
  * ------------------------------------------------------------
  */
 import "@styles/tokens.css";
@@ -234,13 +241,39 @@ import { books } from "@/data/bookshelf";
         <p class={styles.quickEntryHeading}>関連記録(サイト内のものだけ選べます)</p>
         <div id="publish-related-list"></div>
 
-        <label class={styles.label} for="publish-output">公開用データ(確認してからコピーしてください)</label>
+        <label class={styles.label} for="publish-output">公開用データ(確認してから使ってください)</label>
         <pre id="publish-output" class={styles.publishOutput}></pre>
 
-        <button type="button" id="publish-copy-btn" class={styles.primaryButton}>この内容をコピーする</button>
+        <div id="publish-admin-section" class={styles.publishAdmin}>
+          <p class={styles.quickEntryHeading}>本棚へ反映する(本人限定)</p>
+
+          <div id="publish-login-block">
+            <label class={styles.label} for="publish-admin-password">パスワード</label>
+            <input
+              id="publish-admin-password"
+              type="password"
+              class={styles.titleInput}
+              autocomplete="current-password"
+            />
+            <button type="button" id="publish-login-btn" class={styles.secondaryButton}>ログイン</button>
+          </div>
+
+          <div id="publish-authed-block" hidden>
+            <p id="publish-session-status" class={styles.backupStatus}></p>
+
+            <div id="publish-existing-notes"></div>
+
+            <button type="button" id="publish-submit-btn" class={styles.primaryButton}>この内容を公開する</button>
+            <button type="button" id="publish-logout-btn" class={styles.historyLink}>ログアウト</button>
+          </div>
+
+          <p id="publish-admin-status" class={styles.backupStatus} role="status" aria-live="polite"></p>
+        </div>
+
+        <button type="button" id="publish-copy-btn" class={styles.secondaryButton}>この内容をコピーする</button>
         <p id="publish-copy-status" class={styles.backupStatus} role="status" aria-live="polite"></p>
         <p class={styles.publishNote}>
-          現時点では、コピーした内容を運営が確認のうえ本棚に反映します(自動では公開されません)。
+          上の「公開する」が使えない場合(サーバー側の設定が未完了な環境など)は、コピーした内容を運営が確認のうえ手動で本棚に反映します。
         </p>
 
         <button type="button" id="publish-back-btn" class={styles.historyLink}>閉じる</button>
