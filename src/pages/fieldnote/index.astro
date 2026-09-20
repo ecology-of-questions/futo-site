@@ -7,22 +7,38 @@
  * 検証したいこと: 「読書を中断せず、気になったページを残せるか」。
  * OCR/AI/ログイン/課金/ISBN検索/タグ/引用範囲選択/Apple Watch連携/
  * 集中モードのネイティブ連携は、この検証には不要なため実装しない
- * (2026-09-02, Decision Log 0058)。
+ * (2026-09-02, Decision Log 0066)。
  *
  * サイト全体のDefaultLayout(Header/Footer)は使わない。カメラ
  * プレビューを画面いっぱいに使う独立したツール画面であり、
  * Home「いま、取り組んでいること」からもまだリンクしていない
- * (制作・検証中、Decision Log 0057)。
+ * (制作・検証中、Decision Log 0066)。
  *
  * 保存処理(IndexedDbFieldnoteStore)・カメラ制御(FieldnoteCamera)・
  * 画面遷移/DOM配線(app.ts)は、すべて../../lib/fieldnote/に置く
  * (src/pages配下の.tsはAstroのファイルベースルーティングにより
  * サーバーエンドポイントとして扱われてしまうため、pages配下には
  * 置けない)。
+ *
+ * 【本棚との紐づけ・過去の記録一覧を追加(2026-09-20、Decision Log
+ * 0185)】プロジェクトオーナーの指示書「Fieldnote × 本棚 v1」に
+ * 基づき、以下を追加した。
+ * - 読書セッション開始時に、本棚のcanonical data(`@/data/bookshelf`)
+ *   から本を選べる`<select>`(任意)と、ページ・位置の自由記述欄。
+ * - `/fieldnote/?book=<bookId>`で開いた場合、該当の本を選択済みに
+ *   する(未知のIDは無視して未選択のまま、エラー画面にはしない)。
+ * - 「過去の記録」一覧(新設、`view-history`)。本で絞り込める。
+ *   このMVPには元々「終了した1セッションの一覧」しか無く、複数
+ *   セッションを横断して見る画面が存在しなかったため新設した
+ *   (Decision Log 0066の「将来の変更可能性」で予告されていた
+ *   「セッション履歴の閲覧」に相当)。
+ * - セッション終了後の一覧画面で、紐づけた本の名前をボタンにし、
+ *   押すとその本で絞り込んだ「過去の記録」に移動できるようにした。
  * ------------------------------------------------------------
  */
 import "@styles/tokens.css";
 import styles from "./index.module.css";
+import { books } from "@/data/bookshelf";
 ---
 
 <!doctype html>
@@ -60,9 +76,30 @@ import styles from "./index.module.css";
             placeholder="例: 存在と時間"
             autocomplete="off"
           />
+
+          <label class={styles.label} for="book-select">本棚から選ぶ(任意)</label>
+          <select id="book-select" class={styles.bookSelect}>
+            <option value="">本を選ばない</option>
+            {books.map((book) => (
+              <option value={book.id}>{book.author ? `${book.title}／${book.author}` : book.title}</option>
+            ))}
+          </select>
+
+          <div id="book-location-field" class={styles.locationField} hidden>
+            <label class={styles.label} for="book-location-input">ページ・位置(任意)</label>
+            <input
+              id="book-location-input"
+              class={styles.titleInput}
+              type="text"
+              placeholder="例: p.32-34、第2章"
+              autocomplete="off"
+            />
+          </div>
+
           <button type="submit" class={styles.primaryButton}>読書セッションを開始</button>
         </form>
         <p id="setup-error" class={styles.setupError} hidden></p>
+        <button type="button" id="open-history-btn" class={styles.historyLink}>過去の記録を見る →</button>
       </section>
 
       <section id="view-camera" class={styles.cameraView} hidden>
@@ -92,10 +129,28 @@ import styles from "./index.module.css";
         <p class={styles.eyebrow}>FIELDNOTE READING</p>
         <h1 id="list-title" class={styles.listHeading}></h1>
         <p id="list-meta" class={styles.listMeta}></p>
+        <button type="button" id="list-book-link" class={styles.bookLinkButton} hidden></button>
         <div id="capture-grid" class={styles.captureGrid}></div>
         <button type="button" id="start-new-session-btn" class={styles.primaryButton}
           >新しい読書セッションを始める</button
         >
+        <button type="button" id="list-open-history-btn" class={styles.historyLink}>過去の記録を見る →</button>
+      </section>
+
+      <section id="view-history" class={styles.historyView} hidden>
+        <p class={styles.eyebrow}>FIELDNOTE READING</p>
+        <h1 class={styles.listHeading}>過去の記録</h1>
+        <div class={styles.historyFilterRow}>
+          <label class={styles.label} for="history-book-filter">本で絞り込む</label>
+          <select id="history-book-filter" class={styles.bookSelect}>
+            <option value="">すべて</option>
+            {books.map((book) => (
+              <option value={book.id}>{book.title}</option>
+            ))}
+          </select>
+        </div>
+        <div id="history-list" class={styles.historyList}></div>
+        <button type="button" id="history-back-btn" class={styles.primaryButton}>閉じる</button>
       </section>
     </div>
 
