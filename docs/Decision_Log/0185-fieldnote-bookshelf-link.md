@@ -1,5 +1,7 @@
 # 0185 — Fieldnote Readingと本棚を紐づける(v1)
 
+**状態: 一部撤回(→ 0186)。** 「`/bookshelf`の各行に『この本にメモする →』を追加」した部分は、2026-09-20のDecision Log 0186でプロジェクトオーナーの判断により撤回した(公開本棚は「読む場所」であり、訪問者が自分のメモを書き始める入口ではない、という方針)。個人用Fieldnote Reading(`bookId`/`bookLocation`・過去の記録一覧)自体は維持している。詳細は0186参照。
+
 ## Decision
 プロジェクトオーナーの指示書「Fieldnote × 本棚 v1」に基づき、実アプリ「Fieldnote Reading」(`/fieldnote/`、Decision Log 0066)と「研究の本棚」(`/bookshelf`)を最小限つないだ。
 

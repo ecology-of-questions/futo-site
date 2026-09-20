@@ -42,18 +42,25 @@
  * 止めただけで、ファイル自体・Formspree連携ロジックは削除していない
  * (Decision Log 0167の「一回」削除という判断を維持)。
  *
- * 【Fieldnote Readingへの「この本にメモする」導線を追加(2026-09-20、
- * Decision Log 0185)】各行に、`/fieldnote/?book=<bookId>`へ遷移する
- * 小さなテキストリンクを追加した。押しても自動でメモが作成・保存
- * されるわけではなく、Fieldnote側の読書セッション開始画面に、その
- * 本が選択済みの状態で移動するだけ。購入リンク(`href`)とは別の
- * リンクのため、`<a>`の入れ子を避けて`textLink`とは兄弟要素にして
- * いる。全statusの行に表示する(読書中に限らない)。
+ * 【「この本にメモする」を撤回、公開読書メモの閲覧に置き換え
+ * (2026-09-20、Decision Log 0186)】Decision Log 0185で追加した
+ * 「この本にメモする →」(Fieldnote Readingの新規メモ導線)は撤回した。
+ * 公開本棚は「本人が選んで公開した読書メモを読む場所」であり、訪問者が
+ * 自分の読書メモを書き始める入口ではない、というプロジェクトオーナーの
+ * 判断による。個人用Fieldnote Reading自体(本の紐づけ・過去の記録の
+ * 絞り込み)はアプリ内に維持しており、`/fieldnote/`から直接使える。
+ *
+ * 代わりに、本人が明示的に公開した読書メモ(`src/data/publicReadingNotes.ts`、
+ * 手動キュレーション、初期状態は空)がある本にだけ、`<details>`で
+ * その場に展開する読み取り専用の「読書メモを読む」を表示する。公開
+ * メモが無い本には何も表示しない(無効ボタン・0件バッジ・ダミーは
+ * 置かない)。編集・削除・投稿にはつながっていない、静的な表示のみ。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfShelf.module.css";
 import { bookStatusLabels, type BookStatus, type BookEntry } from "@/types/bookshelf";
 import { buildPurchaseUrl, isActiveAffiliateLink } from "@/config/site";
+import { getPublicReadingNotesForBook } from "@/data/publicReadingNotes";
 
 interface Props {
   books: BookEntry[];
@@ -66,6 +73,7 @@ function toRow(book: BookEntry) {
     book,
     href: buildPurchaseUrl(book),
     isAffiliate: isActiveAffiliateLink(book),
+    notes: getPublicReadingNotesForBook(book.id),
   };
 }
 
@@ -101,7 +109,7 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
         {group.heading}
       </h2>
       <ul class={styles.textList}>
-        {group.rows.map(({ book, href, isAffiliate }) => {
+        {group.rows.map(({ book, href, isAffiliate, notes }) => {
           const titleLine = book.contributed ? `${book.title}(持ち寄られた本)` : book.title;
           return (
             <li class={styles.textRow}>
@@ -121,9 +129,21 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
                   <span class={styles.textAuthor}>{book.author}</span>
                 </div>
               )}
-              <a class={styles.memoLink} href={`/fieldnote/?book=${encodeURIComponent(book.id)}`}>
-                この本にメモする <span aria-hidden="true">→</span>
-              </a>
+              {notes.length > 0 && (
+                <details class={styles.readingNotes}>
+                  <summary class={styles.readingNotesSummary}>読書メモを読む</summary>
+                  <div class={styles.readingNotesBody}>
+                    {notes.map((note) => (
+                      <article class={styles.readingNote}>
+                        <h3 class={styles.readingNoteTitle}>{note.title}</h3>
+                        <p class={styles.readingNoteMeta}>{note.publishedAt}</p>
+                        {note.image && <img class={styles.readingNoteImage} src={note.image} alt="" loading="lazy" />}
+                        <p class={styles.readingNoteBodyText}>{note.body}</p>
+                      </article>
+                    ))}
+                  </div>
+                </details>
+              )}
             </li>
           );
         })}

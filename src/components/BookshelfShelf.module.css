@@ -90,9 +90,16 @@
   }
 }
 
-/* 「この本にメモする」導線(2026-09-20、Decision Log 0185)。本文の
-   購入リンクより控えめに、行の下に小さく置く。 */
-.memoLink {
+/* -----------------------------
+ * 公開読書メモの閲覧(2026-09-20、Decision Log 0186)。公開メモが
+ * ある本の行にだけ表示する、その場に展開する読み取り専用の表示。
+ * 「この本にメモする」(Decision Log 0185)は撤回し、これに置き換えた。
+ * ----------------------------- */
+.readingNotes {
+  padding: 0 0 var(--space-2);
+}
+
+.readingNotesSummary {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -100,12 +107,60 @@
   font-family: var(--font-sans);
   font-size: var(--fs-sm);
   color: var(--color-accent-blue);
-  text-decoration: none;
+  cursor: pointer;
+  list-style: none;
 }
 
-.memoLink:hover,
-.memoLink:focus-visible {
+.readingNotesSummary::-webkit-details-marker {
+  display: none;
+}
+
+.readingNotesSummary:hover,
+.readingNotesSummary:focus-visible {
   text-decoration: underline;
+}
+
+.readingNotesBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  margin-top: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent-beige);
+}
+
+.readingNote + .readingNote {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.readingNoteTitle {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  line-height: var(--lh-heading);
+}
+
+.readingNoteMeta {
+  margin: 2px 0 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.readingNoteImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: var(--space-2);
+}
+
+.readingNoteBodyText {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  white-space: pre-line;
 }
 
 /* 【Amazonアソシエイト開示文言】実際にアソシエイトタグ付きリンクを
