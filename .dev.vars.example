@@ -1,12 +1,19 @@
 # .dev.vars.example
 # ------------------------------------------------------------
-# ローカル開発(`npm run pages:dev`)で使うCloudflare Pages Secretの
-# ひな形(2026-09-13、Decision Log 0142)。このファイルをコピーして
-# `.dev.vars`という名前で保存すると、`wrangler pages dev`が自動的に
-# 読み込む。`.dev.vars`自体は.gitignoreでコミット対象外にしている。
+# ローカル開発(`npm run worker:dev`、`wrangler dev`)で使うCloudflare
+# Workerのsecretのひな形。このファイルをコピーして`.dev.vars`という
+# 名前で保存すると、`wrangler dev`が自動的に読み込む。`.dev.vars`
+# 自体は.gitignoreでコミット対象外にしている。
 #
-# 本番・PreviewのIP_HASH_SECRETは、Cloudflareダッシュボードの
-# Pagesプロジェクト設定(Settings > Environment variables)から
-# Secretとして設定する。ローカル用の値と本番用の値は別にすること。
+# 本番・PreviewのIP_HASH_SECRET等は、Cloudflareダッシュボードの
+# Worker設定(Settings > Variables and Secrets)、または
+# `wrangler secret put <NAME>`コマンドからSecretとして設定する。
+# ローカル用の値と本番用の値は別にすること。
+#
+# ADMIN_PASSWORD_HASH/ADMIN_PASSWORD_PEPPERは`npm run
+# admin:hash-password`で生成する(Decision Log 0189)。
 # ------------------------------------------------------------
 IP_HASH_SECRET=local-dev-only-change-me
+ADMIN_SESSION_SECRET=local-dev-only-change-me
+ADMIN_PASSWORD_PEPPER=local-dev-only-change-me
+ADMIN_PASSWORD_HASH=local-dev-only-run-npm-run-admin-hash-password-to-generate

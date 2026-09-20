@@ -30,6 +30,16 @@
  * 鍵にしたHMAC-SHA256でハッシュ化してから保存する。`IP_HASH_SECRET`が
  * 設定されていない場合は、弱いハッシュにフォールバックせず500を返す
  * (fail closed)。
+ *
+ * 【本人限定の公開読書メモAPIを追加(2026-09-20、Decision Log 0189)】
+ * `/api/reading-notes`(公開本棚の読書メモ)は、GET(一覧取得)のみ
+ * 誰でも呼べる。POST(公開)・PUT(更新)・DELETE(取り下げ)は、
+ * `/api/admin/login`でパスワード認証したセッションでのみ許可する
+ * (fail closed: 認証用secretが未設定の場合はログイン自体を500で拒否)。
+ * セッションは署名付きHttpOnly Cookie(サーバー側にセッションテーブルを
+ * 持たない、ステートレスな設計)。状態変更系のリクエストは、Cookieに
+ * 加えてCSRFトークン(ログイン応答のボディで返し、リクエストヘッダで
+ * 照合)も要求する。詳細な設計判断・実測はDecision Log 0189参照。
  * ------------------------------------------------------------
  */
 
@@ -37,6 +47,9 @@
 interface D1Result<T = unknown> {
   results: T[];
   success: boolean;
+  /** `run()`で更新/削除された行数などを確認するために使う
+   * (楽観的ロックの判定: 0件ならWHERE条件に一致する行が無かった)。 */
+  meta?: { changes?: number };
 }
 
 interface D1PreparedStatement {
@@ -66,6 +79,17 @@ interface Env {
    * ヘッダとして返し、Cloudflare側で実際にどの環境設定が使われたかを
    * 外部から確認できるようにする(2026-09-14、Decision Log 0145)。 */
   NOTEBOOK_ENV?: string;
+  /** 本人限定ログインのパスワードハッシュ(SHA-256(password:pepper)の
+   * 16進数)。`scripts/hash-admin-password.mjs`で生成する。 */
+  ADMIN_PASSWORD_HASH?: string;
+  /** 上記ハッシュ計算に使うpepper。ADMIN_PASSWORD_HASHとは別のsecret
+   * として保存する(片方が漏れてももう片方が無ければ元のパスワードは
+   * 復元できない)。 */
+  ADMIN_PASSWORD_PEPPER?: string;
+  /** セッションCookieの署名鍵。IP_HASH_SECRETやADMIN_PASSWORD_*とは
+   * 別のsecretにする(役割ごとに鍵を分け、1つの漏洩の影響範囲を
+   * 限定する)。 */
+  ADMIN_SESSION_SECRET?: string;
 }
 
 // --- 定数 ------------------------------------------------------------
@@ -274,13 +298,496 @@ async function handlePostEntries(slug: string, request: Request, env: Env): Prom
   );
 }
 
+// ======================================================================
+// 本人限定の公開読書メモAPI(/api/reading-notes, /api/admin/*)
+// (2026-09-20、Decision Log 0189)
+// ======================================================================
+
+// src/data/bookshelf.tsのidと一致させる(このAPIが受け付けて良い本を
+// 明示的に限定するallowlist。VALID_SLUGSと同じ考え方)。
+const VALID_BOOK_IDS = new Set([
+  "keiken-to-kyouiku",
+  "chousateki-kansei-jutsu",
+  "souzou-no-kyoudoutai",
+  "matsutake",
+  "ikiteiru-koto",
+  "ito-sei-fukushi",
+]);
+
+const MAX_REFLECTION_LENGTH = 4000;
+const MAX_QUOTE_LENGTH = 4000;
+const MAX_QUOTE_LOCATION_LENGTH = 200;
+const MAX_RELATED_RECORDS = 10;
+const MAX_RELATED_LABEL_LENGTH = 200;
+
+const SESSION_COOKIE_NAME = "futo_admin_session";
+const SESSION_TTL_SECONDS = 8 * 60 * 60; // 8時間
+
+const LOGIN_RATE_LIMIT_WINDOW_SECONDS = 15 * 60;
+const LOGIN_RATE_LIMIT_MAX = 5;
+
+interface ReadingNoteRow {
+  id: string;
+  book_id: string;
+  author_reflection: string;
+  quote: string | null;
+  quote_location: string | null;
+  related_records_json: string | null;
+  published_at: string;
+  status: "published" | "retracted";
+  created_at: string;
+  updated_at: string;
+}
+
+interface PublicReadingNoteApi {
+  id: string;
+  bookId: string;
+  authorReflection: string;
+  publishedAt: string;
+  quote?: string;
+  quoteLocation?: string;
+  relatedRecords?: { label: string; href: string }[];
+  /** 更新・取り下げ時の楽観的ロックに使う(呼び出し側はこの値を
+   * そのまま次のPUT/DELETEのexpectedUpdatedAtに渡す)。 */
+  updatedAt: string;
+}
+
+function toPublicReadingNote(row: ReadingNoteRow): PublicReadingNoteApi {
+  const note: PublicReadingNoteApi = {
+    id: row.id,
+    bookId: row.book_id,
+    authorReflection: row.author_reflection,
+    publishedAt: row.published_at,
+    updatedAt: row.updated_at,
+  };
+  if (row.quote) note.quote = row.quote;
+  if (row.quote_location) note.quoteLocation = row.quote_location;
+  if (row.related_records_json) {
+    try {
+      note.relatedRecords = JSON.parse(row.related_records_json);
+    } catch {
+      // 壊れたJSONは無視する(関連記録なしとして扱う。全体を500にしない)。
+    }
+  }
+  return note;
+}
+
+function toHex(bytes: ArrayBuffer): string {
+  return Array.from(new Uint8Array(bytes))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function fromHex(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
+}
+
+/** 固定長16進数文字列同士を、タイミング攻撃を避けて比較する。 */
+function timingSafeEqualHex(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function base64UrlEncode(input: string): string {
+  return btoa(input).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function base64UrlDecode(input: string): string {
+  const padded = input.replace(/-/g, "+").replace(/_/g, "/");
+  const padLength = (4 - (padded.length % 4)) % 4;
+  return atob(padded + "=".repeat(padLength));
+}
+
+async function hmacSha256Hex(key: string, message: string): Promise<string> {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(key),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(message));
+  return toHex(signature);
+}
+
+interface SessionPayload {
+  exp: number;
+  csrf: string;
+}
+
+async function signSession(payload: SessionPayload, secret: string): Promise<string> {
+  const payloadB64 = base64UrlEncode(JSON.stringify(payload));
+  const sigHex = await hmacSha256Hex(secret, payloadB64);
+  return `${payloadB64}.${sigHex}`;
+}
+
+async function verifySession(token: string, secret: string): Promise<SessionPayload | null> {
+  const [payloadB64, sigHex] = token.split(".");
+  if (!payloadB64 || !sigHex) return null;
+  const expectedSigHex = await hmacSha256Hex(secret, payloadB64);
+  if (!timingSafeEqualHex(sigHex, expectedSigHex)) return null;
+  try {
+    const payload = JSON.parse(base64UrlDecode(payloadB64)) as SessionPayload;
+    if (typeof payload.exp !== "number" || typeof payload.csrf !== "string") return null;
+    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function parseCookies(request: Request): Record<string, string> {
+  const header = request.headers.get("Cookie");
+  if (!header) return {};
+  const result: Record<string, string> = {};
+  for (const part of header.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq === -1) continue;
+    const key = part.slice(0, eq).trim();
+    const value = part.slice(eq + 1).trim();
+    if (key) result[key] = decodeURIComponent(value);
+  }
+  return result;
+}
+
+function buildSessionCookie(token: string): string {
+  return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/api/; Max-Age=${SESSION_TTL_SECONDS}; HttpOnly; Secure; SameSite=Strict`;
+}
+
+function buildClearSessionCookie(): string {
+  return `${SESSION_COOKIE_NAME}=; Path=/api/; Max-Age=0; HttpOnly; Secure; SameSite=Strict`;
+}
+
+/**
+ * リクエストが有効なセッションCookieを持つか検証する。
+ * secret未設定は常に認証失敗として扱う(fail closed、
+ * IP_HASH_SECRETと同じ方針)。
+ */
+async function requireSession(request: Request, env: Env): Promise<SessionPayload | null> {
+  if (!env.ADMIN_SESSION_SECRET) return null;
+  const cookies = parseCookies(request);
+  const token = cookies[SESSION_COOKIE_NAME];
+  if (!token) return null;
+  return verifySession(token, env.ADMIN_SESSION_SECRET);
+}
+
+/** 状態変更系リクエストのCSRFトークンを検証する(ヘッダとセッション内の値を比較)。 */
+function requireCsrf(request: Request, session: SessionPayload): boolean {
+  const header = request.headers.get("X-CSRF-Token");
+  return typeof header === "string" && header.length > 0 && header === session.csrf;
+}
+
+async function handleAdminLogin(request: Request, env: Env): Promise<Response> {
+  if (!env.ADMIN_PASSWORD_HASH || !env.ADMIN_PASSWORD_PEPPER || !env.ADMIN_SESSION_SECRET || !env.IP_HASH_SECRET) {
+    // 認証用secretが揃っていない場合は、弱い既定値へフォールバック
+    // せず常に拒否する(fail closed)。IPハッシュ化は既存の
+    // IP_HASH_SECRET(handlePostEntriesと同じ鍵)をそのまま使う——
+    // 「IPをハッシュ化する」という役割は1つの鍵にまとめる。
+    return json({ error: "server misconfigured" }, 500);
+  }
+
+  let payload: Record<string, unknown>;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "invalid request body" }, 400);
+  }
+  const password = typeof payload.password === "string" ? payload.password : "";
+  if (!password) return json({ error: "password is required" }, 400);
+
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+  const ipHash = await hashIp(ip, env.IP_HASH_SECRET);
+
+  const recentAttempts = await env.DB.prepare(
+    `SELECT COUNT(*) as count FROM admin_login_attempts WHERE ip_hash = ?1 AND unixepoch(attempted_at) > unixepoch('now') - ?2`,
+  )
+    .bind(ipHash, LOGIN_RATE_LIMIT_WINDOW_SECONDS)
+    .first<{ count: number }>();
+  if ((recentAttempts?.count ?? 0) >= LOGIN_RATE_LIMIT_MAX) {
+    return json({ error: "too many attempts, please wait" }, 429);
+  }
+
+  const candidateHash = await hmacSha256HexLike(password, env.ADMIN_PASSWORD_PEPPER);
+  const valid = timingSafeEqualHex(candidateHash, env.ADMIN_PASSWORD_HASH);
+
+  if (!valid) {
+    await env.DB.prepare(`INSERT INTO admin_login_attempts (ip_hash) VALUES (?1)`).bind(ipHash).run();
+    return json({ error: "invalid password" }, 401);
+  }
+
+  const csrf = toHex(crypto.getRandomValues(new Uint8Array(16)).buffer);
+  const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const token = await signSession({ exp, csrf }, env.ADMIN_SESSION_SECRET);
+
+  const response = json({ csrfToken: csrf, expiresAt: new Date(exp * 1000).toISOString() });
+  response.headers.append("Set-Cookie", buildSessionCookie(token));
+  return response;
+}
+
+/**
+ * パスワード候補のハッシュを、ADMIN_PASSWORD_HASHと同じ計算式
+ * (SHA-256(password:pepper))で求める。`scripts/hash-admin-password.mjs`
+ * と必ず同じ式にすること。
+ */
+async function hmacSha256HexLike(password: string, pepper: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${password}:${pepper}`));
+  return toHex(digest);
+}
+
+async function handleAdminLogout(request: Request, env: Env): Promise<Response> {
+  const session = await requireSession(request, env);
+  if (session) {
+    if (!requireCsrf(request, session)) {
+      return json({ error: "invalid csrf token" }, 403);
+    }
+  }
+  const response = json({ ok: true });
+  response.headers.append("Set-Cookie", buildClearSessionCookie());
+  return response;
+}
+
+/**
+ * 有効なセッションCookieを持っているかどうかを確認する。ページ再読み込み
+ * 後、パスワードの再入力なしにCSRFトークンを復元するために使う
+ * (CSRFトークンは署名済みCookieの中身にそのまま入っているので、
+ * サーバー側に別途セッションを保存しなくても検証・再取得できる)。
+ */
+async function handleAdminSession(request: Request, env: Env): Promise<Response> {
+  const session = await requireSession(request, env);
+  if (!session) return json({ error: "not authenticated" }, 401);
+  return json({ csrfToken: session.csrf, expiresAt: new Date(session.exp * 1000).toISOString() });
+}
+
+async function handleGetReadingNotes(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  const bookId = url.searchParams.get("bookId");
+  if (!bookId || !VALID_BOOK_IDS.has(bookId)) {
+    return json({ error: "bookId is required and must be a known book" }, 400);
+  }
+  const { results } = await env.DB.prepare(
+    `SELECT id, book_id, author_reflection, quote, quote_location, related_records_json, published_at, status, created_at, updated_at
+     FROM reading_notes WHERE book_id = ?1 AND status = 'published' ORDER BY published_at DESC`,
+  )
+    .bind(bookId)
+    .all<ReadingNoteRow>();
+  return json({ notes: results.map(toPublicReadingNote) });
+}
+
+interface ReadingNoteInput {
+  bookId: unknown;
+  authorReflection: unknown;
+  quote?: unknown;
+  quoteLocation?: unknown;
+  relatedRecords?: unknown;
+}
+
+/** POST/PUT共通の入力検証。エラーがあればエラーメッセージ、無ければnullを返す。 */
+function validateReadingNoteInput(input: ReadingNoteInput): string | null {
+  if (typeof input.bookId !== "string" || !VALID_BOOK_IDS.has(input.bookId)) {
+    return "bookId must be a known book id";
+  }
+  if (typeof input.authorReflection !== "string" || input.authorReflection.trim() === "") {
+    return "authorReflection is required";
+  }
+  if (input.authorReflection.length > MAX_REFLECTION_LENGTH) {
+    return `authorReflection must be ${MAX_REFLECTION_LENGTH} characters or fewer`;
+  }
+  if (input.quote !== undefined && input.quote !== null) {
+    if (typeof input.quote !== "string" || input.quote.length > MAX_QUOTE_LENGTH) {
+      return `quote must be a string of ${MAX_QUOTE_LENGTH} characters or fewer`;
+    }
+  }
+  if (input.quoteLocation !== undefined && input.quoteLocation !== null) {
+    if (typeof input.quoteLocation !== "string" || input.quoteLocation.length > MAX_QUOTE_LOCATION_LENGTH) {
+      return `quoteLocation must be a string of ${MAX_QUOTE_LOCATION_LENGTH} characters or fewer`;
+    }
+  }
+  if (input.relatedRecords !== undefined && input.relatedRecords !== null) {
+    if (!Array.isArray(input.relatedRecords) || input.relatedRecords.length > MAX_RELATED_RECORDS) {
+      return `relatedRecords must be an array of at most ${MAX_RELATED_RECORDS} items`;
+    }
+    for (const record of input.relatedRecords) {
+      if (
+        typeof record !== "object" ||
+        record === null ||
+        typeof (record as Record<string, unknown>).label !== "string" ||
+        typeof (record as Record<string, unknown>).href !== "string"
+      ) {
+        return "each relatedRecords item must have a string label and href";
+      }
+      const label = (record as { label: string }).label;
+      const href = (record as { href: string }).href;
+      if (label.length === 0 || label.length > MAX_RELATED_LABEL_LENGTH) {
+        return `relatedRecords label must be 1-${MAX_RELATED_LABEL_LENGTH} characters`;
+      }
+      // 公開プレビューUI(Fieldnote)と同じ制約: サイト内パスのみ許可する
+      // (外部リンクはサーバー側でも拒否する、クライアント側検証だけに
+      // 頼らない)。
+      if (!href.startsWith("/")) {
+        return "relatedRecords href must be a site-internal path starting with /";
+      }
+    }
+  }
+  return null;
+}
+
+async function handlePostReadingNotes(request: Request, env: Env): Promise<Response> {
+  const session = await requireSession(request, env);
+  if (!session) return json({ error: "authentication required" }, 401);
+  if (!requireCsrf(request, session)) return json({ error: "invalid csrf token" }, 403);
+
+  let payload: ReadingNoteInput;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "invalid request body" }, 400);
+  }
+  const validationError = validateReadingNoteInput(payload);
+  if (validationError) return json({ error: validationError }, 400);
+
+  const id = crypto.randomUUID();
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const publishedAt = nowIso.slice(0, 10);
+  const relatedRecordsJson =
+    Array.isArray(payload.relatedRecords) && payload.relatedRecords.length > 0
+      ? JSON.stringify(payload.relatedRecords)
+      : null;
+
+  await env.DB.prepare(
+    `INSERT INTO reading_notes (id, book_id, author_reflection, quote, quote_location, related_records_json, published_at, status, created_at, updated_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, 'published', ?8, ?8)`,
+  )
+    .bind(
+      id,
+      payload.bookId,
+      (payload.authorReflection as string).trim(),
+      payload.quote ? (payload.quote as string).trim() : null,
+      payload.quoteLocation ? (payload.quoteLocation as string).trim() : null,
+      relatedRecordsJson,
+      publishedAt,
+      nowIso,
+    )
+    .run();
+
+  const row = await env.DB.prepare(
+    `SELECT id, book_id, author_reflection, quote, quote_location, related_records_json, published_at, status, created_at, updated_at
+     FROM reading_notes WHERE id = ?1`,
+  )
+    .bind(id)
+    .first<ReadingNoteRow>();
+  if (!row) return json({ error: "failed to create" }, 500);
+  return json({ note: toPublicReadingNote(row) }, 201);
+}
+
+async function handlePutReadingNote(id: string, request: Request, env: Env): Promise<Response> {
+  const session = await requireSession(request, env);
+  if (!session) return json({ error: "authentication required" }, 401);
+  if (!requireCsrf(request, session)) return json({ error: "invalid csrf token" }, 403);
+
+  let payload: ReadingNoteInput & { expectedUpdatedAt?: unknown };
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "invalid request body" }, 400);
+  }
+  const validationError = validateReadingNoteInput(payload);
+  if (validationError) return json({ error: validationError }, 400);
+  if (typeof payload.expectedUpdatedAt !== "string") {
+    return json({ error: "expectedUpdatedAt is required (optimistic locking)" }, 400);
+  }
+
+  const nowIso = new Date().toISOString();
+  const relatedRecordsJson =
+    Array.isArray(payload.relatedRecords) && payload.relatedRecords.length > 0
+      ? JSON.stringify(payload.relatedRecords)
+      : null;
+
+  const result = await env.DB.prepare(
+    `UPDATE reading_notes
+     SET author_reflection = ?1, quote = ?2, quote_location = ?3, related_records_json = ?4, updated_at = ?5
+     WHERE id = ?6 AND updated_at = ?7 AND status = 'published'`,
+  )
+    .bind(
+      (payload.authorReflection as string).trim(),
+      payload.quote ? (payload.quote as string).trim() : null,
+      payload.quoteLocation ? (payload.quoteLocation as string).trim() : null,
+      relatedRecordsJson,
+      nowIso,
+      id,
+      payload.expectedUpdatedAt,
+    )
+    .run();
+
+  if (!result.meta?.changes) {
+    // 行が無い(idが不正・取り下げ済み)か、expectedUpdatedAtが
+    // 現在の値と一致しない(他の場所で先に更新された)かのいずれか。
+    // どちらも呼び出し側から見れば「今の状態を確認してやり直す」
+    // べき状況なので、区別せず409を返す。
+    const exists = await env.DB.prepare(`SELECT id FROM reading_notes WHERE id = ?1`).bind(id).first();
+    return json({ error: exists ? "conflict: this note was updated elsewhere" : "not found" }, exists ? 409 : 404);
+  }
+
+  const row = await env.DB.prepare(
+    `SELECT id, book_id, author_reflection, quote, quote_location, related_records_json, published_at, status, created_at, updated_at
+     FROM reading_notes WHERE id = ?1`,
+  )
+    .bind(id)
+    .first<ReadingNoteRow>();
+  if (!row) return json({ error: "not found" }, 404);
+  return json({ note: toPublicReadingNote(row) });
+}
+
+async function handleDeleteReadingNote(id: string, request: Request, env: Env): Promise<Response> {
+  const session = await requireSession(request, env);
+  if (!session) return json({ error: "authentication required" }, 401);
+  if (!requireCsrf(request, session)) return json({ error: "invalid csrf token" }, 403);
+
+  let payload: { expectedUpdatedAt?: unknown } = {};
+  try {
+    payload = await request.json();
+  } catch {
+    // 取り下げは本文が空でも許容する(expectedUpdatedAt省略時は
+    // ロックなしで取り下げる。呼び出し側UIは常に付ける設計だが、
+    // APIとしては必須にしない)。
+  }
+
+  const nowIso = new Date().toISOString();
+  let result: D1Result;
+  if (typeof payload.expectedUpdatedAt === "string") {
+    result = await env.DB.prepare(
+      `UPDATE reading_notes SET status = 'retracted', updated_at = ?1 WHERE id = ?2 AND updated_at = ?3 AND status = 'published'`,
+    )
+      .bind(nowIso, id, payload.expectedUpdatedAt)
+      .run();
+  } else {
+    result = await env.DB.prepare(
+      `UPDATE reading_notes SET status = 'retracted', updated_at = ?1 WHERE id = ?2 AND status = 'published'`,
+    )
+      .bind(nowIso, id)
+      .run();
+  }
+
+  if (!result.meta?.changes) {
+    const exists = await env.DB.prepare(`SELECT id FROM reading_notes WHERE id = ?1`).bind(id).first();
+    return json({ error: exists ? "conflict: this note was updated elsewhere" : "not found" }, exists ? 409 : 404);
+  }
+  return json({ ok: true });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    const match = url.pathname.match(/^\/api\/notebooks\/([^/]+)\/entries\/?$/);
+    const notebookMatch = url.pathname.match(/^\/api\/notebooks\/([^/]+)\/entries\/?$/);
 
-    if (match) {
-      const slug = match[1];
+    if (notebookMatch) {
+      const slug = notebookMatch[1];
       let response: Response;
       if (request.method === "GET") response = await handleGetEntries(slug, env);
       else if (request.method === "POST") response = await handlePostEntries(slug, request, env);
@@ -290,6 +797,30 @@ export default {
       // する診断用ヘッダ(secretではない)。Decision Log 0145参照。
       response.headers.set("X-Notebook-Env", env.NOTEBOOK_ENV ?? "unset");
       return response;
+    }
+
+    if (url.pathname === "/api/admin/login" && request.method === "POST") {
+      return handleAdminLogin(request, env);
+    }
+    if (url.pathname === "/api/admin/logout" && request.method === "POST") {
+      return handleAdminLogout(request, env);
+    }
+    if (url.pathname === "/api/admin/session" && request.method === "GET") {
+      return handleAdminSession(request, env);
+    }
+
+    if (url.pathname === "/api/reading-notes/" || url.pathname === "/api/reading-notes") {
+      if (request.method === "GET") return handleGetReadingNotes(request, env);
+      if (request.method === "POST") return handlePostReadingNotes(request, env);
+      return json({ error: "method not allowed" }, 405);
+    }
+
+    const readingNoteMatch = url.pathname.match(/^\/api\/reading-notes\/([^/]+)\/?$/);
+    if (readingNoteMatch) {
+      const id = readingNoteMatch[1];
+      if (request.method === "PUT") return handlePutReadingNote(id, request, env);
+      if (request.method === "DELETE") return handleDeleteReadingNote(id, request, env);
+      return json({ error: "method not allowed" }, 405);
     }
 
     // `/api/*`以外は静的assetsへ(通常はwrangler.tomlのrun_worker_first
