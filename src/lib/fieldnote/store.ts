@@ -16,12 +16,17 @@
  * ページ・つながりの後編集(`updateCapture`)、コメントの
  * 追加/編集/削除/一覧、まとめの作成/更新/削除/一覧、
  * バックアップの書き出し/読み込みを追加した。
+ *
+ * 【OCRの背後キュー処理を追加(2026-09-20、Decision Log 0192)】
+ * `updateOcrState`を追加した。撮影を止めずに複数ページを連続撮影でき、
+ * OCRは1件ずつ裏で進む(`src/lib/fieldnote/ocrQueue.ts`が呼び出す)。
  * ------------------------------------------------------------
  */
 import type {
   FieldnoteCapture,
   FieldnoteCollection,
   FieldnoteComment,
+  FieldnoteOcrStatus,
   FieldnoteRelatedLink,
   FieldnoteSession,
 } from "../../types/fieldnote";
@@ -31,6 +36,15 @@ export interface FieldnoteCaptureUpdate {
   excerptText?: string;
   pageLabel?: string;
   relatedLinks?: FieldnoteRelatedLink[];
+}
+
+/** OCRの進行状況の更新。候補・エラーはundefinedを渡すとその欄を消す(状態が変わるたびに呼ぶ想定)。 */
+export interface FieldnoteOcrStateUpdate {
+  ocrStatus: FieldnoteOcrStatus;
+  ocrOrientation?: "horizontal" | "vertical";
+  ocrCandidateText?: string;
+  ocrCandidatePage?: string;
+  ocrError?: string;
 }
 
 /** バックアップの中身。写真はBase64文字列にして1つのJSONにまとめる(外部ライブラリを増やさない最小構成)。 */
@@ -60,9 +74,13 @@ export interface FieldnoteStore {
   addUrlEntry(sessionId: string, url: string, urlTitle?: string): Promise<FieldnoteCapture>;
   /** 抜粋・ページ・つながりを後から修正する */
   updateCapture(captureId: string, patch: FieldnoteCaptureUpdate): Promise<FieldnoteCapture>;
+  /** OCRの進行状況を更新する(候補の提示のみ、excerptText/pageLabelは書き換えない) */
+  updateOcrState(captureId: string, patch: FieldnoteOcrStateUpdate): Promise<FieldnoteCapture>;
   /** IDを指定して1件だけ取得する(「まとめ」がセッションをまたいで記録を参照するために使う) */
   getCapture(captureId: string): Promise<FieldnoteCapture | undefined>;
   listCaptures(sessionId: string): Promise<FieldnoteCapture[]>;
+  /** まだ完了していないOCR(pending・中断されたprocessing)を持つ記録を全セッションから探す(再開用) */
+  listUnfinishedOcrCaptures(): Promise<FieldnoteCapture[]>;
   /** 全セッションを新しい順で返す(進行中・終了済み問わず)。「過去の記録」一覧・本ごとの絞り込みに使う */
   listSessions(): Promise<FieldnoteSession[]>;
 

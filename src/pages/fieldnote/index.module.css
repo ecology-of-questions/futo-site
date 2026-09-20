@@ -194,10 +194,19 @@
 }
 
 .shotCount {
-  margin: 0;
   min-width: 3.5rem;
   color: var(--color-paper);
   font-size: var(--fs-sm);
+}
+
+.shotCount p {
+  margin: 0;
+}
+
+.shotCount #ocr-pending-count {
+  margin-top: 2px;
+  opacity: 0.8;
+  font-size: 0.75rem;
 }
 
 .spacer {
@@ -581,14 +590,14 @@
   background: var(--color-paper);
 }
 
-.entryList [data-ocr-controls] {
+.entryList [data-ocr-actions] {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1) var(--space-2);
 }
 
-.entryList [data-ocr-controls] select {
+.entryList [data-ocr-actions] select {
   font-size: var(--fs-sm);
   font-family: var(--font-sans);
   padding: var(--space-1) var(--space-2);
@@ -599,16 +608,37 @@
   min-height: 44px;
 }
 
+.entryList [data-ocr-details] {
+  font-size: var(--fs-sm);
+}
+
+.entryList [data-ocr-details] summary {
+  color: var(--color-accent-blue);
+  cursor: pointer;
+}
+
 .entryList [data-ocr-note] {
-  margin: 0;
+  margin: var(--space-1) 0 0;
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
+  white-space: pre-line;
 }
 
 .entryList [data-ocr-status]:not(:empty) {
   margin: 0;
   font-size: var(--fs-sm);
   color: var(--color-accent-blue);
+  white-space: pre-line;
+}
+
+.entryList [data-ocr-candidate-text] {
+  margin: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  white-space: pre-line;
 }
 
 .entryList [data-ocr-page-candidate] {

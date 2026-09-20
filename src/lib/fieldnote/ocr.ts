@@ -8,13 +8,13 @@
  * 撮影される本のページ(湾曲・遠近歪み・影・多様な書体)はさらに悪条件に
  * なりうる。したがってこの機能は「自動で正確に文字起こしする」ものでは
  * なく、**抜粋欄への下書き(プリフィル)を提案するだけ**の補助機能として
- * 設計している。認識結果は必ず`FieldnoteCapture.excerptText`欄に人が
- * 目視確認・修正してから保存される(既存のblurで保存する仕組みをそのまま
- * 使う。このモジュール自体は保存処理を行わない)。
+ * 設計している。認識結果は候補として保持するだけで、`excerptText`欄に
+ * 反映するかどうかは必ず本人の操作を要する(呼び出し側、`ocrQueue.ts`
+ * 参照)。
  *
  * 【外部送信をしない】Tesseract.js(WebAssembly版Tesseract OCR)を使い、
- * 処理は端末内のWeb Workerで完結する。画像・認識結果を含め、このモジュール
- * からは一切のネットワーク送信を行わない(公開本棚APIとも無関係)。
+ * 処理は端末内のWeb Workerで完結する。画像・認識結果・エラー詳細を
+ * 含め、このモジュールからは一切のネットワーク送信を行わない。
  *
  * 【CDNに依存しない】`public/vendor/tesseract/`に、Tesseract.js本体
  * (workerスクリプト)・WebAssemblyコア・日本語学習データを自己ホストして
@@ -23,10 +23,26 @@
  *
  * 【縦書き/横書きを利用者が選ぶ】自動判定は行わない(誤判定時に体験が
  * かえって悪化するため)。呼び出し側が明示的に指定する。
+ *
+ * 【実機での失敗を「ブラウザ非対応」と一括表示しない(2026-09-20、
+ * Decision Log 0192)】実機(iPhone)でOCRが失敗する事象が報告された。
+ * 原因を「WebAssembly SIMD非対応」と決めつけず、以下の対策を行った。
+ * - `wasm-feature-detect`でSIMD対応を実際に判定し、非対応ならSIMD版
+ *   ではなく非SIMD版のコア(`tesseract-core-lstm.wasm.js`)を使う
+ *   (判定失敗時はSIMD版を既定にする)。
+ * - tesseract.jsの`logger`が返す進行状況(`status`文字列)を追跡し、
+ *   例外発生時に「どの段階(コア読み込み/言語データ読み込み/初期化/
+ *   認識実行)で失敗したか」を`OcrError.stage`として保持する。
+ * - 元のエラーの`name`/`message`をそのままUIに渡す(要約・一般化
+ *   しない)。開発者コンソールにも出す。エラー内容はローカル表示のみで、
+ *   外部には一切送信しない。
  * ------------------------------------------------------------
  */
+import { simd } from "wasm-feature-detect";
 
 export type OcrOrientation = "horizontal" | "vertical";
+
+export type OcrStage = "core" | "langdata" | "init" | "recognize" | "unknown";
 
 export interface OcrProgress {
   status: string;
@@ -42,13 +58,57 @@ export interface OcrResult {
   confidence: number;
 }
 
+/** どの段階で失敗したかを保持するエラー。UI側はstageとmessageの両方を表示する。 */
+export class OcrError extends Error {
+  readonly stage: OcrStage;
+  constructor(message: string, stage: OcrStage) {
+    super(message);
+    this.name = "OcrError";
+    this.stage = stage;
+  }
+}
+
 const VENDOR_BASE = "/vendor/tesseract";
 const WORKER_PATH = `${VENDOR_BASE}/worker.min.js`;
-const CORE_PATH = `${VENDOR_BASE}/tesseract-core-simd-lstm.wasm.js`;
+const CORE_PATH_SIMD = `${VENDOR_BASE}/tesseract-core-simd-lstm.wasm.js`;
+const CORE_PATH_NO_SIMD = `${VENDOR_BASE}/tesseract-core-lstm.wasm.js`;
 const LANG_PATH = `${VENDOR_BASE}/lang-data`;
+
+// tesseract.jsのloggerが返すstatus文字列 → どの段階かの対応表
+// (tesseract.js-core/tesseract.js本体のソース中の文言と一致させる)。
+const STATUS_TO_STAGE: Record<string, OcrStage> = {
+  "loading tesseract core": "core",
+  "initializing tesseract": "init",
+  "loading language traineddata": "langdata",
+  "initializing api": "init",
+  "recognizing text": "recognize",
+};
+
+const STAGE_LABELS: Record<OcrStage, string> = {
+  core: "処理エンジン(WebAssembly)の読み込みに失敗しました",
+  langdata: "日本語データの読み込みに失敗しました",
+  init: "初期化に失敗しました",
+  recognize: "文字認識の実行に失敗しました",
+  unknown: "読み取りを開始できませんでした",
+};
 
 function langForOrientation(orientation: OcrOrientation): string {
   return orientation === "vertical" ? "jpn_vert" : "jpn";
+}
+
+/** 実行環境がWebAssembly SIMDに対応しているか判定し、対応するコアのパスを返す。判定自体が失敗した場合はSIMD版を既定にする。 */
+async function resolveCorePath(): Promise<string> {
+  try {
+    return (await simd()) ? CORE_PATH_SIMD : CORE_PATH_NO_SIMD;
+  } catch {
+    return CORE_PATH_SIMD;
+  }
+}
+
+function describeFailure(stage: OcrStage, error: unknown): string {
+  const label = STAGE_LABELS[stage];
+  const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  return `${label}\n詳細: ${detail.slice(0, 300)}`;
 }
 
 /** 認識結果の末尾/先頭にある、独立した数字列(3桁以下)をページ番号候補として拾う簡易ヒューリスティック。 */
@@ -71,6 +131,10 @@ function extractPageCandidate(text: string): string | undefined {
  * (初回のみ、ブラウザキャッシュ後は不要)を含むため、数秒〜十数秒かかりうる。
  * 呼び出し側は必ず`onProgress`で進捗を示し、「一瞬で終わる」ことを前提にした
  * UIにしないこと(Decision Log 0187の実測結果を参照)。
+ *
+ * 失敗時は`OcrError`(どの段階で失敗したか+元のエラー内容)を投げる。
+ * 呼び出し側はこれを捕捉して、段階ごとの具体的なメッセージを表示すること
+ * (「ブラウザ非対応」への一括集約は禁止、Decision Log 0192)。
  */
 export async function recognizeExcerpt(
   image: Blob,
@@ -79,18 +143,30 @@ export async function recognizeExcerpt(
 ): Promise<OcrResult> {
   const { createWorker } = await import("tesseract.js");
   const lang = langForOrientation(orientation);
+  const corePath = await resolveCorePath();
 
-  const worker = await createWorker(lang, 1, {
-    workerPath: WORKER_PATH,
-    corePath: CORE_PATH,
-    langPath: LANG_PATH,
-    gzip: true,
-    logger: (message) => {
-      if (typeof message?.progress === "number") {
-        onProgress?.({ status: message.status ?? "", progress: message.progress });
-      }
-    },
-  });
+  let lastStage: OcrStage = "unknown";
+  const logger = (message: { status?: string; progress?: number }) => {
+    if (message?.status && STATUS_TO_STAGE[message.status]) {
+      lastStage = STATUS_TO_STAGE[message.status];
+    }
+    if (typeof message?.progress === "number") {
+      onProgress?.({ status: message.status ?? "", progress: message.progress });
+    }
+  };
+
+  let worker: Awaited<ReturnType<typeof createWorker>>;
+  try {
+    worker = await createWorker(lang, 1, {
+      workerPath: WORKER_PATH,
+      corePath,
+      langPath: LANG_PATH,
+      gzip: true,
+      logger,
+    });
+  } catch (error) {
+    throw new OcrError(describeFailure(lastStage, error), lastStage);
+  }
 
   try {
     // Page Segmentation Mode: 横書きは「均一な1ブロックのテキスト」
@@ -101,6 +177,7 @@ export async function recognizeExcerpt(
     // 達していない(下記コメント・Decision Log 0188参照)。
     const psm = orientation === "vertical" ? "5" : "6";
     await worker.setParameters({ tessedit_pageseg_mode: psm as never });
+    lastStage = "recognize";
     const { data } = await worker.recognize(image);
     const text = data.text.trim();
     return {
@@ -108,7 +185,9 @@ export async function recognizeExcerpt(
       pageCandidate: extractPageCandidate(text),
       confidence: data.confidence,
     };
+  } catch (error) {
+    throw new OcrError(describeFailure(lastStage, error), lastStage);
   } finally {
-    await worker.terminate();
+    await worker.terminate().catch(() => {});
   }
 }

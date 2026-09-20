@@ -20,6 +20,14 @@
  * 読み込み側で"photo"として扱う、下記`FieldnoteEntryKind`参照)。
  * `FieldnoteComment`/`FieldnoteCollection`は新設の型で、それぞれ
  * 新しいobject store(`comments`/`collections`)に対応する。
+ *
+ * 【OCRを撮影に接続、背後キュー処理を追加(2026-09-20、Decision Log
+ * 0192)】撮影を止めずに複数ページを連続で撮り、読み取りは裏で1件ずつ
+ * 進める設計にした。`ocrStatus`等はその進行状況を端末内に持たせる
+ * ためのフィールドで、既存レコード(未設定)は「まだ読み取っていない」
+ * として扱う。読み取り結果は`ocrCandidateText`/`ocrCandidatePage`に
+ * 候補として置くだけで、`excerptText`/`pageLabel`は本人が採用操作を
+ * するまで書き換えない(自動上書きしない)。
  * ------------------------------------------------------------
  */
 
@@ -46,6 +54,9 @@ export interface FieldnoteRelatedLink {
   href: string;
 }
 
+/** OCR(文字の読み取り)の進行状況。photoのみ意味を持つ。未設定は「まだ実行していない」。 */
+export type FieldnoteOcrStatus = "pending" | "processing" | "done" | "failed";
+
 export interface FieldnoteCapture {
   id: string;
   sessionId: string;
@@ -58,12 +69,23 @@ export interface FieldnoteCapture {
   url?: string;
   /** kind: "url"のみ、任意のタイトル */
   urlTitle?: string;
-  /** 手入力の抜粋・自分の考え。空のまま保存できる(OCR等の自動抽出はしない、手動入力のみ) */
+  /** 手入力(または後述のOCR候補を採用した結果)の抜粋・自分の考え。空のまま保存できる */
   excerptText?: string;
   /** ページ・位置、自由記述(例: "p.32", "第2章")。空欄のまま保存できる */
   pageLabel?: string;
   /** 他の記録・外部記録への手動のつながり */
   relatedLinks?: FieldnoteRelatedLink[];
+
+  /** OCRの進行状況(photoのみ)。撮影直後にpendingを立て、背後のキューがprocessing→done/failedに進める */
+  ocrStatus?: FieldnoteOcrStatus;
+  /** 実行時に使った向き(セッション開始時に選んだ向きをそのまま記録する) */
+  ocrOrientation?: "horizontal" | "vertical";
+  /** 読み取り結果の候補。採用操作をするまでexcerptTextには反映しない */
+  ocrCandidateText?: string;
+  /** 候補内の、ページ番号らしき部分 */
+  ocrCandidatePage?: string;
+  /** 失敗時の診断メッセージ(端末内に留め、どこにも送信しない) */
+  ocrError?: string;
 }
 
 export interface FieldnoteComment {
