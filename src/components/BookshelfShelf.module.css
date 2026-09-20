@@ -90,6 +90,24 @@
   }
 }
 
+/* 「この本にメモする」導線(2026-09-20、Decision Log 0185)。本文の
+   購入リンクより控えめに、行の下に小さく置く。 */
+.memoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 0 var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+  text-decoration: none;
+}
+
+.memoLink:hover,
+.memoLink:focus-visible {
+  text-decoration: underline;
+}
+
 /* 【Amazonアソシエイト開示文言】実際にアソシエイトタグ付きリンクを
    表示する場合のみ描画される(BookshelfShelf.astroのhasAffiliate
    Disclosure参照)。一覧全体に対する注記のため末尾に1つだけ置く。 */

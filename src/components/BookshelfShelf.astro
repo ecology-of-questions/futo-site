@@ -41,6 +41,14 @@
  * 「一緒に読みたい」フォーム)は、このコンポーネントからの呼び出しを
  * 止めただけで、ファイル自体・Formspree連携ロジックは削除していない
  * (Decision Log 0167の「一回」削除という判断を維持)。
+ *
+ * 【Fieldnote Readingへの「この本にメモする」導線を追加(2026-09-20、
+ * Decision Log 0185)】各行に、`/fieldnote/?book=<bookId>`へ遷移する
+ * 小さなテキストリンクを追加した。押しても自動でメモが作成・保存
+ * されるわけではなく、Fieldnote側の読書セッション開始画面に、その
+ * 本が選択済みの状態で移動するだけ。購入リンク(`href`)とは別の
+ * リンクのため、`<a>`の入れ子を避けて`textLink`とは兄弟要素にして
+ * いる。全statusの行に表示する(読書中に限らない)。
  * ------------------------------------------------------------
  */
 import styles from "./BookshelfShelf.module.css";
@@ -113,6 +121,9 @@ const hasAffiliateDisclosure = books.some((book) => isActiveAffiliateLink(book))
                   <span class={styles.textAuthor}>{book.author}</span>
                 </div>
               )}
+              <a class={styles.memoLink} href={`/fieldnote/?book=${encodeURIComponent(book.id)}`}>
+                この本にメモする <span aria-hidden="true">→</span>
+              </a>
             </li>
           );
         })}

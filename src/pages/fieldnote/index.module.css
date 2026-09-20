@@ -30,6 +30,19 @@
   box-sizing: border-box;
 }
 
+/* 【既存バグ修正(2026-09-20、Decision Log 0185)】`.setupView`が
+   `display: flex`を宣言しているため、同じ詳細度の`[hidden]`(UAスタイル
+   シートの`display: none`)を、通常の優先順位(author > user agent)で
+   上書きしてしまい、`view-setup`要素は`hidden`属性を立てても実際には
+   非表示にならなかった(camera viewが`position: fixed`の不透明な
+   全画面のため、これまでは視覚的に隠れて気づかれていなかった)。
+   `view-list`・新設の`view-history`には視覚的に隠す仕組みが無いため、
+   このPRでの検証中に発覚した。`[hidden]`を`!important`で強制することで
+   直す(normalize.css等が採用する標準的な対処)。 */
+:global([hidden]) {
+  display: none !important;
+}
+
 .app {
   min-height: 100dvh;
 }
@@ -242,10 +255,125 @@
   opacity: 0.7;
 }
 
-.setupView, .listView { max-width: var(--reading-width); margin-inline: auto; padding-inline: var(--home-gutter); }
+.setupView, .listView, .historyView { max-width: var(--reading-width); margin-inline: auto; padding-inline: var(--home-gutter); }
 .setupHeading, .listHeading { font-size: var(--page-title); font-weight: 500; }
 .eyebrow { font-size: var(--home-label-size); opacity: 1; color: var(--color-ink-muted); }
 .back { font-size: var(--fs-sm); color: var(--color-ink-muted); text-underline-offset: .3em; margin-bottom: var(--space-3); }
 .setupForm { max-width: none; }
 .titleInput { font-size: var(--fs-base); border-color: var(--color-accent-beige); background: var(--color-surface); border-radius: 0; min-width: 0; width: 100%; }
 :global(a:focus-visible), :global(button:focus-visible), :global(input:focus-visible) { outline: 2px solid var(--color-ink); outline-offset: 4px; }
+
+/* -----------------------------
+ * 本棚との紐づけ(2026-09-20、Decision Log 0185)
+ * ----------------------------- */
+.bookSelect {
+  font-size: var(--fs-base);
+  font-family: var(--font-sans);
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-radius: 0;
+  width: 100%;
+  min-height: 44px;
+}
+
+.locationField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.historyLink {
+  align-self: flex-start;
+  margin-top: var(--space-3);
+  padding: var(--space-1) 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-blue);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.bookLinkButton {
+  display: block;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-blue);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bookLinkButton:disabled {
+  color: var(--color-ink-muted);
+  cursor: default;
+}
+
+/* -----------------------------
+ * 過去の記録一覧(2026-09-20、Decision Log 0185)。行はJSで動的に
+ * 作るため、data属性でスタイルを当てる(CSS Modulesのハッシュ化
+ * されたクラス名をJS側に持ち込まない)。
+ * ----------------------------- */
+.historyFilterRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+  max-width: 24rem;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.historyList [data-history-row] {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.historyList [data-history-row-title] {
+  font-size: var(--fs-base);
+}
+
+.historyList [data-history-row-book] {
+  font-size: var(--fs-sm);
+  color: var(--color-accent-blue);
+}
+
+.historyList [data-history-row-meta] {
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.historyList [data-history-start] {
+  min-height: 44px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-ink);
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
