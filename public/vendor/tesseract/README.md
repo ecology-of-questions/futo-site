@@ -12,16 +12,18 @@ Tesseract.js関連アセットを、npmパッケージからそのまま(無改�
 |---|---|---|---|
 | `worker.min.js` | `tesseract.js`(`dist/worker.min.js`) | 5.1.1 | Apache-2.0 |
 | `tesseract-core-simd-lstm.wasm.js` | `tesseract.js-core` | 6.1.2 | Apache-2.0 |
+| `tesseract-core-lstm.wasm.js` | `tesseract.js-core`(非SIMD版) | 6.1.2 | Apache-2.0 |
 | `lang-data/jpn.traineddata.gz` | `@tesseract.js-data/jpn`(`4.0.0_best_int/`) | 1.0.0 | MIT(パッケージ) / Apache-2.0(訓練データ本体、tesseract-ocr/tessdata_best由来) |
 | `lang-data/jpn_vert.traineddata.gz` | `@tesseract.js-data/jpn_vert`(`4.0.0_best_int/`) | 1.0.0 | 同上 |
 
-## SIMD版のみを同梱している理由
+## SIMD版・非SIMD版の両方を同梱している理由(2026-09-20、Decision Log 0192で変更)
 
-`tesseract-core-simd-lstm.wasm.js`(WebAssembly SIMD対応版)のみを同梱し、
-非SIMD版(`tesseract-core-lstm.wasm.js`)は同梱していない。2026年時点で
-SIMDに対応していない現行ブラウザは極めて稀(Safari 16.4+/Chrome 91+/
-Firefox 89+のいずれも対応)なため。非対応環境では、OCR機能はエラー
-メッセージを表示して失敗する(サイトの他機能には影響しない)。
+当初はSIMD版のみを同梱していたが、実機(iPhone、実際のCloudflareデプロイ)で
+OCRが失敗する事象が報告され、原因の切り分けのため非SIMD版
+(`tesseract-core-lstm.wasm.js`)も同梱するよう変更した。`src/lib/fieldnote/ocr.ts`が
+`wasm-feature-detect`の`simd()`で実行時に対応状況を判定し、非対応の場合は
+自動的に非SIMD版へフォールバックする。判定自体に失敗した場合はSIMD版を
+既定にする。
 
 ## 量子化モデル(`best_int`)を選んだ理由
 

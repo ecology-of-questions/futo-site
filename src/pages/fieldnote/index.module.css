@@ -142,6 +142,18 @@
   transition: opacity 120ms ease-out;
 }
 
+/**
+ * 本のページを置くためのガイド枠(2026-09-21、Decision Log 0195)。
+ * 位置・大きさはapp.tsがGUIDE_FRAME_RECTから割合で計算し、インライン
+ * styleで設定する(このファイルでは静かな見た目だけを決める)。
+ */
+.guideFrame {
+  position: absolute;
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
 .cameraTopBar {
   position: absolute;
   top: 0;
@@ -194,10 +206,19 @@
 }
 
 .shotCount {
-  margin: 0;
   min-width: 3.5rem;
   color: var(--color-paper);
   font-size: var(--fs-sm);
+}
+
+.shotCount p {
+  margin: 0;
+}
+
+.shotCount #ocr-pending-count {
+  margin-top: 2px;
+  opacity: 0.8;
+  font-size: 0.75rem;
 }
 
 .spacer {
@@ -567,6 +588,22 @@
   margin-top: var(--space-1);
 }
 
+.entryList [data-entry-photo-dims] {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryList [data-entry-photo-share] {
+  margin-top: var(--space-1);
+}
+
+.entryList [data-entry-photo-share-status] {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
 .entryList [data-entry-url] {
   color: var(--color-accent-blue);
   word-break: break-word;
@@ -581,14 +618,14 @@
   background: var(--color-paper);
 }
 
-.entryList [data-ocr-controls] {
+.entryList [data-ocr-actions] {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1) var(--space-2);
 }
 
-.entryList [data-ocr-controls] select {
+.entryList [data-ocr-actions] select {
   font-size: var(--fs-sm);
   font-family: var(--font-sans);
   padding: var(--space-1) var(--space-2);
@@ -599,16 +636,37 @@
   min-height: 44px;
 }
 
+.entryList [data-ocr-details] {
+  font-size: var(--fs-sm);
+}
+
+.entryList [data-ocr-details] summary {
+  color: var(--color-accent-blue);
+  cursor: pointer;
+}
+
 .entryList [data-ocr-note] {
-  margin: 0;
+  margin: var(--space-1) 0 0;
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
+  white-space: pre-line;
 }
 
 .entryList [data-ocr-status]:not(:empty) {
   margin: 0;
   font-size: var(--fs-sm);
   color: var(--color-accent-blue);
+  white-space: pre-line;
+}
+
+.entryList [data-ocr-candidate-text] {
+  margin: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  white-space: pre-line;
 }
 
 .entryList [data-ocr-page-candidate] {
@@ -617,6 +675,57 @@
   align-items: baseline;
   gap: var(--space-1) var(--space-2);
   font-size: var(--fs-sm);
+}
+
+/* ---------- OCR範囲の確認・調整(2026-09-21、Decision Log 0195) ---------- */
+
+.entryList [data-ocr-crop-details] {
+  font-size: var(--fs-sm);
+}
+
+.entryList [data-ocr-crop-details] summary {
+  color: var(--color-accent-blue);
+  cursor: pointer;
+}
+
+.entryList [data-ocr-crop-preview] {
+  position: relative;
+  display: inline-block;
+  max-width: 9rem;
+  margin-top: var(--space-1);
+}
+
+.entryList [data-ocr-crop-preview] img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--color-ink);
+}
+
+.entryList [data-ocr-crop-preview-rect] {
+  position: absolute;
+  border: 1.5px solid var(--color-accent-blue);
+  background: rgba(59, 130, 246, 0.12);
+  pointer-events: none;
+}
+
+.entryList [data-ocr-crop-controls] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  max-width: 16rem;
+}
+
+.entryList [data-ocr-crop-controls] label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryList [data-ocr-crop-controls] input[type="range"] {
+  width: 100%;
 }
 
 .entryList [data-entry-excerpt] {

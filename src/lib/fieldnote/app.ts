@@ -25,18 +25,36 @@
  *
  * 【OCR(文字の読み取り)を追加(2026-09-20、Decision Log 0188)】
  * 写真記録の抜粋欄に、Tesseract.jsによる読み取り結果を「下書き」として
- * 提案する`buildOcrBlock`を追加した。`./ocr.ts`は動的import
+ * 提案する仕組みを追加した。`./ocr.ts`は動的import
  * (`await import("tesseract.js")`)しており、OCRを使わない利用者は
- * 追加のJS/WASM/学習データを一切ダウンロードしない。認識結果は
- * 既存の抜粋欄(`excerptInput`)に値を入れるだけで、保存は既存の
- * blurハンドラに委ねる(このファイルが独自に保存処理を持たない)。
+ * 追加のJS/WASM/学習データを一切ダウンロードしない。
+ *
+ * 【撮影を止めずに連続撮影・背後キュー処理に変更(2026-09-20、Decision
+ * Log 0192)】OCRの実行は`./ocrQueue.ts`(`OcrQueue`)に委ねた。
+ * `capturePage()`は撮影→保存の直後にキューへ積むだけで、OCRの完了を
+ * 待たない(カメラは開いたまま、次の撮影にすぐ進める)。読み取り結果は
+ * `ocrCandidateText`/`ocrCandidatePage`という「候補」に置かれるだけで、
+ * `excerptText`/`pageLabel`は本人が「使う」を押すまで書き換わらない。
+ * アプリ起動時に`ocrQueue.resumeUnfinished()`を呼び、前回中断した
+ * 未処理分を再開する。
+ *
+ * 【元の写真を共有/ダウンロードできるようにした(2026-09-21、Decision
+ * Log 0194)】「撮影した元の写真ファイルを取り出せない」という指摘を
+ * 受け、「元の写真を見る」に写真の実際の解像度表示と、共有/ダウンロード
+ * ボタン(`sharePhoto()`)を追加した。Web Share API(`navigator.share`)
+ * が使えればOSの共有シートを開き、使えない場合は`<a download>`に
+ * フォールバックする。どちらも成否をこちらから断定できないため、
+ * 「保存しました」という表示はしない(実際に検出できた失敗のときだけ
+ * エラーを表示する)。過去に低い解像度で撮影された写真の解像度は
+ * この変更では変わらない(その場でBlobを再生成することはできない)。
  * ------------------------------------------------------------
  */
 import { IndexedDbFieldnoteStore } from "./indexedDbStore";
-import { FieldnoteCamera, FieldnoteCameraError } from "./camera";
+import { FieldnoteCamera, FieldnoteCameraError, type CameraScreenRect } from "./camera";
 import { books } from "../../data/bookshelf";
 import type { FieldnoteExportBundle } from "./store";
-import { recognizeExcerpt, type OcrOrientation } from "./ocr";
+import type { OcrOrientation, OcrCropRect } from "./ocr";
+import { OcrQueue, type OcrQueueEvent } from "./ocrQueue";
 import {
   adminLogin,
   adminLogout,
@@ -54,10 +72,21 @@ import type { FieldnoteCapture, FieldnoteCollection, FieldnoteSession } from "..
 
 const store = new IndexedDbFieldnoteStore();
 const camera = new FieldnoteCamera();
+const ocrQueue = new OcrQueue(store);
 const bookById = new Map(books.map((book) => [book.id, book]));
+
+/**
+ * 本のページを置くためのガイド枠(画面=`<video>`の表示領域に対する
+ * 割合、2026-09-21、Decision Log 0195)。カメラ画面のガイド枠表示と、
+ * 撮影時のOCR範囲の既定値の、両方の基準になる単一の定義。
+ */
+const GUIDE_FRAME_RECT: CameraScreenRect = { x: 0.08, y: 0.16, width: 0.84, height: 0.6 };
 
 let currentSession: FieldnoteSession | null = null;
 let shotCount = 0;
+let sessionOcrOrientation: OcrOrientation = "horizontal";
+/** 現在のカメラセッションで、まだOCRが終わっていない記録のID(カメラ画面の「読み取り待ち」表示用)。 */
+const pendingOcrIdsThisSession = new Set<string>();
 const captureObjectUrls: string[] = [];
 let publishCapture: FieldnoteCapture | null = null;
 let publishSession: FieldnoteSession | null = null;
@@ -82,6 +111,7 @@ const titleInput = byId<HTMLInputElement>("book-title-input");
 const bookSelect = byId<HTMLSelectElement>("book-select");
 const bookLocationField = byId<HTMLElement>("book-location-field");
 const bookLocationInput = byId<HTMLInputElement>("book-location-input");
+const ocrOrientationSelect = byId<HTMLSelectElement>("ocr-orientation-select");
 const setupErrorEl = byId<HTMLElement>("setup-error");
 const openHistoryBtn = byId<HTMLButtonElement>("open-history-btn");
 const openCollectionsBtn = byId<HTMLButtonElement>("open-collections-btn");
@@ -96,9 +126,11 @@ const importFileInput = byId<HTMLInputElement>("import-file-input");
 const backupStatus = byId<HTMLElement>("backup-status");
 
 const videoEl = byId<HTMLVideoElement>("camera-video");
+const guideFrameEl = byId<HTMLElement>("ocr-guide-frame");
 const captureBtn = byId<HTMLButtonElement>("capture-btn");
 const endSessionBtn = byId<HTMLButtonElement>("end-session-btn");
 const shotCountEl = byId<HTMLElement>("shot-count");
+const ocrPendingCountEl = byId<HTMLElement>("ocr-pending-count");
 const cameraErrorEl = byId<HTMLElement>("camera-error");
 const sessionTitleLabel = byId<HTMLElement>("session-title-label");
 const shutterFlash = byId<HTMLElement>("shutter-flash");
@@ -235,11 +267,28 @@ async function startSession(title: string, bookId: string, bookLocation: string)
   }
 }
 
+function updateOcrPendingIndicator(): void {
+  const count = pendingOcrIdsThisSession.size;
+  if (count === 0) {
+    ocrPendingCountEl.hidden = true;
+    return;
+  }
+  ocrPendingCountEl.hidden = false;
+  ocrPendingCountEl.textContent = `読み取り待ち ${count}枚`;
+}
+
 async function startCameraSession(session: FieldnoteSession): Promise<void> {
   currentSession = session;
   shotCount = 0;
   shotCountEl.textContent = "0枚";
   sessionTitleLabel.textContent = session.title || "(無題)";
+  pendingOcrIdsThisSession.clear();
+  updateOcrPendingIndicator();
+
+  guideFrameEl.style.left = `${GUIDE_FRAME_RECT.x * 100}%`;
+  guideFrameEl.style.top = `${GUIDE_FRAME_RECT.y * 100}%`;
+  guideFrameEl.style.width = `${GUIDE_FRAME_RECT.width * 100}%`;
+  guideFrameEl.style.height = `${GUIDE_FRAME_RECT.height * 100}%`;
 
   showView("camera");
   clearCameraError();
@@ -255,6 +304,11 @@ async function startCameraSession(session: FieldnoteSession): Promise<void> {
   }
 }
 
+/**
+ * 撮影は保存が終わり次第すぐ完了し、OCRの完了は待たない
+ * (2026-09-20、Decision Log 0192)。カメラは閉じず、次の撮影に
+ * すぐ進める。OCRは`ocrQueue`が裏で1件ずつ進める。
+ */
 async function capturePage(): Promise<void> {
   if (!currentSession || captureBtn.disabled) {
     return;
@@ -262,10 +316,28 @@ async function capturePage(): Promise<void> {
   captureBtn.disabled = true;
   try {
     const image = await camera.capture();
-    await store.addCapture(currentSession.id, image);
+    // ガイド枠(画面表示上の割合)を、実際に撮影された映像に対する
+    // 割合に変換する。object-fit: coverによる表示上のはみ出しクロップ
+    // を考慮した変換(Decision Log 0195)。取得できない場合は範囲指定
+    // なし(原本全体を使う)にフォールバックする。
+    const captureCropRect = camera.mapScreenRectToCaptureRect(GUIDE_FRAME_RECT);
+    const ocrCropRect: OcrCropRect | undefined = captureCropRect
+      ? { ...captureCropRect, rotationDeg: 0 }
+      : undefined;
+
+    const capture = await store.addCapture(currentSession.id, image);
     shotCount += 1;
     shotCountEl.textContent = `${shotCount}枚`;
     flashShutter();
+
+    await store.updateOcrState(capture.id, {
+      ocrStatus: "pending",
+      ocrOrientation: sessionOcrOrientation,
+      ocrCropRect,
+    });
+    pendingOcrIdsThisSession.add(capture.id);
+    updateOcrPendingIndicator();
+    ocrQueue.enqueue(capture.id);
   } catch (error) {
     showCameraError(
       error instanceof FieldnoteCameraError ? error.message : "保存に失敗しました。もう一度お試しください。",
@@ -410,47 +482,145 @@ function renderRelatedLinks(capture: FieldnoteCapture, container: HTMLElement): 
 }
 
 /**
- * 写真記録に「文字を読み取る」ブロックを追加する。読み取り結果は
- * `excerptInput`に値を入れるだけで、保存はしない(呼び出し側が持つ
- * 既存のblurハンドラで保存される)。実測(Decision Log 0187)で、傾き・
- * ノイズ・JPEG圧縮を加えただけでも精度が大きく落ちることを確認して
- * いるため、常に「下書き・要確認」であることを明示する。
+ * 写真記録の「文字の読み取り」状態を表示するブロック(2026-09-20、
+ * Decision Log 0192で全面刷新)。読み取りは`ocrQueue`が裏で進める
+ * ため、ここではキューへ積む/状態を表示する/結果を「候補」として
+ * 提示するだけで、このブロック自体は認識処理を直接呼ばない。
+ *
+ * 候補を抜粋・ページ欄に反映するのは、本人が明示的に「使う」を押した
+ * ときだけ(自動上書きしない)。原本の写真と見比べやすいよう、候補が
+ * 出た最初のタイミングで写真の`<details>`を開く。
  */
+/** 撮影時にガイド枠から決まる範囲が無い場合(この機能より前の記録)の既定値=原本全体。 */
+const FULL_IMAGE_CROP_RECT: OcrCropRect = { x: 0, y: 0, width: 1, height: 1, rotationDeg: 0 };
+
+/** 調整用スライダーの値が有効な範囲に収まるようにする(0..1、回転は±30度まで)。 */
+function clampCropRect(rect: OcrCropRect): OcrCropRect {
+  const width = Math.min(Math.max(rect.width, 0.05), 1);
+  const height = Math.min(Math.max(rect.height, 0.05), 1);
+  const x = Math.min(Math.max(rect.x, 0), 1 - width);
+  const y = Math.min(Math.max(rect.y, 0), 1 - height);
+  const rotationDeg = Math.max(-30, Math.min(30, rect.rotationDeg ?? 0));
+  return { x, y, width, height, rotationDeg };
+}
+
 function buildOcrBlock(
   capture: FieldnoteCapture,
-  image: Blob,
   excerptInput: HTMLTextAreaElement,
   pageInput: HTMLInputElement,
+  photoDetails: HTMLDetailsElement | null,
+  persistExcerpt: (value: string) => Promise<void>,
+  persistPage: (value: string) => Promise<void>,
+  photoUrl: string | null,
 ): HTMLElement {
   const wrap = document.createElement("div");
   wrap.dataset.ocrBlock = "true";
+  wrap.dataset.ocrCaptureId = capture.id;
 
-  const controls = document.createElement("div");
-  controls.dataset.ocrControls = "true";
-
-  const orientationSelect = document.createElement("select");
-  orientationSelect.setAttribute("aria-label", "文字の向き");
-  const optHorizontal = document.createElement("option");
-  optHorizontal.value = "horizontal";
-  optHorizontal.textContent = "横書き";
-  const optVertical = document.createElement("option");
-  optVertical.value = "vertical";
-  optVertical.textContent = "縦書き";
-  orientationSelect.append(optHorizontal, optVertical);
-  controls.append(orientationSelect);
-
-  const runBtn = document.createElement("button");
-  runBtn.type = "button";
-  runBtn.dataset.ocrRun = "true";
-  runBtn.textContent = "文字を読み取る(実験的)";
-  controls.append(runBtn);
-  wrap.append(controls);
-
+  const details = document.createElement("details");
+  details.dataset.ocrDetails = "true";
+  const summary = document.createElement("summary");
+  summary.textContent = "文字の読み取りについて(詳細)";
+  details.append(summary);
   const note = document.createElement("p");
   note.dataset.ocrNote = "true";
   note.textContent =
-    "実験的機能です。読み取り結果は下書きとして抜粋欄に入ります。誤読があるので、必ず確認・修正してから使ってください。初回は文字向きごとに約2MBのデータをダウンロードします。";
-  wrap.append(note);
+    "実験的機能です。読み取り結果は候補として扱われ、「使う」を押すまで抜粋・ページ欄は書き換わりません。誤読があるので、必ず元の写真と見比べてください。初回は文字向きごとに約2MBのデータをダウンロードします。";
+  details.append(note);
+  wrap.append(details);
+
+  /**
+   * 読み取り範囲(OCRに渡す部分)の小さいプレビューと、ページがずれて
+   * いた場合の調整UI(2026-09-21、Decision Log 0195)。通常は開かず、
+   * 既定の範囲(撮影時のガイド枠)のまま「読み取る」を進められる。
+   */
+  if (photoUrl) {
+    const cropDetails = document.createElement("details");
+    cropDetails.dataset.ocrCropDetails = "true";
+    const cropSummary = document.createElement("summary");
+    cropSummary.textContent = "読み取り範囲を確認・調整";
+    cropDetails.append(cropSummary);
+
+    const initialRect = capture.ocrCropRect ?? FULL_IMAGE_CROP_RECT;
+    let workingRect: OcrCropRect = { ...initialRect, rotationDeg: initialRect.rotationDeg ?? 0 };
+
+    const preview = document.createElement("div");
+    preview.dataset.ocrCropPreview = "true";
+    const previewImg = document.createElement("img");
+    previewImg.src = photoUrl;
+    previewImg.alt = "";
+    preview.append(previewImg);
+    const rectOverlay = document.createElement("div");
+    rectOverlay.dataset.ocrCropPreviewRect = "true";
+    preview.append(rectOverlay);
+    cropDetails.append(preview);
+
+    function updateOverlay(): void {
+      rectOverlay.style.left = `${workingRect.x * 100}%`;
+      rectOverlay.style.top = `${workingRect.y * 100}%`;
+      rectOverlay.style.width = `${workingRect.width * 100}%`;
+      rectOverlay.style.height = `${workingRect.height * 100}%`;
+    }
+    updateOverlay();
+
+    const controls = document.createElement("div");
+    controls.dataset.ocrCropControls = "true";
+
+    function makeSlider(
+      labelText: string,
+      min: number,
+      max: number,
+      step: number,
+      value: number,
+      onInput: (value: number) => void,
+    ): HTMLLabelElement {
+      const label = document.createElement("label");
+      const span = document.createElement("span");
+      span.textContent = labelText;
+      const input = document.createElement("input");
+      input.type = "range";
+      input.min = String(min);
+      input.max = String(max);
+      input.step = String(step);
+      input.value = String(value);
+      input.addEventListener("input", () => {
+        onInput(Number(input.value));
+        updateOverlay();
+      });
+      label.append(span, input);
+      return label;
+    }
+
+    controls.append(
+      makeSlider("左端", 0, 0.9, 0.01, workingRect.x, (v) => {
+        workingRect = { ...workingRect, x: v };
+      }),
+      makeSlider("上端", 0, 0.9, 0.01, workingRect.y, (v) => {
+        workingRect = { ...workingRect, y: v };
+      }),
+      makeSlider("幅", 0.1, 1, 0.01, workingRect.width, (v) => {
+        workingRect = { ...workingRect, width: v };
+      }),
+      makeSlider("高さ", 0.1, 1, 0.01, workingRect.height, (v) => {
+        workingRect = { ...workingRect, height: v };
+      }),
+      makeSlider("回転(度)", -30, 30, 1, workingRect.rotationDeg ?? 0, (v) => {
+        workingRect = { ...workingRect, rotationDeg: v };
+      }),
+    );
+    cropDetails.append(controls);
+
+    const applyBtn = document.createElement("button");
+    applyBtn.type = "button";
+    applyBtn.dataset.ocrCropApply = "true";
+    applyBtn.textContent = "この範囲で読み取り直す";
+    applyBtn.addEventListener("click", () => {
+      runOcr(capture.ocrOrientation ?? "horizontal", clampCropRect(workingRect));
+    });
+    cropDetails.append(applyBtn);
+
+    wrap.append(cropDetails);
+  }
 
   const status = document.createElement("p");
   status.dataset.ocrStatus = "true";
@@ -458,68 +628,217 @@ function buildOcrBlock(
   status.setAttribute("aria-live", "polite");
   wrap.append(status);
 
-  const pageCandidateRow = document.createElement("div");
-  pageCandidateRow.dataset.ocrPageCandidate = "true";
-  pageCandidateRow.hidden = true;
-  const pageCandidateLabel = document.createElement("span");
-  const pageCandidateValue = document.createElement("strong");
-  pageCandidateLabel.append("ページ番号の候補: ", pageCandidateValue);
-  pageCandidateRow.append(pageCandidateLabel);
-  const usePageCandidateBtn = document.createElement("button");
-  usePageCandidateBtn.type = "button";
-  usePageCandidateBtn.dataset.ocrPageUse = "true";
-  usePageCandidateBtn.textContent = "ページ欄に使う";
-  usePageCandidateBtn.addEventListener("click", () => {
-    pageInput.value = pageCandidateValue.textContent ?? "";
-    void store.updateCapture(capture.id, { pageLabel: pageInput.value }).then((updated) => {
-      capture.pageLabel = updated.pageLabel;
+  const actions = document.createElement("div");
+  actions.dataset.ocrActions = "true";
+  wrap.append(actions);
+
+  function buildOrientationSelect(initial: OcrOrientation): HTMLSelectElement {
+    const select = document.createElement("select");
+    select.setAttribute("aria-label", "文字の向き");
+    const optHorizontal = document.createElement("option");
+    optHorizontal.value = "horizontal";
+    optHorizontal.textContent = "横書き";
+    const optVertical = document.createElement("option");
+    optVertical.value = "vertical";
+    optVertical.textContent = "縦書き";
+    select.append(optHorizontal, optVertical);
+    select.value = initial;
+    return select;
+  }
+
+  /** cropRectを省略すると、その記録に既に保存されている範囲を維持する(向きだけ変える再試行等)。 */
+  function runOcr(orientation: OcrOrientation, cropRect?: OcrCropRect): void {
+    const nextCropRect = cropRect ?? capture.ocrCropRect;
+    void store
+      .updateOcrState(capture.id, { ocrStatus: "pending", ocrOrientation: orientation, ocrCropRect: nextCropRect })
+      .then((updated) => {
+        Object.assign(capture, updated);
+        ocrQueue.enqueue(capture.id);
+        renderState();
+      });
+  }
+
+  function renderState(): void {
+    actions.replaceChildren();
+    const orientation = capture.ocrOrientation ?? "horizontal";
+
+    if (!capture.ocrStatus) {
+      status.textContent = "";
+      const orientationSelect = buildOrientationSelect(orientation);
+      const runBtn = document.createElement("button");
+      runBtn.type = "button";
+      runBtn.dataset.ocrRun = "true";
+      runBtn.textContent = "文字を読み取る";
+      runBtn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
+      actions.append(orientationSelect, runBtn);
+      return;
+    }
+
+    if (capture.ocrStatus === "pending") {
+      status.textContent = "読み取り待ち…";
+      return;
+    }
+
+    if (capture.ocrStatus === "processing") {
+      status.textContent = "読み取り中…";
+      return;
+    }
+
+    if (capture.ocrStatus === "failed") {
+      status.textContent = capture.ocrError ?? "読み取りに失敗しました。";
+      const orientationSelect = buildOrientationSelect(orientation);
+      const retryBtn = document.createElement("button");
+      retryBtn.type = "button";
+      retryBtn.dataset.ocrRetry = "true";
+      retryBtn.textContent = "もう一度読み取る";
+      retryBtn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
+      actions.append(orientationSelect, retryBtn);
+      return;
+    }
+
+    // ocrStatus === "done"
+    if (!capture.ocrCandidateText) {
+      status.textContent = "文字を読み取れませんでした。傾きや明るさを変えて撮り直すか、手入力してください。";
+      const orientationSelect = buildOrientationSelect(orientation);
+      const retryBtn = document.createElement("button");
+      retryBtn.type = "button";
+      retryBtn.dataset.ocrRetry = "true";
+      retryBtn.textContent = "もう一度読み取る";
+      retryBtn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
+      actions.append(orientationSelect, retryBtn);
+      return;
+    }
+
+    status.textContent = "読み取り候補があります。元の写真と見比べてから使ってください。";
+    if (photoDetails) photoDetails.open = true;
+
+    const candidateBox = document.createElement("p");
+    candidateBox.dataset.ocrCandidateText = "true";
+    candidateBox.textContent = capture.ocrCandidateText;
+    actions.append(candidateBox);
+
+    const useExcerptBtn = document.createElement("button");
+    useExcerptBtn.type = "button";
+    useExcerptBtn.dataset.ocrUseExcerpt = "true";
+    useExcerptBtn.textContent = "この内容を抜粋に使う";
+    useExcerptBtn.addEventListener("click", () => {
+      void (async () => {
+        const candidate = capture.ocrCandidateText ?? "";
+        if (excerptInput.value.trim() !== "" && excerptInput.value !== candidate) {
+          const proceed = window.confirm("既存の抜粋を読み取り結果で置き換えますか?");
+          if (!proceed) return;
+        }
+        excerptInput.value = candidate;
+        await persistExcerpt(candidate);
+        status.textContent = "抜粋欄に反映し、保存しました。";
+      })();
     });
-    pageCandidateRow.hidden = true;
-  });
-  pageCandidateRow.append(usePageCandidateBtn);
-  wrap.append(pageCandidateRow);
+    actions.append(useExcerptBtn);
 
-  runBtn.addEventListener("click", () => {
-    void (async () => {
-      if (excerptInput.value.trim() !== "") {
-        const proceed = window.confirm("既存の抜粋を読み取り結果の下書きで置き換えますか?");
-        if (!proceed) return;
-      }
+    if (capture.ocrCandidatePage) {
+      const pageRow = document.createElement("div");
+      pageRow.dataset.ocrPageCandidate = "true";
+      const pageLabel = document.createElement("span");
+      const pageValue = document.createElement("strong");
+      pageValue.textContent = capture.ocrCandidatePage;
+      pageLabel.append("ページ番号の候補: ", pageValue);
+      pageRow.append(pageLabel);
+      const usePageBtn = document.createElement("button");
+      usePageBtn.type = "button";
+      usePageBtn.dataset.ocrPageUse = "true";
+      usePageBtn.textContent = "ページ欄に使う";
+      usePageBtn.addEventListener("click", () => {
+        void (async () => {
+          pageInput.value = capture.ocrCandidatePage ?? "";
+          await persistPage(pageInput.value);
+          pageRow.hidden = true;
+        })();
+      });
+      pageRow.append(usePageBtn);
+      actions.append(pageRow);
+    }
 
-      runBtn.disabled = true;
-      pageCandidateRow.hidden = true;
-      status.textContent = "読み取りの準備をしています…";
+    const orientationSelect = buildOrientationSelect(orientation);
+    const retryBtn = document.createElement("button");
+    retryBtn.type = "button";
+    retryBtn.dataset.ocrRetry = "true";
+    retryBtn.textContent = "この向きで読み取り直す";
+    retryBtn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
+    actions.append(orientationSelect, retryBtn);
+  }
 
-      const orientation = orientationSelect.value as OcrOrientation;
-      try {
-        const result = await recognizeExcerpt(image, orientation, (progress) => {
-          const percent = Math.round(progress.progress * 100);
-          status.textContent = `${progress.status || "読み取り中"}…${percent}%`;
-        });
-
-        if (!result.text) {
-          status.textContent = "文字を読み取れませんでした。傾きや明るさを変えて撮り直すか、手入力してください。";
-          return;
-        }
-
-        excerptInput.value = result.text;
-        excerptInput.focus();
-        status.textContent = `読み取りました(下書き・信頼度の目安${Math.round(result.confidence)}%)。内容を確認し、必要なら修正してください。ここを離れると保存されます。`;
-
-        if (result.pageCandidate) {
-          pageCandidateValue.textContent = result.pageCandidate;
-          pageCandidateRow.hidden = false;
-        }
-      } catch (error) {
-        status.textContent = "読み取りに失敗しました。お使いのブラウザが対応していない可能性があります。";
-        console.error("OCR failed", error);
-      } finally {
-        runBtn.disabled = false;
-      }
-    })();
-  });
-
+  renderState();
   return wrap;
+}
+
+/**
+ * OCRキューの進行通知を受けて、表示中の記録一覧のうち該当する
+ * カードだけを最新の状態で作り直す(全体を再描画しない)。
+ */
+async function refreshEntryCardOcr(captureId: string): Promise<void> {
+  const block = entryList.querySelector<HTMLElement>(`[data-ocr-block][data-ocr-capture-id="${captureId}"]`);
+  if (!block) return;
+  const card = block.closest<HTMLElement>("[data-entry-card]");
+  if (!card) return;
+  const fresh = await store.getCapture(captureId);
+  if (!fresh) return;
+  const newCard = await buildEntryCard(fresh);
+  card.replaceWith(newCard);
+}
+
+/**
+ * 「元の写真を見る」の原本Blobを、利用者がiPhone本体に取り出せるように
+ * する(2026-09-21、Decision Log 0194)。Web Share API(ファイル共有)が
+ * 使えればOSの共有シート(「画像を保存」「Filesに保存」等)を開き、
+ * 使えない環境では`<a download>`にフォールバックする。
+ *
+ * 共有シート・ダウンロードのどちらも、開いた後に利用者が実際に保存を
+ * 完了したかどうかをこちらから確認する手段が無い。そのため「保存
+ * しました」という表示はしない——実際に検出できた失敗(共有APIが例外を
+ * 投げた、Blobの準備に失敗した等)のときだけエラーを表示する。
+ */
+async function sharePhoto(image: Blob, captureId: string, statusEl: HTMLElement): Promise<void> {
+  statusEl.textContent = "";
+  const filename = `fieldnote-${captureId}.jpg`;
+
+  let file: File;
+  try {
+    file = new File([image], filename, { type: image.type || "image/jpeg" });
+  } catch {
+    statusEl.textContent = "写真の準備に失敗しました。";
+    return;
+  }
+
+  const nav = navigator as Navigator & {
+    canShare?: (data?: ShareData) => boolean;
+    share?: (data?: ShareData) => Promise<void>;
+  };
+
+  if (nav.canShare?.({ files: [file] }) && nav.share) {
+    try {
+      await nav.share({ files: [file] });
+      return;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        // 利用者が共有シートを閉じただけ。失敗ではない。
+        return;
+      }
+      // 共有APIが使えなかった場合のみ、ダウンロードにフォールバックする。
+    }
+  }
+
+  try {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch {
+    statusEl.textContent = "保存に失敗しました。画像を長押しして保存するなど、別の方法をお試しください。";
+  }
 }
 
 async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
@@ -534,20 +853,50 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
 
   const kind = capture.kind ?? "photo";
 
+  let photoDetails: HTMLDetailsElement | null = null;
+  let photoUrl: string | null = null;
   if (kind === "photo" && capture.image) {
-    const url = URL.createObjectURL(capture.image);
+    const image = capture.image;
+    const url = URL.createObjectURL(image);
+    photoUrl = url;
     captureObjectUrls.push(url);
-    const details = document.createElement("details");
-    details.dataset.entryPhoto = "true";
+    photoDetails = document.createElement("details");
+    photoDetails.dataset.entryPhoto = "true";
     const summary = document.createElement("summary");
     summary.textContent = "元の写真を見る";
-    details.append(summary);
+    photoDetails.append(summary);
     const img = document.createElement("img");
     img.src = url;
     img.alt = "撮影したページ";
     img.loading = "lazy";
-    details.append(img);
-    card.append(details);
+    photoDetails.append(img);
+
+    const dims = document.createElement("p");
+    dims.dataset.entryPhotoDims = "true";
+    img.addEventListener(
+      "load",
+      () => {
+        dims.textContent = `${img.naturalWidth}×${img.naturalHeight}px`;
+      },
+      { once: true },
+    );
+    photoDetails.append(dims);
+
+    const shareStatus = document.createElement("p");
+    shareStatus.dataset.entryPhotoShareStatus = "true";
+    shareStatus.setAttribute("role", "status");
+    shareStatus.setAttribute("aria-live", "polite");
+
+    const shareBtn = document.createElement("button");
+    shareBtn.type = "button";
+    shareBtn.dataset.entryPhotoShare = "true";
+    shareBtn.textContent = "写真を保存/共有";
+    shareBtn.addEventListener("click", () => {
+      void sharePhoto(image, capture.id, shareStatus);
+    });
+    photoDetails.append(shareBtn, shareStatus);
+
+    card.append(photoDetails);
   }
 
   if (kind === "url" && capture.url) {
@@ -560,6 +909,18 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
     card.append(link);
   }
 
+  /** 抜粋欄のblur保存・OCR候補の「使う」ボタンの両方から呼ぶ、唯一の保存経路。 */
+  async function persistExcerpt(value: string): Promise<void> {
+    const updated = await store.updateCapture(capture.id, { excerptText: value });
+    capture.excerptText = updated.excerptText;
+  }
+
+  /** ページ欄のblur保存・OCR候補の「ページ欄に使う」ボタンの両方から呼ぶ、唯一の保存経路。 */
+  async function persistPage(value: string): Promise<void> {
+    const updated = await store.updateCapture(capture.id, { pageLabel: value });
+    capture.pageLabel = updated.pageLabel;
+  }
+
   const excerptInput = document.createElement("textarea");
   excerptInput.dataset.entryExcerpt = "true";
   excerptInput.setAttribute("aria-label", "抜粋・自分の考え");
@@ -567,9 +928,7 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
   excerptInput.rows = 3;
   excerptInput.value = capture.excerptText ?? "";
   excerptInput.addEventListener("blur", () => {
-    void store.updateCapture(capture.id, { excerptText: excerptInput.value }).then((updated) => {
-      capture.excerptText = updated.excerptText;
-    });
+    void persistExcerpt(excerptInput.value);
   });
 
   const pageInput = document.createElement("input");
@@ -579,13 +938,11 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
   pageInput.placeholder = "ページ・位置(任意)";
   pageInput.value = capture.pageLabel ?? "";
   pageInput.addEventListener("blur", () => {
-    void store.updateCapture(capture.id, { pageLabel: pageInput.value }).then((updated) => {
-      capture.pageLabel = updated.pageLabel;
-    });
+    void persistPage(pageInput.value);
   });
 
   if (kind === "photo" && capture.image) {
-    card.append(buildOcrBlock(capture, capture.image, excerptInput, pageInput));
+    card.append(buildOcrBlock(capture, excerptInput, pageInput, photoDetails, persistExcerpt, persistPage, photoUrl));
   }
 
   card.append(excerptInput);
@@ -1305,6 +1662,7 @@ setupForm.addEventListener("submit", (event) => {
   const bookId = bookSelect.value;
   const book = bookId ? bookById.get(bookId) : undefined;
   const title = titleInput.value.trim() || book?.title || "";
+  sessionOcrOrientation = ocrOrientationSelect.value === "vertical" ? "vertical" : "horizontal";
   void startSession(title, bookId, bookLocationInput.value).then((session) => {
     if (session) void startCameraSession(session);
   });
@@ -1390,6 +1748,21 @@ void recoverAdminSession().then((session) => {
     renderAdminAuthState();
   }
 });
+
+// OCRキューの進行通知。カメラ画面の「読み取り待ち」件数を更新し、
+// 記録一覧が表示中ならその記録のカードだけを最新化する
+// (2026-09-20、Decision Log 0192)。
+ocrQueue.onEvent((event: OcrQueueEvent) => {
+  if (event.status === "done" || event.status === "failed") {
+    pendingOcrIdsThisSession.delete(event.captureId);
+    updateOcrPendingIndicator();
+  }
+  void refreshEntryCardOcr(event.captureId);
+});
+
+// 前回タブを閉じた・再読み込みした時点で終わっていなかったOCRを
+// 再開する(処理中のまま止まっていた記録も、最初からやり直す)。
+void ocrQueue.resumeUnfinished();
 
 exportBtn.addEventListener("click", () => {
   void handleExport();

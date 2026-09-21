@@ -49,6 +49,17 @@
  *   fail closedで失敗する。その場合に備え、「この内容をコピーする」
  *   による手動反映(`src/data/publicReadingNotes.ts`への追記)も
  *   引き続き残している(フォールバック、最終形ではない)。
+ *
+ * 【撮影を止めずに連続撮影できるようにした(2026-09-20、Decision Log
+ * 0192)】セッション開始時に「文字の向き」を選ぶ(本ごとに縦書き/
+ * 横書きは一定という前提)。撮影は即座に保存され、OCRは
+ * `../../lib/fieldnote/ocrQueue.ts`が裏で1件ずつ進める
+ * (カメラは閉じない、次の撮影をブロックしない)。読み取り結果は
+ * 「候補」のまま保持され、本人が採用操作をするまで抜粋・ページ欄は
+ * 書き換わらない。実機(iPhone)でOCRが失敗した事例を受け、失敗時の
+ * 表示は「ブラウザ非対応」への一括集約をやめ、どの段階
+ * (コア読み込み/言語データ/初期化/認識実行)で失敗したかを具体的に
+ * 示すようにした。詳細はDecision Log 0192参照。
  * ------------------------------------------------------------
  */
 import "@styles/tokens.css";
@@ -111,6 +122,12 @@ import { books } from "@/data/bookshelf";
             />
           </div>
 
+          <label class={styles.label} for="ocr-orientation-select">文字の向き(撮影する本に合わせる)</label>
+          <select id="ocr-orientation-select" class={styles.bookSelect}>
+            <option value="horizontal">横書き</option>
+            <option value="vertical">縦書き</option>
+          </select>
+
           <button type="submit" class={styles.primaryButton}>写真で読書セッションを開始</button>
         </form>
 
@@ -150,6 +167,7 @@ import { books } from "@/data/bookshelf";
 
       <section id="view-camera" class={styles.cameraView} hidden>
         <video id="camera-video" class={styles.video} playsinline autoplay muted></video>
+        <div id="ocr-guide-frame" class={styles.guideFrame} aria-hidden="true"></div>
         <div id="shutter-flash" class={styles.shutterFlash}></div>
 
         <div class={styles.cameraTopBar}>
@@ -160,7 +178,10 @@ import { books } from "@/data/bookshelf";
         <p id="camera-error" class={styles.cameraError} hidden></p>
 
         <div class={styles.cameraBottomBar}>
-          <p id="shot-count" class={styles.shotCount}>0枚</p>
+          <div class={styles.shotCount}>
+            <p id="shot-count">0枚</p>
+            <p id="ocr-pending-count" hidden></p>
+          </div>
           <button
             type="button"
             id="capture-btn"

@@ -22,7 +22,13 @@
  * `kind`未設定を"photo"とみなす(下位互換)。
  * ------------------------------------------------------------
  */
-import type { FieldnoteStore, FieldnoteCaptureUpdate, FieldnoteExportBundle, FieldnoteImportResult } from "./store";
+import type {
+  FieldnoteStore,
+  FieldnoteCaptureUpdate,
+  FieldnoteOcrStateUpdate,
+  FieldnoteExportBundle,
+  FieldnoteImportResult,
+} from "./store";
 import type { FieldnoteCapture, FieldnoteCollection, FieldnoteComment, FieldnoteSession } from "../../types/fieldnote";
 
 const DB_NAME = "futo-fieldnote";
@@ -197,10 +203,44 @@ export class IndexedDbFieldnoteStore implements FieldnoteStore {
     return updated;
   }
 
+  async updateOcrState(captureId: string, patch: FieldnoteOcrStateUpdate): Promise<FieldnoteCapture> {
+    const db = await this.db();
+    const readTx = db.transaction(CAPTURES_STORE, "readonly");
+    const capture = await requestToPromise<FieldnoteCapture | undefined>(
+      readTx.objectStore(CAPTURES_STORE).get(captureId),
+    );
+    if (!capture) {
+      throw new Error(`記録が見つかりません: ${captureId}`);
+    }
+    const updated: FieldnoteCapture = { ...capture };
+    updated.ocrStatus = patch.ocrStatus;
+    updated.ocrOrientation = patch.ocrOrientation;
+    updated.ocrCropRect = patch.ocrCropRect;
+    updated.ocrCandidateText = patch.ocrCandidateText;
+    updated.ocrCandidatePage = patch.ocrCandidatePage;
+    updated.ocrError = patch.ocrError;
+
+    const writeTx = db.transaction(CAPTURES_STORE, "readwrite");
+    await requestToPromise(writeTx.objectStore(CAPTURES_STORE).put(updated));
+    return updated;
+  }
+
   async getCapture(captureId: string): Promise<FieldnoteCapture | undefined> {
     const db = await this.db();
     const tx = db.transaction(CAPTURES_STORE, "readonly");
     return requestToPromise<FieldnoteCapture | undefined>(tx.objectStore(CAPTURES_STORE).get(captureId));
+  }
+
+  /**
+   * "processing"のまま中断された記録は、実際に処理が続いているとは
+   * 仮定せず"pending"扱いで再開対象に含める(タブを閉じた・再読み込み
+   * した場合、処理中だったOCRは実際には止まっているため)。
+   */
+  async listUnfinishedOcrCaptures(): Promise<FieldnoteCapture[]> {
+    const db = await this.db();
+    const tx = db.transaction(CAPTURES_STORE, "readonly");
+    const all = await requestToPromise<FieldnoteCapture[]>(tx.objectStore(CAPTURES_STORE).getAll());
+    return all.filter((capture) => capture.ocrStatus === "pending" || capture.ocrStatus === "processing");
   }
 
   async listCaptures(sessionId: string): Promise<FieldnoteCapture[]> {
