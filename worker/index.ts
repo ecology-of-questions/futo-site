@@ -892,16 +892,19 @@ async function handleOcrRecognize(request: Request, env: Env): Promise<Response>
   }
 
   if (!visionResponse.ok) {
-    // Google側から返るエラー本文には画像そのものは含まれない。要約せず
-    // ステータスだけ伝える(詳細はGoogle Cloud Console側のログで確認する
-    // 前提。このWorkerからは画像・認識結果ともログに出さない)。
+    // Google側から返るエラー本文には画像そのものは含まれないが、本文を
+    // そのまま返さず、ステータスだけ伝える(詳細はGoogle Cloud Console側
+    // のログで確認する前提。このWorkerからは画像・認識結果・Googleの
+    // 生のエラー本文のいずれもログ・レスポンスに出さない)。
     return json({ error: `Google Cloud Vision error (${visionResponse.status})` }, 502);
   }
 
   const visionJson = (await visionResponse.json()) as GoogleVisionResponseBody;
   const result = visionJson.responses?.[0];
   if (result?.error) {
-    return json({ error: `Google Cloud Vision error: ${result.error.message ?? "unknown"}` }, 502);
+    // Googleが返すエラーメッセージ本文もそのまま転送しない(要約せず
+    // 定型文だけ返す。上のHTTPレベルのエラーと同じ方針)。
+    return json({ error: "Google Cloud Vision error" }, 502);
   }
 
   // 成功した呼び出しだけを月次カウンタに計上する(拒否・失敗は課金

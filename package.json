@@ -20,7 +20,8 @@
     "d1:migrate:ocr-usage:preview": "wrangler d1 execute futo-lab-notebooks-preview --env preview --remote --file=./migrations/0003_ocr_usage.sql",
     "d1:migrate:ocr-usage:production": "wrangler d1 execute futo-lab-notebooks-production --remote --file=./migrations/0003_ocr_usage.sql",
     "admin:hash-password": "node ./scripts/hash-admin-password.mjs",
-    "ocr:compare": "node ./scripts/ocr-compare/compare.mjs"
+    "ocr:compare": "node ./scripts/ocr-compare/compare.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "typescript": "^5.6.0",
+    "vitest": "^3.2.4",
     "wrangler": "^4.131.1"
   }
 }
