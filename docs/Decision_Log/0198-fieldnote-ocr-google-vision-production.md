@@ -515,6 +515,69 @@ Preview/Productionを判定する分岐が無いこと自体の帰結でもあ�
 (判定していないからこそ、secretの有無だけで両者が独立して
 正しく振る舞う)。
 
+### 追記: `missing`を追加しても詳細が表示されなかった件の調査
+
+上記の修正(`missing`フィールドの追加)をPreviewへデプロイし、
+プロジェクトオーナーが再度「本人用ログイン」を試したところ、文言は
+更新されていた(「(本番未配線)」という固定文言が消え、クライアント側
+の新しいフォールバック文言になっていた——これ自体、更新後のJSが実際に
+動いていることの証拠になる)が、「(未設定: ...)」の詳細は表示されず、
+`missing`が空のまま扱われる状態が再現した。
+
+**推論:** `handleAdminLogin`のsecretチェック(`missingAdminLoginSecrets`)
+を通過した後、ログイン試行回数のレート制限のために
+`env.DB.prepare(...).bind(...).first()`(`admin_login_attempts`
+テーブルへの問い合わせ)を呼んでいるが、この呼び出しに対する
+try/catchが無かった。secretが4つとも実際に揃っているなら
+(プロジェクトオーナーの報告どおりだとすれば)このチェックは通過する
+はずで、その先で何らかの例外——最有力なのは、D1データベースの
+バインディング自体の設定ミス、または`admin_login_attempts`テーブルが
+実際には存在しない(migrations/0002_reading_notes.sqlがPreviewの
+D1へ未適用、または適用先のデータベースを取り違えている)——が起きて
+いた場合、Cloudflare Workersのランタイムは未捕捉の例外をこの
+`json()`ヘルパーを経由しない、独自の(JSONとは限らない)エラー応答に
+変換してしまう。クライアント側は「JSON本文に`missing`があれば表示する」
+という前提で書かれているため、`missing`どころか`error`フィールドすら
+無い応答が返ってくれば、`describeMissingSecrets()`は空の`missing`
+として扱い、汎用の文言だけを表示する——これが観測された症状と一致する。
+
+**修正(値を一切出さない範囲で、断定ではなく反証可能な形にした):**
+
+1. `worker/index.ts`の`fetch`ハンドラ全体を`routeRequest()`に切り出し、
+   `export default { fetch }`側でtry/catchするようにした。ハンドラの
+   どこで例外が起きても、Cloudflareの既定のエラーページではなく、
+   必ず`{ error: "internal error", detail: "<例外メッセージ>" }`
+   というJSONの500を返す(スタックトレースは含めない。各ハンドラは
+   secretの値・パスワード本体・画像データを例外メッセージに含めない
+   前提のため、`detail`をそのまま返しても安全)。
+2. `GET /api/admin/diagnostics`(新規、認証不要)を追加した。
+   `NOTEBOOK_ENV`のような既存の非secret診断値と同じ扱いで、
+   - `secretsPresent`: 5つのsecret名それぞれの真偽値(値は含まない)。
+   - `db`: `SELECT name FROM sqlite_master WHERE type = 'table'`を
+     実行し、`ok`(接続・クエリ成功したか)・`error`(失敗時のSQL
+     エラーメッセージのみ、値は含まれない)・`tables`(実在する
+     テーブル名の一覧)を返す。`admin_login_attempts`等の想定テーブルが
+     `tables`に無ければ、migration未適用が一目で分かる。
+   を返す。**これは「Secretを再入力・追加する前に、Preview上で安全に
+   再現・切り分けできる方法を示してほしい」というプロジェクトオーナー
+   の要求への直接の回答であり、ログインボタンを一度も押さずに
+   この1つのGETリクエストだけで、secretの過不足とD1のmigration適用
+   状況の両方を確認できる。**
+3. `worker/admin-login.test.ts`に5件追加(計11件): D1クエリが
+   例外を投げても`POST /api/admin/login`がクラッシュせずJSONの500
+   ・`detail`を返すこと(secretは4つとも揃っている状態で再現)、
+   `GET /api/admin/diagnostics`がsecretの真偽値・D1接続可否・
+   テーブル一覧を正しく返すこと、テーブルが欠けている状態
+   (migration未適用の再現)を検出できること、D1バインディング自体が
+   壊れていてもクラッシュせず`db.ok: false`で返すこと。
+
+**このセッションから`*.workers.dev`への直接アクセスができないため、
+上記は「コードレビューと自動テストで再現・検証した仮説」であり、
+実際のPreview環境で`GET /api/admin/diagnostics`を開いた結果そのもの
+ではない。** プロジェクトオーナーがこのエンドポイントを開いて結果を
+共有してくれれば、原因をその場で確定できる。それまでは「ログイン
+成功まで確認した」とは報告しない。
+
 ## 採用理由 (Rationale)
 
 - 認証を新設せず、公開読書メモAPI(Decision Log 0189)と同じ
