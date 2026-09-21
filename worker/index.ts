@@ -939,51 +939,6 @@ async function handleOcrRecognize(request: Request, env: Env): Promise<Response>
   return json({ text, confidence, orientation });
 }
 
-/**
- * 秘匿情報を一切含まない、読み取り専用の設定診断(2026-09-21、Decision
- * Log 0198)。secretは真偽値(設定されているかどうか)だけを返し、値は
- * 一切含まない。D1については、接続できるか・想定するテーブルが実在
- * するかを`sqlite_master`への問い合わせで確認する(行の中身は返さない、
- * テーブル名だけ)。
- *
- * 【追加の経緯】Preview実機確認で「サーバー側の設定が未完了です。」
- * (secret不足の詳細=`missing`が空)が表示される事象が起きた。secretは
- * 4つとも設定済みとの報告だったため、`handleAdminLogin`のsecretチェック
- * より後(D1クエリなど)で例外が発生し、`json()`を経由しない
- * Cloudflareの既定のエラー応答になっている可能性が高いと判断した。
- * 本人がCloudflare Dashboardでsecretを再入力する前に、D1バインディング
- * ・マイグレーション適用状況を、値を一切出さずに自分で確認できるように
- * するための追加。
- */
-async function handleAdminDiagnostics(env: Env): Promise<Response> {
-  const secretsPresent = {
-    ADMIN_PASSWORD_HASH: Boolean(env.ADMIN_PASSWORD_HASH),
-    ADMIN_PASSWORD_PEPPER: Boolean(env.ADMIN_PASSWORD_PEPPER),
-    ADMIN_SESSION_SECRET: Boolean(env.ADMIN_SESSION_SECRET),
-    IP_HASH_SECRET: Boolean(env.IP_HASH_SECRET),
-    GOOGLE_VISION_API_KEY: Boolean(env.GOOGLE_VISION_API_KEY),
-  };
-
-  let db: { ok: boolean; error: string | null; tables: string[] } = { ok: false, error: null, tables: [] };
-  try {
-    const result = await env.DB.prepare(`SELECT name FROM sqlite_master WHERE type = 'table'`).all<{
-      name: string;
-    }>();
-    db = { ok: true, error: null, tables: result.results.map((row) => row.name).sort() };
-  } catch (error) {
-    // D1バインディング自体が壊れている(存在しない/database_idが違う等)
-    // 場合、ここで例外になる。メッセージにリクエスト由来の値・secretの
-    // 値は含まれない(D1ドライバが返すのはSQL自体のエラーのみ)。
-    db = { ok: false, error: error instanceof Error ? error.message : String(error), tables: [] };
-  }
-
-  return json({
-    notebookEnv: env.NOTEBOOK_ENV ?? "unset",
-    secretsPresent,
-    db,
-  });
-}
-
 async function routeRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const notebookMatch = url.pathname.match(/^\/api\/notebooks\/([^/]+)\/entries\/?$/);
@@ -1009,9 +964,6 @@ async function routeRequest(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === "/api/admin/session" && request.method === "GET") {
     return handleAdminSession(request, env);
-  }
-  if (url.pathname === "/api/admin/diagnostics" && request.method === "GET") {
-    return handleAdminDiagnostics(env);
   }
 
   if (url.pathname === "/api/reading-notes/" || url.pathname === "/api/reading-notes") {
@@ -1047,12 +999,16 @@ export default {
       // なく、必ずJSONで返す(2026-09-21、Decision Log 0198——secretが
       // 4つとも設定済みなのにログインが失敗する事象の調査で、
       // クライアント側がJSONを期待しているのに応答が想定と食い違う
-      // ケースがあり得ると判明したための追加)。各ハンドラは秘匿情報
-      // (secretの値・パスワード本体・画像データ)を例外メッセージに
-      // 含めない前提のため、ここではメッセージをそのまま返す
-      // (スタックトレースは含めない)。
-      const message = error instanceof Error ? error.message : String(error);
-      return json({ error: "internal error", detail: message }, 500);
+      // ケースがあり得ると判明したための追加)。
+      //
+      // 例外の詳細(D1のSQLエラー文言等、値そのものは含まないが内部の
+      // スキーマ情報ではある)は、レスポンスには含めずCloudflare側の
+      // ログにだけ出す(`console.error`はCloudflare Dashboardの
+      // Workers Logsで確認できる)。`/api/admin/login`はログイン前
+      // (未認証)から呼べるエンドポイントのため、応答本文は誰でも見える
+      // 前提で扱い、"internal error"という定型文以上の情報は返さない。
+      console.error("unhandled exception in routeRequest:", error instanceof Error ? error.message : String(error));
+      return json({ error: "internal error" }, 500);
     }
   },
 };

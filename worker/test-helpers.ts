@@ -24,21 +24,11 @@ export interface TestEnv {
   OCR_MONTHLY_LIMIT?: string;
 }
 
-/** 実際のmigrations/*.sqlが作るテーブル名(sqlite_master診断のフェイク応答の既定値)。 */
-const DEFAULT_TABLES = [
-  "entries",
-  "reading_notes",
-  "admin_login_attempts",
-  "ocr_usage_monthly",
-  "ocr_recent_calls",
-];
-
-/** admin_login_attempts / ocr_recent_calls / ocr_usage_monthly / sqlite_master だけを解釈する最小限のフェイクD1。 */
+/** admin_login_attempts / ocr_recent_calls / ocr_usage_monthly だけを解釈する最小限のフェイクD1。 */
 export class FakeD1 {
   private loginAttempts: Array<{ ip_hash: string; attempted_at: number }> = [];
   private recentCalls: Array<{ called_at: number }> = [];
   private monthly = new Map<string, number>();
-  private tables: string[] = [...DEFAULT_TABLES];
   /** 次の1回のクエリ実行だけを失敗させる(D1バインディング自体が壊れている状況の再現用)。 */
   private failNextMessage: string | null = null;
 
@@ -51,10 +41,6 @@ export class FakeD1 {
   }
   getMonthlyUsage(period: string): number {
     return this.monthly.get(period) ?? 0;
-  }
-  /** migrationが未適用の状態を再現する(テーブルが1つも無い、等)。 */
-  setTables(names: string[]): void {
-    this.tables = names;
   }
   /** 次の1回のD1呼び出し(prepare().first()/run()/all()いずれか)だけを、指定メッセージで失敗させる。 */
   failNextOperation(message: string): void {
@@ -142,9 +128,6 @@ export class FakeD1 {
   }
 
   private execAll(query: string, _values: unknown[]): unknown[] {
-    if (query.includes("sqlite_master")) {
-      return this.tables.map((name) => ({ name }));
-    }
     throw new Error(`FakeD1: unhandled all() query: ${query}`);
   }
 }

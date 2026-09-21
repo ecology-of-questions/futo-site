@@ -15,6 +15,14 @@
  * (`worker/index.ts`の`missingAdminLoginSecrets()`参照)。値を一切含まない
  * 「未設定の変数名の配列」をエラー応答に含めることで、Dashboardを
  * 見比べなくても本人がこの場で原因を特定できるようにした。
+ *
+ * 【診断用のGETエンドポイントは採用しなかった】secretの有無・D1の
+ * テーブル名一覧を返す未認証の公開APIを一時追加したが、プロジェクト
+ * オーナーから「未認証の公開エンドポイントとしてsecretの有無・D1
+ * テーブル名を外部へ返す設計は採用しない」との明確な判断を受け、削除
+ * した。代わりに、`/api/admin/login`が未認証から呼べる前提を踏まえ、
+ * 想定外の例外の詳細は応答本文に含めずCloudflareのWorkers Logs
+ * (`console.error`)にだけ出すようにした。
  * ------------------------------------------------------------
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -41,8 +49,11 @@ async function callLogin(env: TestEnv, password: string) {
   return { res, text, json };
 }
 
+let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
 beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn());
+  consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -109,74 +120,22 @@ describe("POST /api/admin/login", () => {
     expect(json?.missing).toBeUndefined();
   });
 
-  it("secretは4つとも揃っているのにD1クエリ自体が失敗する場合、クラッシュせずJSONの500を返す(未配線ではない別の例外の再現)", async () => {
+  it("secretは4つとも揃っているのにD1クエリ自体が失敗する場合、クラッシュせずJSONの500を返す。詳細はログにだけ出し、応答本文には含めない", async () => {
     const env = makeEnv();
     // admin_login_attemptsのレート制限チェック(secretチェックの直後、
     // 最初のD1呼び出し)を失敗させる。D1バインディングの設定ミスや、
     // migrations/0002_reading_notes.sqlが未適用でテーブルが無い場合に
     // 実際に起こり得るエラーを模している。
     env.DB.failNextOperation("D1_ERROR: no such table: admin_login_attempts");
-    const { res, json } = await callLogin(env, PASSWORD);
+    const { res, json, text } = await callLogin(env, PASSWORD);
     expect(res.status).toBe(500);
-    expect(json?.error).toBe("internal error");
-    expect(json?.detail).toContain("no such table: admin_login_attempts");
+    expect(json).toEqual({ error: "internal error" });
+    // 例外の詳細(SQLエラー文言)は未認証から見える応答本文には出さない。
+    expect(text).not.toContain("no such table");
     // secretは一切ログ・応答に出ない。
-    expect(json?.detail).not.toContain(env.ADMIN_SESSION_SECRET);
-  });
-});
-
-describe("GET /api/admin/diagnostics", () => {
-  async function callDiagnostics(env: TestEnv) {
-    const res = await worker.fetch(
-      new Request("https://example.com/api/admin/diagnostics"),
-      env as unknown as Parameters<typeof worker.fetch>[1],
-    );
-    const text = await res.text();
-    return { res, json: JSON.parse(text) as Record<string, unknown>, text };
-  }
-
-  it("secretは真偽値だけを返し、値は一切含まない", async () => {
-    const env = makeEnv({ IP_HASH_SECRET: undefined });
-    const { res, json, text } = await callDiagnostics(env);
-    expect(res.status).toBe(200);
-    expect(json.secretsPresent).toEqual({
-      ADMIN_PASSWORD_HASH: true,
-      ADMIN_PASSWORD_PEPPER: true,
-      ADMIN_SESSION_SECRET: true,
-      IP_HASH_SECRET: false,
-      GOOGLE_VISION_API_KEY: true,
-    });
-    expect(text).not.toContain(env.ADMIN_PASSWORD_HASH as string);
     expect(text).not.toContain(env.ADMIN_SESSION_SECRET as string);
-    expect(text).not.toContain(env.GOOGLE_VISION_API_KEY as string);
-  });
-
-  it("D1に接続でき、想定するテーブルが揃っていればdb.okがtrueになる", async () => {
-    const env = makeEnv();
-    const { json } = await callDiagnostics(env);
-    const db = json.db as { ok: boolean; error: string | null; tables: string[] };
-    expect(db.ok).toBe(true);
-    expect(db.tables).toEqual(
-      expect.arrayContaining(["admin_login_attempts", "ocr_usage_monthly", "ocr_recent_calls"]),
-    );
-  });
-
-  it("migrationが未適用でテーブルが無い状態を、tablesの欠落として検出できる", async () => {
-    const env = makeEnv();
-    env.DB.setTables(["entries"]); // 0002/0003のmigrationが未適用の状態を模す
-    const { json } = await callDiagnostics(env);
-    const db = json.db as { ok: boolean; tables: string[] };
-    expect(db.ok).toBe(true);
-    expect(db.tables).not.toContain("admin_login_attempts");
-  });
-
-  it("D1バインディング自体が壊れている場合は、クラッシュせずdb.okをfalse・db.errorにメッセージを入れて返す", async () => {
-    const env = makeEnv();
-    env.DB.failNextOperation("D1_ERROR: database_id not found");
-    const { res, json } = await callDiagnostics(env);
-    expect(res.status).toBe(200);
-    const db = json.db as { ok: boolean; error: string | null };
-    expect(db.ok).toBe(false);
-    expect(db.error).toContain("database_id not found");
+    // 詳細はCloudflare Workers Logs相当(console.error)にだけ出す。
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy.mock.calls[0].join(" ")).toContain("no such table: admin_login_attempts");
   });
 });
