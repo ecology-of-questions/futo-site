@@ -41,9 +41,16 @@ export interface ReadingNoteDraft {
 
 class PublishApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  /**
+   * fail closedで拒否された際、未設定のsecret名だけを列挙した配列
+   * (2026-09-21、Decision Log 0198)。値は一切含まない。`missing`を
+   * 返さないエンドポイント・エラーでは常にundefined。
+   */
+  missing?: string[];
+  constructor(message: string, status: number, missing?: string[]) {
     super(message);
     this.status = status;
+    this.missing = missing;
   }
 }
 
@@ -59,7 +66,14 @@ async function parseJsonOrThrow<T>(response: Response): Promise<T> {
       body && typeof body === "object" && "error" in body && typeof (body as { error: unknown }).error === "string"
         ? (body as { error: string }).error
         : `HTTP ${response.status}`;
-    throw new PublishApiError(message, response.status);
+    const missing =
+      body &&
+      typeof body === "object" &&
+      "missing" in body &&
+      Array.isArray((body as { missing: unknown }).missing)
+        ? ((body as { missing: unknown[] }).missing.filter((v): v is string => typeof v === "string"))
+        : undefined;
+    throw new PublishApiError(message, response.status, missing);
   }
   return body as T;
 }

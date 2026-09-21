@@ -494,13 +494,30 @@ function requireCsrf(request: Request, session: SessionPayload): boolean {
   return typeof header === "string" && header.length > 0 && header === session.csrf;
 }
 
+/**
+ * ログインに必要な4つのsecretのうち、未設定のものだけを名前で返す
+ * (値は一切含まない。2026-09-21、Decision Log 0198——Preview環境で
+ * `IP_HASH_SECRET`だけ設定し忘れる、といった事象を、本人がDashboardの
+ * secret一覧を目視するだけでは気づきにくかったための追加)。
+ */
+function missingAdminLoginSecrets(env: Env): string[] {
+  const missing: string[] = [];
+  if (!env.ADMIN_PASSWORD_HASH) missing.push("ADMIN_PASSWORD_HASH");
+  if (!env.ADMIN_PASSWORD_PEPPER) missing.push("ADMIN_PASSWORD_PEPPER");
+  if (!env.ADMIN_SESSION_SECRET) missing.push("ADMIN_SESSION_SECRET");
+  if (!env.IP_HASH_SECRET) missing.push("IP_HASH_SECRET");
+  return missing;
+}
+
 async function handleAdminLogin(request: Request, env: Env): Promise<Response> {
-  if (!env.ADMIN_PASSWORD_HASH || !env.ADMIN_PASSWORD_PEPPER || !env.ADMIN_SESSION_SECRET || !env.IP_HASH_SECRET) {
+  const missingSecrets = missingAdminLoginSecrets(env);
+  if (missingSecrets.length > 0) {
     // 認証用secretが揃っていない場合は、弱い既定値へフォールバック
     // せず常に拒否する(fail closed)。IPハッシュ化は既存の
     // IP_HASH_SECRET(handlePostEntriesと同じ鍵)をそのまま使う——
     // 「IPをハッシュ化する」という役割は1つの鍵にまとめる。
-    return json({ error: "server misconfigured" }, 500);
+    // `missing`はsecretの値を一切含まない、未設定の変数名だけの配列。
+    return json({ error: "server misconfigured", missing: missingSecrets }, 500);
   }
 
   let payload: Record<string, unknown>;
@@ -826,7 +843,7 @@ async function handleOcrRecognize(request: Request, env: Env): Promise<Response>
 
   if (!env.GOOGLE_VISION_API_KEY) {
     // secret未設定は常に拒否する(fail closed、他のsecretと同じ方針)。
-    return json({ error: "server misconfigured: OCR is not configured" }, 500);
+    return json({ error: "server misconfigured: OCR is not configured", missing: ["GOOGLE_VISION_API_KEY"] }, 500);
   }
 
   let payload: { imageBase64?: unknown; orientation?: unknown };

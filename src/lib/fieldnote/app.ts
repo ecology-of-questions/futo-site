@@ -1511,6 +1511,20 @@ async function refreshAdminSection(): Promise<void> {
   await renderExistingNotesForBook();
 }
 
+/**
+ * ログインAPIが500(fail closed、secret未設定)を返した際の案内文を
+ * 組み立てる(2026-09-21、Decision Log 0198)。`error.missing`
+ * (未設定のsecret名だけの配列、値は含まない)があればそのまま列挙し、
+ * 「どの環境の何が未設定か分からない」まま本番未配線と決めつけない
+ * ようにする(Preview側で一部だけ未設定、ということもあり得るため)。
+ */
+function describeMissingSecrets(error: PublishApiError): string {
+  if (error.missing && error.missing.length > 0) {
+    return `サーバー側の設定が未完了です(未設定: ${error.missing.join("、")})。`;
+  }
+  return "サーバー側の設定が未完了です。";
+}
+
 async function handleAdminLoginClick(): Promise<void> {
   const password = publishAdminPassword.value;
   if (!password) {
@@ -1530,8 +1544,7 @@ async function handleAdminLoginClick(): Promise<void> {
     } else if (error instanceof PublishApiError && error.status === 429) {
       publishAdminStatus.textContent = "試行回数が多すぎます。しばらく待ってから試してください。";
     } else if (error instanceof PublishApiError && error.status === 500) {
-      publishAdminStatus.textContent =
-        "サーバー側の設定が未完了です(本番未配線)。下の「この内容をコピーする」で手動反映してください。";
+      publishAdminStatus.textContent = `${describeMissingSecrets(error)} 下の「この内容をコピーする」で手動反映してください。`;
     } else {
       publishAdminStatus.textContent =
         "通信できませんでした。この環境ではAPIが使えない可能性があります。下の「この内容をコピーする」で手動反映してください。";
@@ -1572,7 +1585,7 @@ async function handleAccountLoginClick(): Promise<void> {
     } else if (error instanceof PublishApiError && error.status === 429) {
       accountLoginStatus.textContent = "試行回数が多すぎます。しばらく待ってから試してください。";
     } else if (error instanceof PublishApiError && error.status === 500) {
-      accountLoginStatus.textContent = "サーバー側の設定が未完了です(本番未配線)。";
+      accountLoginStatus.textContent = describeMissingSecrets(error);
     } else {
       accountLoginStatus.textContent = "通信できませんでした。";
     }
