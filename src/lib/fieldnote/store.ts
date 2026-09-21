@@ -42,6 +42,7 @@ export interface FieldnoteCaptureUpdate {
 export interface FieldnoteOcrStateUpdate {
   ocrStatus: FieldnoteOcrStatus;
   ocrOrientation?: "horizontal" | "vertical";
+  ocrCropRect?: { x: number; y: number; width: number; height: number; rotationDeg?: number };
   ocrCandidateText?: string;
   ocrCandidatePage?: string;
   ocrError?: string;

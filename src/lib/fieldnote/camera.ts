@@ -37,6 +37,18 @@
 const MAX_CAPTURE_DIMENSION = 4000;
 const CAPTURE_JPEG_QUALITY = 0.9;
 
+/**
+ * 画面上の矩形を、コンテナ(`<video>`の表示領域)の幅・高さに対する
+ * 割合(0〜1)で表したもの。ガイド枠の位置指定・OCR範囲の指定の両方に
+ * 使う共通の形(2026-09-21、Decision Log 0195)。
+ */
+export interface CameraScreenRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export class FieldnoteCameraError extends Error {}
 
 export class FieldnoteCamera {
@@ -83,6 +95,50 @@ export class FieldnoteCamera {
       this.videoEl.srcObject = null;
     }
     this.videoEl = null;
+  }
+
+  /**
+   * 画面に表示しているガイド枠(コンテナ=`<video>`の表示領域に対する
+   * 割合)を、実際に撮影される映像(`video.videoWidth`/`videoHeight`)
+   * に対する割合に変換する(2026-09-21、Decision Log 0195)。
+   *
+   * `<video>`は`object-fit: cover`で表示しているため、画面に見えている
+   * 範囲と実際の映像の全体は一致しない(はみ出た部分が中央から
+   * 均等に切り取られて表示されている)。この変換をせずに画面上の割合を
+   * そのまま撮影画像に適用すると、ガイド枠に合わせて撮ったつもりの
+   * 範囲と、実際に切り出される範囲がずれる。
+   *
+   * カメラが起動していない、または映像の実解像度がまだ取得できない
+   * 場合はnullを返す(呼び出し側は範囲指定なし=原本全体、として
+   * 扱うこと)。
+   */
+  mapScreenRectToCaptureRect(screenRect: CameraScreenRect): CameraScreenRect | null {
+    const video = this.videoEl;
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      return null;
+    }
+    const containerRect = video.getBoundingClientRect();
+    if (containerRect.width <= 0 || containerRect.height <= 0) {
+      return null;
+    }
+
+    const scale = Math.max(containerRect.width / video.videoWidth, containerRect.height / video.videoHeight);
+    const visibleNativeWidth = containerRect.width / scale;
+    const visibleNativeHeight = containerRect.height / scale;
+    const offsetX = (video.videoWidth - visibleNativeWidth) / 2;
+    const offsetY = (video.videoHeight - visibleNativeHeight) / 2;
+
+    const nativeX = offsetX + screenRect.x * visibleNativeWidth;
+    const nativeY = offsetY + screenRect.y * visibleNativeHeight;
+    const nativeWidth = screenRect.width * visibleNativeWidth;
+    const nativeHeight = screenRect.height * visibleNativeHeight;
+
+    return {
+      x: nativeX / video.videoWidth,
+      y: nativeY / video.videoHeight,
+      width: nativeWidth / video.videoWidth,
+      height: nativeHeight / video.videoHeight,
+    };
   }
 
   async capture(): Promise<Blob> {

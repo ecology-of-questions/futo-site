@@ -50,10 +50,10 @@
  * ------------------------------------------------------------
  */
 import { IndexedDbFieldnoteStore } from "./indexedDbStore";
-import { FieldnoteCamera, FieldnoteCameraError } from "./camera";
+import { FieldnoteCamera, FieldnoteCameraError, type CameraScreenRect } from "./camera";
 import { books } from "../../data/bookshelf";
 import type { FieldnoteExportBundle } from "./store";
-import type { OcrOrientation } from "./ocr";
+import type { OcrOrientation, OcrCropRect } from "./ocr";
 import { OcrQueue, type OcrQueueEvent } from "./ocrQueue";
 import {
   adminLogin,
@@ -74,6 +74,13 @@ const store = new IndexedDbFieldnoteStore();
 const camera = new FieldnoteCamera();
 const ocrQueue = new OcrQueue(store);
 const bookById = new Map(books.map((book) => [book.id, book]));
+
+/**
+ * 本のページを置くためのガイド枠(画面=`<video>`の表示領域に対する
+ * 割合、2026-09-21、Decision Log 0195)。カメラ画面のガイド枠表示と、
+ * 撮影時のOCR範囲の既定値の、両方の基準になる単一の定義。
+ */
+const GUIDE_FRAME_RECT: CameraScreenRect = { x: 0.08, y: 0.16, width: 0.84, height: 0.6 };
 
 let currentSession: FieldnoteSession | null = null;
 let shotCount = 0;
@@ -119,6 +126,7 @@ const importFileInput = byId<HTMLInputElement>("import-file-input");
 const backupStatus = byId<HTMLElement>("backup-status");
 
 const videoEl = byId<HTMLVideoElement>("camera-video");
+const guideFrameEl = byId<HTMLElement>("ocr-guide-frame");
 const captureBtn = byId<HTMLButtonElement>("capture-btn");
 const endSessionBtn = byId<HTMLButtonElement>("end-session-btn");
 const shotCountEl = byId<HTMLElement>("shot-count");
@@ -277,6 +285,11 @@ async function startCameraSession(session: FieldnoteSession): Promise<void> {
   pendingOcrIdsThisSession.clear();
   updateOcrPendingIndicator();
 
+  guideFrameEl.style.left = `${GUIDE_FRAME_RECT.x * 100}%`;
+  guideFrameEl.style.top = `${GUIDE_FRAME_RECT.y * 100}%`;
+  guideFrameEl.style.width = `${GUIDE_FRAME_RECT.width * 100}%`;
+  guideFrameEl.style.height = `${GUIDE_FRAME_RECT.height * 100}%`;
+
   showView("camera");
   clearCameraError();
 
@@ -303,12 +316,25 @@ async function capturePage(): Promise<void> {
   captureBtn.disabled = true;
   try {
     const image = await camera.capture();
+    // ガイド枠(画面表示上の割合)を、実際に撮影された映像に対する
+    // 割合に変換する。object-fit: coverによる表示上のはみ出しクロップ
+    // を考慮した変換(Decision Log 0195)。取得できない場合は範囲指定
+    // なし(原本全体を使う)にフォールバックする。
+    const captureCropRect = camera.mapScreenRectToCaptureRect(GUIDE_FRAME_RECT);
+    const ocrCropRect: OcrCropRect | undefined = captureCropRect
+      ? { ...captureCropRect, rotationDeg: 0 }
+      : undefined;
+
     const capture = await store.addCapture(currentSession.id, image);
     shotCount += 1;
     shotCountEl.textContent = `${shotCount}枚`;
     flashShutter();
 
-    await store.updateOcrState(capture.id, { ocrStatus: "pending", ocrOrientation: sessionOcrOrientation });
+    await store.updateOcrState(capture.id, {
+      ocrStatus: "pending",
+      ocrOrientation: sessionOcrOrientation,
+      ocrCropRect,
+    });
     pendingOcrIdsThisSession.add(capture.id);
     updateOcrPendingIndicator();
     ocrQueue.enqueue(capture.id);
@@ -465,6 +491,19 @@ function renderRelatedLinks(capture: FieldnoteCapture, container: HTMLElement): 
  * ときだけ(自動上書きしない)。原本の写真と見比べやすいよう、候補が
  * 出た最初のタイミングで写真の`<details>`を開く。
  */
+/** 撮影時にガイド枠から決まる範囲が無い場合(この機能より前の記録)の既定値=原本全体。 */
+const FULL_IMAGE_CROP_RECT: OcrCropRect = { x: 0, y: 0, width: 1, height: 1, rotationDeg: 0 };
+
+/** 調整用スライダーの値が有効な範囲に収まるようにする(0..1、回転は±30度まで)。 */
+function clampCropRect(rect: OcrCropRect): OcrCropRect {
+  const width = Math.min(Math.max(rect.width, 0.05), 1);
+  const height = Math.min(Math.max(rect.height, 0.05), 1);
+  const x = Math.min(Math.max(rect.x, 0), 1 - width);
+  const y = Math.min(Math.max(rect.y, 0), 1 - height);
+  const rotationDeg = Math.max(-30, Math.min(30, rect.rotationDeg ?? 0));
+  return { x, y, width, height, rotationDeg };
+}
+
 function buildOcrBlock(
   capture: FieldnoteCapture,
   excerptInput: HTMLTextAreaElement,
@@ -472,6 +511,7 @@ function buildOcrBlock(
   photoDetails: HTMLDetailsElement | null,
   persistExcerpt: (value: string) => Promise<void>,
   persistPage: (value: string) => Promise<void>,
+  photoUrl: string | null,
 ): HTMLElement {
   const wrap = document.createElement("div");
   wrap.dataset.ocrBlock = "true";
@@ -488,6 +528,99 @@ function buildOcrBlock(
     "実験的機能です。読み取り結果は候補として扱われ、「使う」を押すまで抜粋・ページ欄は書き換わりません。誤読があるので、必ず元の写真と見比べてください。初回は文字向きごとに約2MBのデータをダウンロードします。";
   details.append(note);
   wrap.append(details);
+
+  /**
+   * 読み取り範囲(OCRに渡す部分)の小さいプレビューと、ページがずれて
+   * いた場合の調整UI(2026-09-21、Decision Log 0195)。通常は開かず、
+   * 既定の範囲(撮影時のガイド枠)のまま「読み取る」を進められる。
+   */
+  if (photoUrl) {
+    const cropDetails = document.createElement("details");
+    cropDetails.dataset.ocrCropDetails = "true";
+    const cropSummary = document.createElement("summary");
+    cropSummary.textContent = "読み取り範囲を確認・調整";
+    cropDetails.append(cropSummary);
+
+    const initialRect = capture.ocrCropRect ?? FULL_IMAGE_CROP_RECT;
+    let workingRect: OcrCropRect = { ...initialRect, rotationDeg: initialRect.rotationDeg ?? 0 };
+
+    const preview = document.createElement("div");
+    preview.dataset.ocrCropPreview = "true";
+    const previewImg = document.createElement("img");
+    previewImg.src = photoUrl;
+    previewImg.alt = "";
+    preview.append(previewImg);
+    const rectOverlay = document.createElement("div");
+    rectOverlay.dataset.ocrCropPreviewRect = "true";
+    preview.append(rectOverlay);
+    cropDetails.append(preview);
+
+    function updateOverlay(): void {
+      rectOverlay.style.left = `${workingRect.x * 100}%`;
+      rectOverlay.style.top = `${workingRect.y * 100}%`;
+      rectOverlay.style.width = `${workingRect.width * 100}%`;
+      rectOverlay.style.height = `${workingRect.height * 100}%`;
+    }
+    updateOverlay();
+
+    const controls = document.createElement("div");
+    controls.dataset.ocrCropControls = "true";
+
+    function makeSlider(
+      labelText: string,
+      min: number,
+      max: number,
+      step: number,
+      value: number,
+      onInput: (value: number) => void,
+    ): HTMLLabelElement {
+      const label = document.createElement("label");
+      const span = document.createElement("span");
+      span.textContent = labelText;
+      const input = document.createElement("input");
+      input.type = "range";
+      input.min = String(min);
+      input.max = String(max);
+      input.step = String(step);
+      input.value = String(value);
+      input.addEventListener("input", () => {
+        onInput(Number(input.value));
+        updateOverlay();
+      });
+      label.append(span, input);
+      return label;
+    }
+
+    controls.append(
+      makeSlider("左端", 0, 0.9, 0.01, workingRect.x, (v) => {
+        workingRect = { ...workingRect, x: v };
+      }),
+      makeSlider("上端", 0, 0.9, 0.01, workingRect.y, (v) => {
+        workingRect = { ...workingRect, y: v };
+      }),
+      makeSlider("幅", 0.1, 1, 0.01, workingRect.width, (v) => {
+        workingRect = { ...workingRect, width: v };
+      }),
+      makeSlider("高さ", 0.1, 1, 0.01, workingRect.height, (v) => {
+        workingRect = { ...workingRect, height: v };
+      }),
+      makeSlider("回転(度)", -30, 30, 1, workingRect.rotationDeg ?? 0, (v) => {
+        workingRect = { ...workingRect, rotationDeg: v };
+      }),
+    );
+    cropDetails.append(controls);
+
+    const applyBtn = document.createElement("button");
+    applyBtn.type = "button";
+    applyBtn.dataset.ocrCropApply = "true";
+    applyBtn.textContent = "この範囲で読み取り直す";
+    applyBtn.addEventListener("click", () => {
+      runOcr(capture.ocrOrientation ?? "horizontal", clampCropRect(workingRect));
+    });
+    cropDetails.append(applyBtn);
+
+    wrap.append(cropDetails);
+  }
 
   const status = document.createElement("p");
   status.dataset.ocrStatus = "true";
@@ -513,9 +646,11 @@ function buildOcrBlock(
     return select;
   }
 
-  function runOcr(orientation: OcrOrientation): void {
+  /** cropRectを省略すると、その記録に既に保存されている範囲を維持する(向きだけ変える再試行等)。 */
+  function runOcr(orientation: OcrOrientation, cropRect?: OcrCropRect): void {
+    const nextCropRect = cropRect ?? capture.ocrCropRect;
     void store
-      .updateOcrState(capture.id, { ocrStatus: "pending", ocrOrientation: orientation })
+      .updateOcrState(capture.id, { ocrStatus: "pending", ocrOrientation: orientation, ocrCropRect: nextCropRect })
       .then((updated) => {
         Object.assign(capture, updated);
         ocrQueue.enqueue(capture.id);
@@ -719,9 +854,11 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
   const kind = capture.kind ?? "photo";
 
   let photoDetails: HTMLDetailsElement | null = null;
+  let photoUrl: string | null = null;
   if (kind === "photo" && capture.image) {
     const image = capture.image;
     const url = URL.createObjectURL(image);
+    photoUrl = url;
     captureObjectUrls.push(url);
     photoDetails = document.createElement("details");
     photoDetails.dataset.entryPhoto = "true";
@@ -805,7 +942,7 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
   });
 
   if (kind === "photo" && capture.image) {
-    card.append(buildOcrBlock(capture, excerptInput, pageInput, photoDetails, persistExcerpt, persistPage));
+    card.append(buildOcrBlock(capture, excerptInput, pageInput, photoDetails, persistExcerpt, persistPage, photoUrl));
   }
 
   card.append(excerptInput);

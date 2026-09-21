@@ -28,6 +28,13 @@
  * として扱う。読み取り結果は`ocrCandidateText`/`ocrCandidatePage`に
  * 候補として置くだけで、`excerptText`/`pageLabel`は本人が採用操作を
  * するまで書き換えない(自動上書きしない)。
+ *
+ * 【OCR用の切り出し範囲を追加(2026-09-21、Decision Log 0195)】
+ * `ocrCropRect`は、撮影フレームのうちOCRに渡す範囲(原本の幅・高さに
+ * 対する割合)。カメラ画面のガイド枠から撮影時に自動で決まるが、
+ * ページがずれていた場合は撮影後に調整でき、その結果もこのフィールド
+ * に上書きされる。既存レコード(未設定)は「範囲指定なし=原本全体を
+ * 使う」として扱う(下位互換)。原本の画像(`image`)自体は変更しない。
  * ------------------------------------------------------------
  */
 
@@ -86,6 +93,8 @@ export interface FieldnoteCapture {
   ocrCandidatePage?: string;
   /** 失敗時の診断メッセージ(端末内に留め、どこにも送信しない) */
   ocrError?: string;
+  /** OCRに渡す範囲(原本の幅・高さに対する割合、0〜1)。未設定は「原本全体」を意味する */
+  ocrCropRect?: { x: number; y: number; width: number; height: number; rotationDeg?: number };
 }
 
 export interface FieldnoteComment {

@@ -46,11 +46,34 @@
  * OCR専用の縮小コピーを作ってから渡す。このコピーは保存されず、
  * 呼び出しの度に使い捨てる。原本のBlob自体・IndexedDB上の記録は
  * 一切書き換えない。
+ *
+ * 【固定ガイド枠での切り出しを追加(2026-09-21、Decision Log 0195)】
+ * 実写真での検証で、撮影フレーム全体(背景の書類・物まで)を
+ * そのままOCRに渡していたことが精度低下の主因の一つと判明した。
+ * `cropForOcr()`が、原本から`OcrCropRect`(向き・回転を含む、撮影時に
+ * 決まる割合ベースの範囲)の範囲だけを都度切り出し、それを
+ * `resizeForOcr()`に渡す。原本のBlobは一切変更しない。回転は、範囲の
+ * 中心を軸に原本画像そのものを回転させたうえで、その回転後の画像から
+ * 軸に沿った矩形を切り出す(台形補正ではない、単純な平面内回転のみ)。
  * ------------------------------------------------------------
  */
 import { simd } from "wasm-feature-detect";
 
 export type OcrOrientation = "horizontal" | "vertical";
+
+/**
+ * OCRに渡す範囲。原本画像の幅・高さに対する割合(0〜1)で表す
+ * (原本の実際のピクセルサイズに依存しない)。`rotationDeg`は、この
+ * 範囲を切り出す前に原本画像自体を中心周りに回転させる角度(度、
+ * 時計回りが正)。省略時は0(回転なし)。
+ */
+export interface OcrCropRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotationDeg?: number;
+}
 
 export type OcrStage = "core" | "langdata" | "init" | "recognize" | "unknown";
 
@@ -93,6 +116,59 @@ const LANG_PATH = `${VENDOR_BASE}/lang-data`;
  */
 const OCR_INPUT_MAX_DIMENSION = 2600;
 const OCR_INPUT_JPEG_QUALITY = 0.9;
+
+const CROP_OUTPUT_JPEG_QUALITY = 0.92;
+
+/**
+ * 原本のBlobを一切変更せず、指定範囲(`OcrCropRect`)だけを切り出した
+ * コピーを都度作る。`cropRect`が無い場合は原本をそのまま返す(下位
+ * 互換。この機能より前に撮影された記録には範囲の情報が無い)。
+ * 回転は、切り出す前に原本画像自体を中心周りに回転させることで行う
+ * (原本と同じ大きさのキャンバスに描くため、回転で四隅がはみ出た部分は
+ * 切り捨てられる。切り出す範囲は通常その内側に収まる前提)。
+ */
+async function cropForOcr(image: Blob, cropRect: OcrCropRect | undefined): Promise<Blob> {
+  if (!cropRect) return image;
+
+  const bitmap = await createImageBitmap(image);
+  try {
+    const srcWidth = bitmap.width;
+    const srcHeight = bitmap.height;
+    const rotationDeg = cropRect.rotationDeg ?? 0;
+
+    let rotatedSource: CanvasImageSource = bitmap;
+    if (rotationDeg !== 0) {
+      const rotatedCanvas = document.createElement("canvas");
+      rotatedCanvas.width = srcWidth;
+      rotatedCanvas.height = srcHeight;
+      const rotatedCtx = rotatedCanvas.getContext("2d");
+      if (rotatedCtx) {
+        rotatedCtx.translate(srcWidth / 2, srcHeight / 2);
+        rotatedCtx.rotate((rotationDeg * Math.PI) / 180);
+        rotatedCtx.drawImage(bitmap, -srcWidth / 2, -srcHeight / 2);
+        rotatedSource = rotatedCanvas;
+      }
+    }
+
+    const cropX = Math.round(cropRect.x * srcWidth);
+    const cropY = Math.round(cropRect.y * srcHeight);
+    const cropWidth = Math.max(1, Math.round(cropRect.width * srcWidth));
+    const cropHeight = Math.max(1, Math.round(cropRect.height * srcHeight));
+
+    const outCanvas = document.createElement("canvas");
+    outCanvas.width = cropWidth;
+    outCanvas.height = cropHeight;
+    const outCtx = outCanvas.getContext("2d");
+    if (!outCtx) return image;
+    outCtx.drawImage(rotatedSource, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+
+    return await new Promise<Blob>((resolve) => {
+      outCanvas.toBlob((blob) => resolve(blob ?? image), "image/jpeg", CROP_OUTPUT_JPEG_QUALITY);
+    });
+  } finally {
+    bitmap.close();
+  }
+}
 
 /**
  * 原本のBlobを一切変更せず、OCR専用の縮小コピーを都度作る。
@@ -190,10 +266,15 @@ function extractPageCandidate(text: string): string | undefined {
  * 失敗時は`OcrError`(どの段階で失敗したか+元のエラー内容)を投げる。
  * 呼び出し側はこれを捕捉して、段階ごとの具体的なメッセージを表示すること
  * (「ブラウザ非対応」への一括集約は禁止、Decision Log 0192)。
+ *
+ * `cropRect`が指定された場合、原本のその範囲だけを切り出してから認識
+ * する(Decision Log 0195)。未指定(`undefined`)の場合は原本全体を
+ * 使う(この機能より前に撮影された記録との下位互換)。
  */
 export async function recognizeExcerpt(
   image: Blob,
   orientation: OcrOrientation,
+  cropRect: OcrCropRect | undefined,
   onProgress?: (progress: OcrProgress) => void,
 ): Promise<OcrResult> {
   const { createWorker } = await import("tesseract.js");
@@ -202,11 +283,13 @@ export async function recognizeExcerpt(
 
   let lastStage: OcrStage = "unknown";
 
-  // 原本(呼び出し側から渡されたimage)は変更しない。OCRには専用の
-  // 縮小コピーを渡す(Decision Log 0194)。
+  // 原本(呼び出し側から渡されたimage)は変更しない。OCRには、指定範囲
+  // の切り出し(Decision Log 0195)→専用の縮小コピー(Decision Log
+  // 0194)の順で作った、使い捨てのコピーを渡す。
   let ocrInput: Blob;
   try {
-    ocrInput = await resizeForOcr(image);
+    const cropped = await cropForOcr(image, cropRect);
+    ocrInput = await resizeForOcr(cropped);
   } catch (error) {
     throw new OcrError(describeFailure(lastStage, error), lastStage);
   }

@@ -24,7 +24,7 @@
  * で、採用するかどうかはUI側(本人の操作)に委ねる。
  * ------------------------------------------------------------
  */
-import { recognizeExcerpt, OcrError, type OcrOrientation, type OcrProgress } from "./ocr";
+import { recognizeExcerpt, OcrError, type OcrOrientation, type OcrProgress, type OcrCropRect } from "./ocr";
 import type { FieldnoteStore } from "./store";
 
 export interface OcrQueueEvent {
@@ -92,16 +92,22 @@ export class OcrQueue {
     if (capture.ocrStatus === "done") return;
 
     const orientation: OcrOrientation = capture.ocrOrientation ?? "horizontal";
-    await this.store.updateOcrState(captureId, { ocrStatus: "processing", ocrOrientation: orientation });
+    const cropRect: OcrCropRect | undefined = capture.ocrCropRect;
+    await this.store.updateOcrState(captureId, {
+      ocrStatus: "processing",
+      ocrOrientation: orientation,
+      ocrCropRect: cropRect,
+    });
     this.emit({ captureId, status: "processing" });
 
     try {
-      const result = await recognizeExcerpt(capture.image, orientation, (progress) => {
+      const result = await recognizeExcerpt(capture.image, orientation, cropRect, (progress) => {
         this.emit({ captureId, status: "processing", progress });
       });
       await this.store.updateOcrState(captureId, {
         ocrStatus: "done",
         ocrOrientation: orientation,
+        ocrCropRect: cropRect,
         ocrCandidateText: result.text || undefined,
         ocrCandidatePage: result.pageCandidate,
       });
@@ -111,6 +117,7 @@ export class OcrQueue {
       await this.store.updateOcrState(captureId, {
         ocrStatus: "failed",
         ocrOrientation: orientation,
+        ocrCropRect: cropRect,
         ocrError: message,
       });
       this.emit({ captureId, status: "failed" });

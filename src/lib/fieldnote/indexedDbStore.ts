@@ -215,6 +215,7 @@ export class IndexedDbFieldnoteStore implements FieldnoteStore {
     const updated: FieldnoteCapture = { ...capture };
     updated.ocrStatus = patch.ocrStatus;
     updated.ocrOrientation = patch.ocrOrientation;
+    updated.ocrCropRect = patch.ocrCropRect;
     updated.ocrCandidateText = patch.ocrCandidateText;
     updated.ocrCandidatePage = patch.ocrCandidatePage;
     updated.ocrError = patch.ocrError;
