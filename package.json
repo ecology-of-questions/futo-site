@@ -16,7 +16,8 @@
     "d1:migrate:reading-notes:local": "wrangler d1 execute futo-lab-notebooks-production --local --file=./migrations/0002_reading_notes.sql",
     "d1:migrate:reading-notes:preview": "wrangler d1 execute futo-lab-notebooks-preview --env preview --remote --file=./migrations/0002_reading_notes.sql",
     "d1:migrate:reading-notes:production": "wrangler d1 execute futo-lab-notebooks-production --remote --file=./migrations/0002_reading_notes.sql",
-    "admin:hash-password": "node ./scripts/hash-admin-password.mjs"
+    "admin:hash-password": "node ./scripts/hash-admin-password.mjs",
+    "ocr:compare": "node ./scripts/ocr-compare/compare.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
