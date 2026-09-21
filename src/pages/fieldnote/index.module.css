@@ -576,6 +576,22 @@
   margin-top: var(--space-1);
 }
 
+.entryList [data-entry-photo-dims] {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryList [data-entry-photo-share] {
+  margin-top: var(--space-1);
+}
+
+.entryList [data-entry-photo-share-status] {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
 .entryList [data-entry-url] {
   color: var(--color-accent-blue);
   word-break: break-word;

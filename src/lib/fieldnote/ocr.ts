@@ -36,6 +36,16 @@
  * - 元のエラーの`name`/`message`をそのままUIに渡す(要約・一般化
  *   しない)。開発者コンソールにも出す。エラー内容はローカル表示のみで、
  *   外部には一切送信しない。
+ *
+ * 【原本画像を上書きしない(2026-09-21、Decision Log 0194)】
+ * 「撮影した元の写真ファイルを取り出せない」という指摘を受け、撮影が
+ * 保存する原本画像(`FieldnoteCamera.capture()`が返す、利用者が後で
+ * 「元の写真を見る」・共有/ダウンロードで取り出せるBlob)と、OCRに
+ * 渡す画像を分離した。このモジュールは呼び出し側から渡された原本
+ * Blobを直接Tesseractに渡すのではなく、`resizeForOcr()`で都度、
+ * OCR専用の縮小コピーを作ってから渡す。このコピーは保存されず、
+ * 呼び出しの度に使い捨てる。原本のBlob自体・IndexedDB上の記録は
+ * 一切書き換えない。
  * ------------------------------------------------------------
  */
 import { simd } from "wasm-feature-detect";
@@ -73,6 +83,51 @@ const WORKER_PATH = `${VENDOR_BASE}/worker.min.js`;
 const CORE_PATH_SIMD = `${VENDOR_BASE}/tesseract-core-simd-lstm.wasm.js`;
 const CORE_PATH_NO_SIMD = `${VENDOR_BASE}/tesseract-core-lstm.wasm.js`;
 const LANG_PATH = `${VENDOR_BASE}/lang-data`;
+
+/**
+ * OCRに渡す画像の長辺の上限(px)。原本(`FieldnoteCamera`が保存する、
+ * 利用者が取り出せる画像)とは別の、OCR専用・使い捨ての値
+ * (2026-09-21、Decision Log 0194)。Decision Log 0193の実測で
+ * 2600px相当を根拠に選んだ値をそのまま踏襲している。原本の解像度が
+ * これを下回る場合は縮小しない(原本より大きくは作らない)。
+ */
+const OCR_INPUT_MAX_DIMENSION = 2600;
+const OCR_INPUT_JPEG_QUALITY = 0.9;
+
+/**
+ * 原本のBlobを一切変更せず、OCR専用の縮小コピーを都度作る。
+ * 原本の長辺がOCR_INPUT_MAX_DIMENSION以下の場合はそのまま返す
+ * (無駄な再エンコードをしない)。
+ */
+async function resizeForOcr(image: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(image);
+  try {
+    const longSide = Math.max(bitmap.width, bitmap.height);
+    if (longSide <= OCR_INPUT_MAX_DIMENSION) {
+      return image;
+    }
+    const scale = OCR_INPUT_MAX_DIMENSION / longSide;
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return image;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+
+    return await new Promise<Blob>((resolve) => {
+      canvas.toBlob(
+        (blob) => resolve(blob ?? image),
+        "image/jpeg",
+        OCR_INPUT_JPEG_QUALITY,
+      );
+    });
+  } finally {
+    bitmap.close();
+  }
+}
 
 // tesseract.jsのloggerが返すstatus文字列 → どの段階かの対応表
 // (tesseract.js-core/tesseract.js本体のソース中の文言と一致させる)。
@@ -146,6 +201,16 @@ export async function recognizeExcerpt(
   const corePath = await resolveCorePath();
 
   let lastStage: OcrStage = "unknown";
+
+  // 原本(呼び出し側から渡されたimage)は変更しない。OCRには専用の
+  // 縮小コピーを渡す(Decision Log 0194)。
+  let ocrInput: Blob;
+  try {
+    ocrInput = await resizeForOcr(image);
+  } catch (error) {
+    throw new OcrError(describeFailure(lastStage, error), lastStage);
+  }
+
   const logger = (message: { status?: string; progress?: number }) => {
     if (message?.status && STATUS_TO_STAGE[message.status]) {
       lastStage = STATUS_TO_STAGE[message.status];
@@ -178,7 +243,7 @@ export async function recognizeExcerpt(
     const psm = orientation === "vertical" ? "5" : "6";
     await worker.setParameters({ tessedit_pageseg_mode: psm as never });
     lastStage = "recognize";
-    const { data } = await worker.recognize(image);
+    const { data } = await worker.recognize(ocrInput);
     const text = data.text.trim();
     return {
       text,

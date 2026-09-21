@@ -37,6 +37,16 @@
  * `excerptText`/`pageLabel`は本人が「使う」を押すまで書き換わらない。
  * アプリ起動時に`ocrQueue.resumeUnfinished()`を呼び、前回中断した
  * 未処理分を再開する。
+ *
+ * 【元の写真を共有/ダウンロードできるようにした(2026-09-21、Decision
+ * Log 0194)】「撮影した元の写真ファイルを取り出せない」という指摘を
+ * 受け、「元の写真を見る」に写真の実際の解像度表示と、共有/ダウンロード
+ * ボタン(`sharePhoto()`)を追加した。Web Share API(`navigator.share`)
+ * が使えればOSの共有シートを開き、使えない場合は`<a download>`に
+ * フォールバックする。どちらも成否をこちらから断定できないため、
+ * 「保存しました」という表示はしない(実際に検出できた失敗のときだけ
+ * エラーを表示する)。過去に低い解像度で撮影された写真の解像度は
+ * この変更では変わらない(その場でBlobを再生成することはできない)。
  * ------------------------------------------------------------
  */
 import { IndexedDbFieldnoteStore } from "./indexedDbStore";
@@ -641,6 +651,61 @@ async function refreshEntryCardOcr(captureId: string): Promise<void> {
   card.replaceWith(newCard);
 }
 
+/**
+ * 「元の写真を見る」の原本Blobを、利用者がiPhone本体に取り出せるように
+ * する(2026-09-21、Decision Log 0194)。Web Share API(ファイル共有)が
+ * 使えればOSの共有シート(「画像を保存」「Filesに保存」等)を開き、
+ * 使えない環境では`<a download>`にフォールバックする。
+ *
+ * 共有シート・ダウンロードのどちらも、開いた後に利用者が実際に保存を
+ * 完了したかどうかをこちらから確認する手段が無い。そのため「保存
+ * しました」という表示はしない——実際に検出できた失敗(共有APIが例外を
+ * 投げた、Blobの準備に失敗した等)のときだけエラーを表示する。
+ */
+async function sharePhoto(image: Blob, captureId: string, statusEl: HTMLElement): Promise<void> {
+  statusEl.textContent = "";
+  const filename = `fieldnote-${captureId}.jpg`;
+
+  let file: File;
+  try {
+    file = new File([image], filename, { type: image.type || "image/jpeg" });
+  } catch {
+    statusEl.textContent = "写真の準備に失敗しました。";
+    return;
+  }
+
+  const nav = navigator as Navigator & {
+    canShare?: (data?: ShareData) => boolean;
+    share?: (data?: ShareData) => Promise<void>;
+  };
+
+  if (nav.canShare?.({ files: [file] }) && nav.share) {
+    try {
+      await nav.share({ files: [file] });
+      return;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        // 利用者が共有シートを閉じただけ。失敗ではない。
+        return;
+      }
+      // 共有APIが使えなかった場合のみ、ダウンロードにフォールバックする。
+    }
+  }
+
+  try {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch {
+    statusEl.textContent = "保存に失敗しました。画像を長押しして保存するなど、別の方法をお試しください。";
+  }
+}
+
 async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
   const card = document.createElement("article");
   card.dataset.entryCard = "true";
@@ -655,7 +720,8 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
 
   let photoDetails: HTMLDetailsElement | null = null;
   if (kind === "photo" && capture.image) {
-    const url = URL.createObjectURL(capture.image);
+    const image = capture.image;
+    const url = URL.createObjectURL(image);
     captureObjectUrls.push(url);
     photoDetails = document.createElement("details");
     photoDetails.dataset.entryPhoto = "true";
@@ -667,6 +733,32 @@ async function buildEntryCard(capture: FieldnoteCapture): Promise<HTMLElement> {
     img.alt = "撮影したページ";
     img.loading = "lazy";
     photoDetails.append(img);
+
+    const dims = document.createElement("p");
+    dims.dataset.entryPhotoDims = "true";
+    img.addEventListener(
+      "load",
+      () => {
+        dims.textContent = `${img.naturalWidth}×${img.naturalHeight}px`;
+      },
+      { once: true },
+    );
+    photoDetails.append(dims);
+
+    const shareStatus = document.createElement("p");
+    shareStatus.dataset.entryPhotoShareStatus = "true";
+    shareStatus.setAttribute("role", "status");
+    shareStatus.setAttribute("aria-live", "polite");
+
+    const shareBtn = document.createElement("button");
+    shareBtn.type = "button";
+    shareBtn.dataset.entryPhotoShare = "true";
+    shareBtn.textContent = "写真を保存/共有";
+    shareBtn.addEventListener("click", () => {
+      void sharePhoto(image, capture.id, shareStatus);
+    });
+    photoDetails.append(shareBtn, shareStatus);
+
     card.append(photoDetails);
   }
 
