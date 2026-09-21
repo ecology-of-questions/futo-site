@@ -1,65 +1,53 @@
 /**
  * ocr.ts
  * ------------------------------------------------------------
- * 写真から文字を読み取る(OCR)機能(2026-09-20、Decision Log 0188)。
+ * 写真から文字を読み取る(OCR)機能。Google Cloud Vision
+ * (DOCUMENT_TEXT_DETECTION)を、Cloudflare Worker経由で呼び出す
+ * (2026-09-21、Decision Log 0198)。
  *
- * 【実測に基づく前提】Decision Log 0187で実測したとおり、傾き・ノイズ・
- * JPEG圧縮を加えただけの合成画像でも文字精度が約32%まで低下した。実際に
- * 撮影される本のページ(湾曲・遠近歪み・影・多様な書体)はさらに悪条件に
- * なりうる。したがってこの機能は「自動で正確に文字起こしする」ものでは
- * なく、**抜粋欄への下書き(プリフィル)を提案するだけ**の補助機能として
- * 設計している。認識結果は候補として保持するだけで、`excerptText`欄に
- * 反映するかどうかは必ず本人の操作を要する(呼び出し側、`ocrQueue.ts`
- * 参照)。
+ * 【経緯】当初(Decision Log 0188)はブラウザ内Tesseract.jsで完結させて
+ * いたが、実写真での比較検証(Decision Log 0196・0197)でGoogle Cloud
+ * Visionの方が実用的な精度だったため切り替えた。旧実装は
+ * `ocrTesseractLocal.ts`にそのまま残している(実機確認が済むまで
+ * 戻せる形を残すため。どこからもimportしていない)。
  *
- * 【外部送信をしない】Tesseract.js(WebAssembly版Tesseract OCR)を使い、
- * 処理は端末内のWeb Workerで完結する。画像・認識結果・エラー詳細を
- * 含め、このモジュールからは一切のネットワーク送信を行わない。
+ * 【ブラウザから直接Googleへ送らない】このモジュールはブラウザから
+ * Google Cloud Visionへ直接接続しない。`/api/ocr/recognize`
+ * (このリポジトリの`worker/index.ts`)へ送るだけで、Google側の
+ * APIキーはCloudflare secretとしてWorker側にのみ存在する。
  *
- * 【CDNに依存しない】`public/vendor/tesseract/`に、Tesseract.js本体
- * (workerスクリプト)・WebAssemblyコア・日本語学習データを自己ホストして
- * いる(詳細は`public/vendor/tesseract/README.md`)。外部CDN
- * (cdn.jsdelivr.net等)へのアクセスは発生しない。
+ * 【本人限定】`/api/ocr/recognize`は、公開読書メモAPI
+ * (Decision Log 0189)と同じ管理者セッション(Cookie)+CSRFトークンで
+ * 保護されている。ログインしていない状態では呼び出し側
+ * (`ocrQueue.ts`)がそもそもこの関数を呼ばない(ボタン自体を無効化する、
+ * `app.ts`参照)。
  *
- * 【縦書き/横書きを利用者が選ぶ】自動判定は行わない(誤判定時に体験が
- * かえって悪化するため)。呼び出し側が明示的に指定する。
- *
- * 【実機での失敗を「ブラウザ非対応」と一括表示しない(2026-09-20、
- * Decision Log 0192)】実機(iPhone)でOCRが失敗する事象が報告された。
- * 原因を「WebAssembly SIMD非対応」と決めつけず、以下の対策を行った。
- * - `wasm-feature-detect`でSIMD対応を実際に判定し、非対応ならSIMD版
- *   ではなく非SIMD版のコア(`tesseract-core-lstm.wasm.js`)を使う
- *   (判定失敗時はSIMD版を既定にする)。
- * - tesseract.jsの`logger`が返す進行状況(`status`文字列)を追跡し、
- *   例外発生時に「どの段階(コア読み込み/言語データ読み込み/初期化/
- *   認識実行)で失敗したか」を`OcrError.stage`として保持する。
- * - 元のエラーの`name`/`message`をそのままUIに渡す(要約・一般化
- *   しない)。開発者コンソールにも出す。エラー内容はローカル表示のみで、
- *   外部には一切送信しない。
- *
- * 【原本画像を上書きしない(2026-09-21、Decision Log 0194)】
- * 「撮影した元の写真ファイルを取り出せない」という指摘を受け、撮影が
- * 保存する原本画像(`FieldnoteCamera.capture()`が返す、利用者が後で
- * 「元の写真を見る」・共有/ダウンロードで取り出せるBlob)と、OCRに
- * 渡す画像を分離した。このモジュールは呼び出し側から渡された原本
- * Blobを直接Tesseractに渡すのではなく、`resizeForOcr()`で都度、
- * OCR専用の縮小コピーを作ってから渡す。このコピーは保存されず、
- * 呼び出しの度に使い捨てる。原本のBlob自体・IndexedDB上の記録は
- * 一切書き換えない。
- *
- * 【固定ガイド枠での切り出しを追加(2026-09-21、Decision Log 0195)】
- * 実写真での検証で、撮影フレーム全体(背景の書類・物まで)を
- * そのままOCRに渡していたことが精度低下の主因の一つと判明した。
- * `cropForOcr()`が、原本から`OcrCropRect`(向き・回転を含む、撮影時に
- * 決まる割合ベースの範囲)の範囲だけを都度切り出し、それを
- * `resizeForOcr()`に渡す。原本のBlobは一切変更しない。回転は、範囲の
- * 中心を軸に原本画像そのものを回転させたうえで、その回転後の画像から
- * 軸に沿った矩形を切り出す(台形補正ではない、単純な平面内回転のみ)。
+ * 【原本を上書きしない・必要範囲だけ送る】呼び出し側から渡される
+ * `image`(原本Blob)は一切変更しない。`cropForOcr()`でガイド枠
+ * (または手動調整した範囲)だけを切り出し、`resizeForOcr()`で
+ * アップロード用に縮小したコピーだけをWorkerへ送る(Decision Log
+ * 0194・0195で確立した設計をそのまま踏襲)。
  * ------------------------------------------------------------
  */
-import { simd } from "wasm-feature-detect";
 
 export type OcrOrientation = "horizontal" | "vertical";
+
+/** 失敗の大まかな分類。UI側はstageに応じたラベル+元のエラー文言の両方を表示する。 */
+export type OcrStage = "auth" | "network" | "rate_limit" | "quota" | "server" | "unknown";
+
+export interface OcrProgress {
+  status: string;
+  progress: number;
+}
+
+export interface OcrResult {
+  /** 認識された全文 */
+  text: string;
+  /** 末尾または先頭に単独の数字列があった場合の、ページ番号の候補(任意) */
+  pageCandidate?: string;
+  /** Google Cloud Visionが返すページ単位の信頼度(0〜1)。無ければ0。精度の代用にはしない(参考値)。 */
+  confidence: number;
+}
 
 /**
  * OCRに渡す範囲。原本画像の幅・高さに対する割合(0〜1)で表す
@@ -75,22 +63,6 @@ export interface OcrCropRect {
   rotationDeg?: number;
 }
 
-export type OcrStage = "core" | "langdata" | "init" | "recognize" | "unknown";
-
-export interface OcrProgress {
-  status: string;
-  progress: number;
-}
-
-export interface OcrResult {
-  /** 認識された全文(改行はTesseractの行区切りをそのまま反映) */
-  text: string;
-  /** 末尾または先頭に単独の数字列があった場合の、ページ番号の候補(任意) */
-  pageCandidate?: string;
-  /** Tesseractが返す0-100の信頼度(全体平均) */
-  confidence: number;
-}
-
 /** どの段階で失敗したかを保持するエラー。UI側はstageとmessageの両方を表示する。 */
 export class OcrError extends Error {
   readonly stage: OcrStage;
@@ -101,22 +73,29 @@ export class OcrError extends Error {
   }
 }
 
-const VENDOR_BASE = "/vendor/tesseract";
-const WORKER_PATH = `${VENDOR_BASE}/worker.min.js`;
-const CORE_PATH_SIMD = `${VENDOR_BASE}/tesseract-core-simd-lstm.wasm.js`;
-const CORE_PATH_NO_SIMD = `${VENDOR_BASE}/tesseract-core-lstm.wasm.js`;
-const LANG_PATH = `${VENDOR_BASE}/lang-data`;
+const STAGE_LABELS: Record<OcrStage, string> = {
+  auth: "ログインが必要です(管理者ログインしてからお試しください)",
+  network: "通信に失敗しました",
+  rate_limit: "短時間に実行しすぎました。少し待ってからお試しください",
+  quota: "今月の読み取り回数の上限に達しました",
+  server: "サーバー側でエラーが発生しました",
+  unknown: "読み取りに失敗しました",
+};
 
-/**
- * OCRに渡す画像の長辺の上限(px)。原本(`FieldnoteCamera`が保存する、
- * 利用者が取り出せる画像)とは別の、OCR専用・使い捨ての値
- * (2026-09-21、Decision Log 0194)。Decision Log 0193の実測で
- * 2600px相当を根拠に選んだ値をそのまま踏襲している。原本の解像度が
- * これを下回る場合は縮小しない(原本より大きくは作らない)。
- */
+function stageForStatus(status: number): OcrStage {
+  if (status === 401 || status === 403) return "auth";
+  if (status === 429) return "rate_limit";
+  if (status >= 500) return "server";
+  return "unknown";
+}
+
+function describeFailure(stage: OcrStage, detail: string): string {
+  const label = STAGE_LABELS[stage];
+  return `${label}\n詳細: ${detail.slice(0, 300)}`;
+}
+
 const OCR_INPUT_MAX_DIMENSION = 2600;
 const OCR_INPUT_JPEG_QUALITY = 0.9;
-
 const CROP_OUTPUT_JPEG_QUALITY = 0.92;
 
 /**
@@ -171,9 +150,9 @@ async function cropForOcr(image: Blob, cropRect: OcrCropRect | undefined): Promi
 }
 
 /**
- * 原本のBlobを一切変更せず、OCR専用の縮小コピーを都度作る。
- * 原本の長辺がOCR_INPUT_MAX_DIMENSION以下の場合はそのまま返す
- * (無駄な再エンコードをしない)。
+ * アップロード用に、長辺がOCR_INPUT_MAX_DIMENSIONを超える場合だけ縮小
+ * する(無駄な再エンコードをしない)。切り出し後の画像に対して行う
+ * ため、通常はこの範囲に収まっており、実際に縮小されることは少ない。
  */
 async function resizeForOcr(image: Blob): Promise<Blob> {
   const bitmap = await createImageBitmap(image);
@@ -194,52 +173,25 @@ async function resizeForOcr(image: Blob): Promise<Blob> {
     ctx.drawImage(bitmap, 0, 0, width, height);
 
     return await new Promise<Blob>((resolve) => {
-      canvas.toBlob(
-        (blob) => resolve(blob ?? image),
-        "image/jpeg",
-        OCR_INPUT_JPEG_QUALITY,
-      );
+      canvas.toBlob((blob) => resolve(blob ?? image), "image/jpeg", OCR_INPUT_JPEG_QUALITY);
     });
   } finally {
     bitmap.close();
   }
 }
 
-// tesseract.jsのloggerが返すstatus文字列 → どの段階かの対応表
-// (tesseract.js-core/tesseract.js本体のソース中の文言と一致させる)。
-const STATUS_TO_STAGE: Record<string, OcrStage> = {
-  "loading tesseract core": "core",
-  "initializing tesseract": "init",
-  "loading language traineddata": "langdata",
-  "initializing api": "init",
-  "recognizing text": "recognize",
-};
-
-const STAGE_LABELS: Record<OcrStage, string> = {
-  core: "処理エンジン(WebAssembly)の読み込みに失敗しました",
-  langdata: "日本語データの読み込みに失敗しました",
-  init: "初期化に失敗しました",
-  recognize: "文字認識の実行に失敗しました",
-  unknown: "読み取りを開始できませんでした",
-};
-
-function langForOrientation(orientation: OcrOrientation): string {
-  return orientation === "vertical" ? "jpn_vert" : "jpn";
-}
-
-/** 実行環境がWebAssembly SIMDに対応しているか判定し、対応するコアのパスを返す。判定自体が失敗した場合はSIMD版を既定にする。 */
-async function resolveCorePath(): Promise<string> {
-  try {
-    return (await simd()) ? CORE_PATH_SIMD : CORE_PATH_NO_SIMD;
-  } catch {
-    return CORE_PATH_SIMD;
-  }
-}
-
-function describeFailure(stage: OcrStage, error: unknown): string {
-  const label = STAGE_LABELS[stage];
-  const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-  return `${label}\n詳細: ${detail.slice(0, 300)}`;
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // "data:image/jpeg;base64,xxxx" の先頭部分を取り除く。
+      const comma = result.indexOf(",");
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("failed to read blob"));
+    reader.readAsDataURL(blob);
+  });
 }
 
 /** 認識結果の末尾/先頭にある、独立した数字列(3桁以下)をページ番号候補として拾う簡易ヒューリスティック。 */
@@ -258,84 +210,68 @@ function extractPageCandidate(text: string): string | undefined {
 }
 
 /**
- * 与えられた画像から文字を読み取る。ワーカーの生成・学習データのダウンロード
- * (初回のみ、ブラウザキャッシュ後は不要)を含むため、数秒〜十数秒かかりうる。
- * 呼び出し側は必ず`onProgress`で進捗を示し、「一瞬で終わる」ことを前提にした
- * UIにしないこと(Decision Log 0187の実測結果を参照)。
+ * 与えられた画像から文字を読み取る。`cropRect`が指定された場合、原本の
+ * その範囲だけを切り出してから、Worker経由でGoogle Cloud Visionへ送る
+ * (未指定の場合は原本全体を送る。この機能より前に撮影された記録との
+ * 下位互換)。`csrfToken`は管理者ログイン済みセッションのCSRFトークン
+ * (`app.ts`の`adminSession`)。
  *
- * 失敗時は`OcrError`(どの段階で失敗したか+元のエラー内容)を投げる。
- * 呼び出し側はこれを捕捉して、段階ごとの具体的なメッセージを表示すること
- * (「ブラウザ非対応」への一括集約は禁止、Decision Log 0192)。
- *
- * `cropRect`が指定された場合、原本のその範囲だけを切り出してから認識
- * する(Decision Log 0195)。未指定(`undefined`)の場合は原本全体を
- * 使う(この機能より前に撮影された記録との下位互換)。
+ * 失敗時は`OcrError`(大まかな分類+元のエラー内容)を投げる。呼び出し
+ * 側はこれを捕捉して、元のエラー文言を要約せずそのまま表示すること
+ * (Decision Log 0192から続く方針)。
  */
 export async function recognizeExcerpt(
   image: Blob,
   orientation: OcrOrientation,
   cropRect: OcrCropRect | undefined,
+  csrfToken: string,
   onProgress?: (progress: OcrProgress) => void,
 ): Promise<OcrResult> {
-  const { createWorker } = await import("tesseract.js");
-  const lang = langForOrientation(orientation);
-  const corePath = await resolveCorePath();
-
-  let lastStage: OcrStage = "unknown";
-
-  // 原本(呼び出し側から渡されたimage)は変更しない。OCRには、指定範囲
-  // の切り出し(Decision Log 0195)→専用の縮小コピー(Decision Log
-  // 0194)の順で作った、使い捨てのコピーを渡す。
-  let ocrInput: Blob;
+  let uploadImage: Blob;
   try {
     const cropped = await cropForOcr(image, cropRect);
-    ocrInput = await resizeForOcr(cropped);
+    uploadImage = await resizeForOcr(cropped);
   } catch (error) {
-    throw new OcrError(describeFailure(lastStage, error), lastStage);
+    const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    throw new OcrError(describeFailure("unknown", detail), "unknown");
   }
 
-  const logger = (message: { status?: string; progress?: number }) => {
-    if (message?.status && STATUS_TO_STAGE[message.status]) {
-      lastStage = STATUS_TO_STAGE[message.status];
-    }
-    if (typeof message?.progress === "number") {
-      onProgress?.({ status: message.status ?? "", progress: message.progress });
-    }
-  };
+  onProgress?.({ status: "uploading", progress: 0 });
 
-  let worker: Awaited<ReturnType<typeof createWorker>>;
+  let response: Response;
   try {
-    worker = await createWorker(lang, 1, {
-      workerPath: WORKER_PATH,
-      corePath,
-      langPath: LANG_PATH,
-      gzip: true,
-      logger,
+    const imageBase64 = await blobToBase64(uploadImage);
+    response = await fetch("/api/ocr/recognize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+      body: JSON.stringify({ imageBase64, orientation }),
     });
   } catch (error) {
-    throw new OcrError(describeFailure(lastStage, error), lastStage);
+    const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    throw new OcrError(describeFailure("network", detail), "network");
   }
 
-  try {
-    // Page Segmentation Mode: 横書きは「均一な1ブロックのテキスト」
-    // (PSM 6)、縦書きは「均一な1ブロックの縦書きテキスト」(PSM 5)。
-    // 縦書きでPSM 6のままだと文字の並び自体を誤認識し、実測で精度が
-    // 0%近くまで落ちることを確認した(Decision Log 0188)。PSM 5に
-    // 変更後も実測の精度は横書きに比べて低く、縦書きは実用段階に
-    // 達していない(下記コメント・Decision Log 0188参照)。
-    const psm = orientation === "vertical" ? "5" : "6";
-    await worker.setParameters({ tessedit_pageseg_mode: psm as never });
-    lastStage = "recognize";
-    const { data } = await worker.recognize(ocrInput);
-    const text = data.text.trim();
-    return {
-      text,
-      pageCandidate: extractPageCandidate(text),
-      confidence: data.confidence,
-    };
-  } catch (error) {
-    throw new OcrError(describeFailure(lastStage, error), lastStage);
-  } finally {
-    await worker.terminate().catch(() => {});
+  onProgress?.({ status: "processing", progress: 50 });
+
+  if (!response.ok) {
+    const stage = stageForStatus(response.status);
+    let detail = `HTTP ${response.status}`;
+    try {
+      const body = (await response.json()) as { error?: string };
+      if (body?.error) detail = body.error;
+    } catch {
+      // 本文がJSONでない場合はステータスコードのみ表示する。
+    }
+    throw new OcrError(describeFailure(stage, detail), stage);
   }
+
+  onProgress?.({ status: "done", progress: 100 });
+
+  const data = (await response.json()) as { text?: string; confidence?: number | null };
+  const text = (data.text ?? "").trim();
+  return {
+    text,
+    pageCandidate: extractPageCandidate(text),
+    confidence: data.confidence ?? 0,
+  };
 }

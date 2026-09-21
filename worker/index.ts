@@ -90,6 +90,17 @@ interface Env {
    * 別のsecretにする(役割ごとに鍵を分け、1つの漏洩の影響範囲を
    * 限定する)。 */
   ADMIN_SESSION_SECRET?: string;
+  /** Fieldnote OCR(Google Cloud Vision)用のAPIキー(2026-09-21、
+   * Decision Log 0198)。Cloud Vision APIのみに制限したキーを想定。
+   * Preview/Productionで同じ変数名のまま、Cloudflare secretとして
+   * それぞれ別の値を設定する(コード側は環境名を意識しない)。 */
+  GOOGLE_VISION_API_KEY?: string;
+  /** 月次のOCR呼び出し上限(secretではなくvars)。同じGoogle Cloud
+   * プロジェクトでPreview/Productionを動かす場合、Vision APIの無料枠
+   * (1,000ユニット/月)は合算されるため、Preview/Productionそれぞれに
+   * 低めの値を設定する想定(例: preview=50, production=900)。未設定時は
+   * OCR_DEFAULT_MONTHLY_LIMITを使う。 */
+  OCR_MONTHLY_LIMIT?: string;
 }
 
 // --- 定数 ------------------------------------------------------------
@@ -781,6 +792,133 @@ async function handleDeleteReadingNote(id: string, request: Request, env: Env): 
   return json({ ok: true });
 }
 
+// ======================================================================
+// Fieldnote OCR(Google Cloud Vision)API(/api/ocr/recognize)
+// (2026-09-21、Decision Log 0198)
+//
+// 本人限定(requireSession/requireCsrf、reading-notesの書き込み系と
+// 同じ仕組みを再利用)。画像・認識結果は一切保存・ログ出力しない
+// (件数のみをocr_usage_monthly/ocr_recent_callsに記録する)。
+// ======================================================================
+
+/** 6MB程度のデコード後サイズに相当する、base64文字列としての上限(安全弁)。 */
+const OCR_MAX_IMAGE_BASE64_LENGTH = 8_000_000;
+const OCR_RATE_LIMIT_WINDOW_SECONDS = 60;
+const OCR_RATE_LIMIT_MAX = 10;
+/** env.OCR_MONTHLY_LIMIT未設定時の既定値。 */
+const OCR_DEFAULT_MONTHLY_LIMIT = 900;
+
+function currentMonthPeriod(): string {
+  return new Date().toISOString().slice(0, 7); // "YYYY-MM"(UTC)
+}
+
+interface GoogleVisionResponseBody {
+  responses?: Array<{
+    fullTextAnnotation?: { text?: string; pages?: Array<{ confidence?: number }> };
+    error?: { message?: string };
+  }>;
+}
+
+async function handleOcrRecognize(request: Request, env: Env): Promise<Response> {
+  const session = await requireSession(request, env);
+  if (!session) return json({ error: "authentication required" }, 401);
+  if (!requireCsrf(request, session)) return json({ error: "invalid csrf token" }, 403);
+
+  if (!env.GOOGLE_VISION_API_KEY) {
+    // secret未設定は常に拒否する(fail closed、他のsecretと同じ方針)。
+    return json({ error: "server misconfigured: OCR is not configured" }, 500);
+  }
+
+  let payload: { imageBase64?: unknown; orientation?: unknown };
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "invalid request body" }, 400);
+  }
+  const imageBase64 = typeof payload.imageBase64 === "string" ? payload.imageBase64 : "";
+  if (!imageBase64) return json({ error: "imageBase64 is required" }, 400);
+  if (imageBase64.length > OCR_MAX_IMAGE_BASE64_LENGTH) {
+    return json({ error: "image is too large" }, 413);
+  }
+
+  // 簡易レート制限(1分あたりの呼び出し回数)。古い行は機会的に削除する。
+  await env.DB.prepare(`DELETE FROM ocr_recent_calls WHERE unixepoch(called_at) < unixepoch('now') - 3600`).run();
+  const recentCalls = await env.DB.prepare(
+    `SELECT COUNT(*) as count FROM ocr_recent_calls WHERE unixepoch(called_at) > unixepoch('now') - ?1`,
+  )
+    .bind(OCR_RATE_LIMIT_WINDOW_SECONDS)
+    .first<{ count: number }>();
+  if ((recentCalls?.count ?? 0) >= OCR_RATE_LIMIT_MAX) {
+    return json({ error: "too many OCR requests, please wait a moment" }, 429);
+  }
+
+  // 月次上限。Preview/Productionは物理的に別のD1データベースなので
+  // カウンタも自然に分かれるが、Google Cloud側の無料枠(1,000ユニット/月)
+  // は同一プロジェクトなら合算されるため、Worker側の上限もそれぞれ
+  // 低めの値(env.OCR_MONTHLY_LIMIT)にしておく(Decision Log 0198)。
+  const monthlyLimit = Number(env.OCR_MONTHLY_LIMIT) || OCR_DEFAULT_MONTHLY_LIMIT;
+  const period = currentMonthPeriod();
+  const monthlyRow = await env.DB.prepare(`SELECT count FROM ocr_usage_monthly WHERE period = ?1`)
+    .bind(period)
+    .first<{ count: number }>();
+  if ((monthlyRow?.count ?? 0) >= monthlyLimit) {
+    return json({ error: "monthly OCR limit reached" }, 429);
+  }
+
+  await env.DB.prepare(`INSERT INTO ocr_recent_calls DEFAULT VALUES`).run();
+
+  const orientation = payload.orientation === "vertical" ? "vertical" : "horizontal";
+
+  let visionResponse: Response;
+  try {
+    visionResponse = await fetch(
+      `https://vision.googleapis.com/v1/images:annotate?key=${env.GOOGLE_VISION_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requests: [
+            {
+              image: { content: imageBase64 },
+              features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
+              imageContext: { languageHints: ["ja"] },
+            },
+          ],
+        }),
+      },
+    );
+  } catch {
+    return json({ error: "failed to reach Google Cloud Vision" }, 502);
+  }
+
+  if (!visionResponse.ok) {
+    // Google側から返るエラー本文には画像そのものは含まれない。要約せず
+    // ステータスだけ伝える(詳細はGoogle Cloud Console側のログで確認する
+    // 前提。このWorkerからは画像・認識結果ともログに出さない)。
+    return json({ error: `Google Cloud Vision error (${visionResponse.status})` }, 502);
+  }
+
+  const visionJson = (await visionResponse.json()) as GoogleVisionResponseBody;
+  const result = visionJson.responses?.[0];
+  if (result?.error) {
+    return json({ error: `Google Cloud Vision error: ${result.error.message ?? "unknown"}` }, 502);
+  }
+
+  // 成功した呼び出しだけを月次カウンタに計上する(拒否・失敗は課金
+  // されないため数えない)。
+  await env.DB.prepare(
+    `INSERT INTO ocr_usage_monthly (period, count) VALUES (?1, 1)
+     ON CONFLICT(period) DO UPDATE SET count = count + 1`,
+  )
+    .bind(period)
+    .run();
+
+  const text = result?.fullTextAnnotation?.text ?? "";
+  const confidence = result?.fullTextAnnotation?.pages?.[0]?.confidence ?? null;
+
+  return json({ text, confidence, orientation });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -821,6 +959,10 @@ export default {
       if (request.method === "PUT") return handlePutReadingNote(id, request, env);
       if (request.method === "DELETE") return handleDeleteReadingNote(id, request, env);
       return json({ error: "method not allowed" }, 405);
+    }
+
+    if (url.pathname === "/api/ocr/recognize" && request.method === "POST") {
+      return handleOcrRecognize(request, env);
     }
 
     // `/api/*`以外は静的assetsへ(通常はwrangler.tomlのrun_worker_first

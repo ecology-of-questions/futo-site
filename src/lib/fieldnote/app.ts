@@ -30,13 +30,21 @@
  * 追加のJS/WASM/学習データを一切ダウンロードしない。
  *
  * 【撮影を止めずに連続撮影・背後キュー処理に変更(2026-09-20、Decision
- * Log 0192)】OCRの実行は`./ocrQueue.ts`(`OcrQueue`)に委ねた。
- * `capturePage()`は撮影→保存の直後にキューへ積むだけで、OCRの完了を
- * 待たない(カメラは開いたまま、次の撮影にすぐ進める)。読み取り結果は
- * `ocrCandidateText`/`ocrCandidatePage`という「候補」に置かれるだけで、
- * `excerptText`/`pageLabel`は本人が「使う」を押すまで書き換わらない。
- * アプリ起動時に`ocrQueue.resumeUnfinished()`を呼び、前回中断した
- * 未処理分を再開する。
+ * Log 0192)】OCRの実行は`./ocrQueue.ts`(`OcrQueue`)に委ねた。読み取り
+ * 結果は`ocrCandidateText`/`ocrCandidatePage`という「候補」に置かれる
+ * だけで、`excerptText`/`pageLabel`は本人が「使う」を押すまで書き換
+ * わらない。
+ *
+ * 【Google Cloud Visionへの切り替え・手動トリガー化(2026-09-21、
+ * Decision Log 0198)】OCRエンジンをTesseract.jsからGoogle Cloud
+ * Vision(Cloudflare Worker経由)に切り替えたのに伴い、撮影直後の自動
+ * OCR起動をやめた。`capturePage()`は撮影・保存と向き/範囲の既定値の
+ * 記録だけを行い、キューには積まない。「文字を読み取る」を押した
+ * 記録だけが`ocrQueue`に積まれる。Google呼び出しは管理者ログイン
+ * 済みの本人だけができるため、OCRボタンは`adminSession`が無いときは
+ * ログインを促す表示に置き換わる。ページ再訪時の自動再開もしない
+ * (Google呼び出しは短時間のネットワーク処理のため、中断されたら
+ * 本人が改めて押し直す)。
  *
  * 【元の写真を共有/ダウンロードできるようにした(2026-09-21、Decision
  * Log 0194)】「撮影した元の写真ファイルを取り出せない」という指摘を
@@ -72,7 +80,7 @@ import type { FieldnoteCapture, FieldnoteCollection, FieldnoteSession } from "..
 
 const store = new IndexedDbFieldnoteStore();
 const camera = new FieldnoteCamera();
-const ocrQueue = new OcrQueue(store);
+const ocrQueue = new OcrQueue(store, () => adminSession?.csrfToken ?? null);
 const bookById = new Map(books.map((book) => [book.id, book]));
 
 /**
@@ -85,8 +93,6 @@ const GUIDE_FRAME_RECT: CameraScreenRect = { x: 0.08, y: 0.16, width: 0.84, heig
 let currentSession: FieldnoteSession | null = null;
 let shotCount = 0;
 let sessionOcrOrientation: OcrOrientation = "horizontal";
-/** 現在のカメラセッションで、まだOCRが終わっていない記録のID(カメラ画面の「読み取り待ち」表示用)。 */
-const pendingOcrIdsThisSession = new Set<string>();
 const captureObjectUrls: string[] = [];
 let publishCapture: FieldnoteCapture | null = null;
 let publishSession: FieldnoteSession | null = null;
@@ -130,7 +136,6 @@ const guideFrameEl = byId<HTMLElement>("ocr-guide-frame");
 const captureBtn = byId<HTMLButtonElement>("capture-btn");
 const endSessionBtn = byId<HTMLButtonElement>("end-session-btn");
 const shotCountEl = byId<HTMLElement>("shot-count");
-const ocrPendingCountEl = byId<HTMLElement>("ocr-pending-count");
 const cameraErrorEl = byId<HTMLElement>("camera-error");
 const sessionTitleLabel = byId<HTMLElement>("session-title-label");
 const shutterFlash = byId<HTMLElement>("shutter-flash");
@@ -267,23 +272,11 @@ async function startSession(title: string, bookId: string, bookLocation: string)
   }
 }
 
-function updateOcrPendingIndicator(): void {
-  const count = pendingOcrIdsThisSession.size;
-  if (count === 0) {
-    ocrPendingCountEl.hidden = true;
-    return;
-  }
-  ocrPendingCountEl.hidden = false;
-  ocrPendingCountEl.textContent = `読み取り待ち ${count}枚`;
-}
-
 async function startCameraSession(session: FieldnoteSession): Promise<void> {
   currentSession = session;
   shotCount = 0;
   shotCountEl.textContent = "0枚";
   sessionTitleLabel.textContent = session.title || "(無題)";
-  pendingOcrIdsThisSession.clear();
-  updateOcrPendingIndicator();
 
   guideFrameEl.style.left = `${GUIDE_FRAME_RECT.x * 100}%`;
   guideFrameEl.style.top = `${GUIDE_FRAME_RECT.y * 100}%`;
@@ -305,9 +298,10 @@ async function startCameraSession(session: FieldnoteSession): Promise<void> {
 }
 
 /**
- * 撮影は保存が終わり次第すぐ完了し、OCRの完了は待たない
- * (2026-09-20、Decision Log 0192)。カメラは閉じず、次の撮影に
- * すぐ進める。OCRは`ocrQueue`が裏で1件ずつ進める。
+ * 撮影は保存が終わり次第すぐ完了する。OCRは自動起動しない
+ * (2026-09-21、Decision Log 0198)。向き・読み取り範囲の既定値だけを
+ * 記録しておき、実際にGoogle Cloud Visionへ送るのは、本人が記録一覧で
+ * 「文字を読み取る」を押したときだけ。
  */
 async function capturePage(): Promise<void> {
   if (!currentSession || captureBtn.disabled) {
@@ -331,13 +325,9 @@ async function capturePage(): Promise<void> {
     flashShutter();
 
     await store.updateOcrState(capture.id, {
-      ocrStatus: "pending",
       ocrOrientation: sessionOcrOrientation,
       ocrCropRect,
     });
-    pendingOcrIdsThisSession.add(capture.id);
-    updateOcrPendingIndicator();
-    ocrQueue.enqueue(capture.id);
   } catch (error) {
     showCameraError(
       error instanceof FieldnoteCameraError ? error.message : "保存に失敗しました。もう一度お試しください。",
@@ -525,7 +515,7 @@ function buildOcrBlock(
   const note = document.createElement("p");
   note.dataset.ocrNote = "true";
   note.textContent =
-    "実験的機能です。読み取り結果は候補として扱われ、「使う」を押すまで抜粋・ページ欄は書き換わりません。誤読があるので、必ず元の写真と見比べてください。初回は文字向きごとに約2MBのデータをダウンロードします。";
+    "実験的機能です。読み取り結果は候補として扱われ、「使う」を押すまで抜粋・ページ欄は書き換わりません。誤読があるので、必ず元の写真と見比べてください。「読み取る」を押した範囲の画像だけを、管理者ログイン済みの本人に限りGoogle Cloud Visionへ送信します(写真原本は送信・保存しません)。";
   details.append(note);
   wrap.append(details);
 
@@ -613,11 +603,19 @@ function buildOcrBlock(
     const applyBtn = document.createElement("button");
     applyBtn.type = "button";
     applyBtn.dataset.ocrCropApply = "true";
-    applyBtn.textContent = "この範囲で読み取り直す";
+    applyBtn.textContent = "この範囲で読み取り直す(Googleに送信します)";
+    applyBtn.disabled = !adminSession;
     applyBtn.addEventListener("click", () => {
+      if (!adminSession) return;
       runOcr(capture.ocrOrientation ?? "horizontal", clampCropRect(workingRect));
     });
     cropDetails.append(applyBtn);
+    if (!adminSession) {
+      const loginNotice = document.createElement("p");
+      loginNotice.dataset.ocrLoginRequired = "true";
+      loginNotice.textContent = "OCRを使うには管理者ログインが必要です。";
+      cropDetails.append(loginNotice);
+    }
 
     wrap.append(cropDetails);
   }
@@ -658,19 +656,41 @@ function buildOcrBlock(
       });
   }
 
+  /**
+   * OCR起動用の操作(向き選択+ボタン)を組み立てる。ログイン済みの
+   * 本人でなければ、Google Cloud Visionは呼べない(2026-09-21、Decision
+   * Log 0198)ため、ボタンの代わりにログインを促す表示にする。
+   * ログイン済みの場合は、送信前に「Googleへ送信する」ことを小さく
+   * 明示する(要件5)。
+   */
+  function appendOcrTrigger(buttonLabel: string, datasetKey: "ocrRun" | "ocrRetry"): void {
+    const orientation = capture.ocrOrientation ?? "horizontal";
+    if (!adminSession) {
+      const loginNotice = document.createElement("p");
+      loginNotice.dataset.ocrLoginRequired = "true";
+      loginNotice.textContent = "OCRを使うには管理者ログインが必要です(手入力は常にできます)。";
+      actions.append(loginNotice);
+      return;
+    }
+    const sendNotice = document.createElement("p");
+    sendNotice.dataset.ocrSendNotice = "true";
+    sendNotice.textContent = "この範囲の画像をGoogle Cloud Visionに送信します。";
+    actions.append(sendNotice);
+    const orientationSelect = buildOrientationSelect(orientation);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.dataset[datasetKey] = "true";
+    btn.textContent = buttonLabel;
+    btn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
+    actions.append(orientationSelect, btn);
+  }
+
   function renderState(): void {
     actions.replaceChildren();
-    const orientation = capture.ocrOrientation ?? "horizontal";
 
     if (!capture.ocrStatus) {
       status.textContent = "";
-      const orientationSelect = buildOrientationSelect(orientation);
-      const runBtn = document.createElement("button");
-      runBtn.type = "button";
-      runBtn.dataset.ocrRun = "true";
-      runBtn.textContent = "文字を読み取る";
-      runBtn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
-      actions.append(orientationSelect, runBtn);
+      appendOcrTrigger("文字を読み取る", "ocrRun");
       return;
     }
 
@@ -686,26 +706,14 @@ function buildOcrBlock(
 
     if (capture.ocrStatus === "failed") {
       status.textContent = capture.ocrError ?? "読み取りに失敗しました。";
-      const orientationSelect = buildOrientationSelect(orientation);
-      const retryBtn = document.createElement("button");
-      retryBtn.type = "button";
-      retryBtn.dataset.ocrRetry = "true";
-      retryBtn.textContent = "もう一度読み取る";
-      retryBtn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
-      actions.append(orientationSelect, retryBtn);
+      appendOcrTrigger("もう一度読み取る", "ocrRetry");
       return;
     }
 
     // ocrStatus === "done"
     if (!capture.ocrCandidateText) {
       status.textContent = "文字を読み取れませんでした。傾きや明るさを変えて撮り直すか、手入力してください。";
-      const orientationSelect = buildOrientationSelect(orientation);
-      const retryBtn = document.createElement("button");
-      retryBtn.type = "button";
-      retryBtn.dataset.ocrRetry = "true";
-      retryBtn.textContent = "もう一度読み取る";
-      retryBtn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
-      actions.append(orientationSelect, retryBtn);
+      appendOcrTrigger("もう一度読み取る", "ocrRetry");
       return;
     }
 
@@ -758,13 +766,7 @@ function buildOcrBlock(
       actions.append(pageRow);
     }
 
-    const orientationSelect = buildOrientationSelect(orientation);
-    const retryBtn = document.createElement("button");
-    retryBtn.type = "button";
-    retryBtn.dataset.ocrRetry = "true";
-    retryBtn.textContent = "この向きで読み取り直す";
-    retryBtn.addEventListener("click", () => runOcr(orientationSelect.value as OcrOrientation));
-    actions.append(orientationSelect, retryBtn);
+    appendOcrTrigger("この向きで読み取り直す", "ocrRetry");
   }
 
   renderState();
@@ -1749,20 +1751,12 @@ void recoverAdminSession().then((session) => {
   }
 });
 
-// OCRキューの進行通知。カメラ画面の「読み取り待ち」件数を更新し、
-// 記録一覧が表示中ならその記録のカードだけを最新化する
-// (2026-09-20、Decision Log 0192)。
+// OCRキューの進行通知。記録一覧が表示中ならその記録のカードだけを
+// 最新化する(2026-09-20、Decision Log 0192)。「文字を読み取る」を
+// 押した記録だけがここに流れる(2026-09-21、Decision Log 0198)。
 ocrQueue.onEvent((event: OcrQueueEvent) => {
-  if (event.status === "done" || event.status === "failed") {
-    pendingOcrIdsThisSession.delete(event.captureId);
-    updateOcrPendingIndicator();
-  }
   void refreshEntryCardOcr(event.captureId);
 });
-
-// 前回タブを閉じた・再読み込みした時点で終わっていなかったOCRを
-// 再開する(処理中のまま止まっていた記録も、最初からやり直す)。
-void ocrQueue.resumeUnfinished();
 
 exportBtn.addEventListener("click", () => {
   void handleExport();

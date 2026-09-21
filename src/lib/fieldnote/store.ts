@@ -20,6 +20,15 @@
  * 【OCRの背後キュー処理を追加(2026-09-20、Decision Log 0192)】
  * `updateOcrState`を追加した。撮影を止めずに複数ページを連続撮影でき、
  * OCRは1件ずつ裏で進む(`src/lib/fieldnote/ocrQueue.ts`が呼び出す)。
+ *
+ * 【OCRを手動トリガーに変更(2026-09-21、Decision Log 0198)】Google
+ * Cloud Visionへの切り替えに伴い、撮影直後の自動OCRを廃止した。
+ * `updateOcrState`の`ocrStatus`を省略可能にし、撮影時にはOCRの状態
+ * (pending等)を立てずに向き・範囲の既定値だけを記録できるようにした
+ * (省略した場合、既存のocrStatusは変更しない)。それに伴い、中断された
+ * 処理を再開するための`listUnfinishedOcrCaptures`は削除した
+ * (Google呼び出しは短時間のネットワーク処理であり、Tesseract版のような
+ * 「再訪時の自動再開」を前提にしなくなったため)。
  * ------------------------------------------------------------
  */
 import type {
@@ -38,9 +47,14 @@ export interface FieldnoteCaptureUpdate {
   relatedLinks?: FieldnoteRelatedLink[];
 }
 
-/** OCRの進行状況の更新。候補・エラーはundefinedを渡すとその欄を消す(状態が変わるたびに呼ぶ想定)。 */
+/**
+ * OCRの進行状況の更新。候補・エラーはundefinedを渡すとその欄を消す
+ * (状態が変わるたびに呼ぶ想定)。`ocrStatus`を省略した場合は既存の
+ * 値を変更しない(撮影直後に向き・範囲の既定値だけを記録する用途、
+ * Decision Log 0198)。
+ */
 export interface FieldnoteOcrStateUpdate {
-  ocrStatus: FieldnoteOcrStatus;
+  ocrStatus?: FieldnoteOcrStatus;
   ocrOrientation?: "horizontal" | "vertical";
   ocrCropRect?: { x: number; y: number; width: number; height: number; rotationDeg?: number };
   ocrCandidateText?: string;
@@ -80,8 +94,6 @@ export interface FieldnoteStore {
   /** IDを指定して1件だけ取得する(「まとめ」がセッションをまたいで記録を参照するために使う) */
   getCapture(captureId: string): Promise<FieldnoteCapture | undefined>;
   listCaptures(sessionId: string): Promise<FieldnoteCapture[]>;
-  /** まだ完了していないOCR(pending・中断されたprocessing)を持つ記録を全セッションから探す(再開用) */
-  listUnfinishedOcrCaptures(): Promise<FieldnoteCapture[]>;
   /** 全セッションを新しい順で返す(進行中・終了済み問わず)。「過去の記録」一覧・本ごとの絞り込みに使う */
   listSessions(): Promise<FieldnoteSession[]>;
 

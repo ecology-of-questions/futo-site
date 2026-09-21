@@ -215,12 +215,6 @@
   margin: 0;
 }
 
-.shotCount #ocr-pending-count {
-  margin-top: 2px;
-  opacity: 0.8;
-  font-size: 0.75rem;
-}
-
 .spacer {
   min-width: 3.5rem;
 }
@@ -675,6 +669,22 @@
   align-items: baseline;
   gap: var(--space-1) var(--space-2);
   font-size: var(--fs-sm);
+}
+
+/* ---------- Google Cloud Visionへの切り替え(2026-09-21、Decision Log 0198) ---------- */
+
+.entryList [data-ocr-send-notice] {
+  margin: 0;
+  width: 100%;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryList [data-ocr-login-required] {
+  margin: 0;
+  width: 100%;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
 }
 
 /* ---------- OCR範囲の確認・調整(2026-09-21、Decision Log 0195) ---------- */
