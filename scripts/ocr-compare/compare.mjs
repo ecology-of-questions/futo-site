@@ -11,15 +11,18 @@
  *     --image path/to/page.jpg \
  *     --orientation vertical \
  *     --image-id photo-01 \
- *     --crop-condition "ガイド枠相当に切り出し済み" \
+ *     --crop-condition "ページ部分のみ、背景/手を除外" \
  *     [--ground-truth path/to/correct-text.txt] \
  *     [--with-google]   # 明示的に付けない限りGoogle Cloud Visionへは送信しない
  *
  * 【外部送信について】--with-googleを付けた場合のみ、指定した画像を
- * Google Cloud Vision APIへ送信する(GOOGLE_VISION_API_KEY環境変数が
- * 必要)。--with-googleを付けなければ、Tesseract(完全にローカル)の
- * みで測定する。実写真を送る前に、必ず本人の同意を得ること
- * (このスクリプト自体は同意の確認をしない——呼び出す人間の責任)。
+ * Google Cloud Vision APIへ送信する。認証はAPIキーではなく、本人が
+ * このPC上で`gcloud auth application-default login`を実行して発行する
+ * Application Default Credentials(ADC)を使う(`scripts/ocr-compare/
+ * README.md`の手順を参照)。認証済みでなければ送信は行われない。
+ * --with-googleを付けなければ、Tesseract(完全にローカル)のみで測定
+ * する。実写真を送る前に、必ず本人の同意を得ること(このスクリプト
+ * 自体は同意の確認をしない——呼び出す人間の責任)。
  *
  * 【正解文について】--ground-truthで指定するファイルは、実際に写真を
  * 見て人が確認した正解文であること。AI(このツール自身を含む)が

@@ -39,26 +39,48 @@ node scripts/ocr-compare/compare.mjs \
 
 - `--with-google`を付けない限り、画像はどこにも送信されない
   (Tesseract.jsは完全に端末内で完結する)。
-- `--with-google`を付けても、`GOOGLE_VISION_API_KEY`環境変数が
-  設定されていなければ送信されない(スクリプトが自動でスキップする)。
+- `--with-google`を付けても、本人のPC上で`gcloud auth
+  application-default login`によるログインが済んでいなければ送信
+  されない(スクリプトが自動でスキップする)。
 - **写真をGoogleへ送る前に、必ず「どの写真のどの範囲を送るか」を
   本人が確認・同意すること。** このツール自体は同意確認をしない
   (呼び出す人間の責任)。
-- 原則として、本のページ範囲(ガイド枠で切り出した範囲)のみを送る。
-  背景の物・他の書類が写り込んだ全体画像はなるべく送らない。
+- 原則として、本のページ範囲のみを送る。背景の物・手等が写り込んだ
+  全体画像は送らない。
 
-## Google Cloud Visionの設定
+## Google Cloud Visionの設定(Application Default Credentials方式)
 
-1. Google Cloud Consoleでプロジェクトを作成(または既存のものを使う)、
-   課金を有効化する。
-2. Cloud Vision APIを有効化する。
-3. APIキーを発行し、Cloud Vision APIのみに制限する(推奨)。
-4. 発行したキーは、**このチャット・コミット・リポジトリのどこにも
-   貼らず**、実行する端末のシェルで環境変数として設定する:
+APIキーではなく、**本人がこのPC上でGoogleにログインして発行する
+認証情報(ADC)** を使う。認証情報はリポジトリにもブラウザにも置かず、
+`gcloud` CLIがOS標準の場所(`~/.config/gcloud/`等)に保存する。
+**この比較スクリプトは、本人のPC(このリポジトリをcloneした端末)上で
+実行すること。** クラウド上の実行環境では、本人のGoogleアカウントでの
+ログイン操作自体ができないため。
+
+1. **Google Cloud CLI(`gcloud`)をインストールする**(未インストール
+   の場合のみ)。公式手順: https://cloud.google.com/sdk/docs/install
+   インストール済みかどうかは `gcloud --version` で確認できる。
+2. **Google Cloudプロジェクトを作る**(Google Cloud Consoleで、または
+   `gcloud projects create`)。
+3. **課金を有効化する**(Google Cloud Consoleの「お支払い」から、
+   作成したプロジェクトに請求先アカウントを紐づける)。
+4. **Cloud Vision APIを有効化する**:
    ```bash
-   export GOOGLE_VISION_API_KEY="発行したキー"
+   gcloud services enable vision.googleapis.com --project=<プロジェクトID>
    ```
-5. 上記コマンドを`--with-google`付きで実行する。
+5. **既定のプロジェクトを設定する**:
+   ```bash
+   gcloud config set project <プロジェクトID>
+   ```
+6. **Application Default Credentialsでログインする**(自分のPCの
+   ブラウザが開き、Googleアカウントでのログイン・同意を求められる):
+   ```bash
+   gcloud auth application-default login
+   ```
+7. 上記が済んだら、`--with-google`付きで実行する。認証情報は
+   このコマンドを実行した端末にのみ保存され、スクリプトはその場限りの
+   アクセストークンを取得して使うだけで、トークン自体を保存・出力
+   しない。
 
 料金については、このリポジトリのDecision Log 0196
 (`docs/Decision_Log/`)に、公式料金ページに基づく試算を記録している。
@@ -77,5 +99,6 @@ node scripts/ocr-compare/compare.mjs \
 - `engines/tesseract-engine.mjs` — Tesseract.js(ローカル、自己ホスト
   済みアセットを使用、Fieldnote本体と同じPSM設定)
 - `engines/google-vision-engine.mjs` — Google Cloud Vision
-  (DOCUMENT_TEXT_DETECTION、REST API、APIキー認証)
+  (DOCUMENT_TEXT_DETECTION、REST API、Application Default
+  Credentials認証)
 - `cer.mjs` — 文字誤り率(編集距離÷正解文字数)の計算
