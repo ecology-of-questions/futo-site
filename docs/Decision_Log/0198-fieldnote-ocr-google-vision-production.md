@@ -233,10 +233,16 @@ PreviewのURLで、実機(iPhone)から:
 ## 変更したファイル(実装)
 
 - `vitest.config.ts`(新規)・`package.json`の`test`スクリプト、
-  `worker/ocr-recognize.test.ts`・`src/lib/fieldnote/ocrQueue.test.ts`
-  ・`src/lib/fieldnote/ocr.test.ts`(いずれも新規): 「検証」の節参照。
-  devDependencyとして`vitest`のみ追加(Cloudflare実行環境のツールは
-  不要だったため追加していない、詳細は「他の案」参照)。
+  `worker/test-helpers.ts`(新規、テスト用フェイクD1・Env組み立ての
+  共有部分)・`worker/ocr-recognize.test.ts`・`worker/admin-login.test.ts`
+  (新規)・`src/lib/fieldnote/ocrQueue.test.ts`・
+  `src/lib/fieldnote/ocr.test.ts`: 「検証」の節参照。devDependencyとして
+  `vitest`のみ追加(Cloudflare実行環境のツールは不要だったため追加
+  していない、詳細は「他の案」参照)。
+- `src/lib/fieldnote/publishApi.ts`: `PublishApiError`に`missing?:
+  string[]`を追加(fail closed応答の「未設定のsecret名」をそのまま
+  運ぶ)。「Preview実機確認で発生した『本番未配線』表示の調査・修正」
+  参照。
 - `migrations/0003_ocr_usage.sql`(新規): `ocr_usage_monthly`/
   `ocr_recent_calls`テーブル。
 - `wrangler.toml`: `OCR_MONTHLY_LIMIT`をトップレベル・
@@ -378,6 +384,136 @@ PreviewのURLで、実機(iPhone)から:
   無い。完全に配信自体を止めたい場合は、`ocrTesseractLocal.ts`と
   合わせて`public/vendor/tesseract/`を削除する必要があるが、それは
   「将来の変更可能性」に記載のとおり、実機確認後の別PRで判断する。
+
+## Preview実機確認で発生した「本番未配線」表示の調査・修正
+
+プロジェクトオーナーがPreview側のsecret(`GOOGLE_VISION_API_KEY`・
+`ADMIN_PASSWORD_HASH`・`ADMIN_PASSWORD_PEPPER`・`ADMIN_SESSION_SECRET`)
+・D1マイグレーションを設定済みの状態で実機確認したところ、「本人用
+ログイン」欄に「サーバー側の設定が未完了です(本番未配線)。」と表示
+された。追加のsecret変更をさせる前に、という指示のもとコードのみを
+調査・修正した(Cloudflare・Google CloudのsecretはWorker側からは
+一切変更していない)。
+
+### 1. この文言を表示する条件と根拠
+
+`worker/index.ts`の`handleAdminLogin()`(`/api/admin/login`)は、
+```ts
+if (!env.ADMIN_PASSWORD_HASH || !env.ADMIN_PASSWORD_PEPPER || !env.ADMIN_SESSION_SECRET || !env.IP_HASH_SECRET) {
+  return json({ error: "server misconfigured", missing: missingSecrets }, 500);
+}
+```
+の**4つすべて**が揃っていないとHTTP 500を返す(fail closed、
+Decision Log 0189で確立した設計をそのまま踏襲)。ブラウザ側
+(`app.ts`)は、このHTTP 500を`PublishApiError`として捕捉し、
+「サーバー側の設定が未完了です」という案内文に変換して表示している
+だけで、これは「本番かPreviewか」を判定しているわけではない
+(`NOTEBOOK_ENV`等の環境名は一切参照していない)。
+
+**プロジェクトオーナーの報告に、この4つのうち`IP_HASH_SECRET`が
+含まれていなかった。** `IP_HASH_SECRET`は交換ノート機能
+(Decision Log 0141)由来の別のsecretで、ログインのIPレート制限にも
+再利用している(Decision Log 0189)。`futo-site-preview`は
+Productionとは物理的に別のWorkerのため、secretも共有されない
+(wrangler.toml・Decision Log 0146参照)。Decision Log 0189の
+セットアップ手順でも「`IP_HASH_SECRET`は...未設定の場合はログイン
+APIも500になる。念のため両環境で設定済みか確認すること」と明記して
+いたが、見落としやすい箇所だったと考えられる。**ただし、これは
+コードを読んだ上での最有力の仮説であり、Previewの実際のsecret
+設定を確認した結果ではない**(このセッションから`*.workers.dev`
+ドメインへの通信ができないため、後述の理由で断定はしていない)。
+
+### 2. `/api/admin/session`が返す実際のHTTP status/JSON
+
+**確認できていない。** このセッションのネットワークegressは
+`*.workers.dev`を含む任意の外部ドメインへの直接アクセスを許可して
+おらず(`api.github.com`等の許可リストに限定)、Preview Workerへ
+直接リクエストを送って確認することができなかった。推測や仮定の値を
+「確認結果」として報告しない(指示書全体で一貫して守ってきた方針)
+ため、実際のレスポンスはプロジェクトオーナーの環境での確認に委ねる。
+
+なお`/api/admin/session`(セッション復元用のGET)自体は
+`missingAdminLoginSecrets()`を使っておらず、`requireSession()`が
+`ADMIN_SESSION_SECRET`未設定なら常に401を返すだけの経路のため、
+今回の"missing"診断とは別物である。今回の事象を直接再現するのは
+`POST /api/admin/login`(ログインボタンを押した時に呼ばれるAPI)の方。
+
+### 3. Workers Buildsのデプロイ先とDashboardのRuntime Secretの整合性
+
+`wrangler.toml`の記述(Decision Log 0143・0146で実機検証済み)により、
+Previewは`npx wrangler versions upload --env preview`で、
+`[env.preview] name = "futo-site-preview"`という**Productionとは
+物理的に別のWorkerリソース**へデプロイされる。Cloudflare Dashboardで
+`futo-site-preview`というWorkerを開いてSecretを設定していれば、
+デプロイ先と一致する(同じWorker名を対象にしている限り、Versionごとに
+secretが分かれることはない——Decision Log 0146で「D1などのresource
+bindingはWorker本体に紐づき、Versionごとには安全に分離できない」と
+確認済みで、secretも同じ「Worker本体に紐づく」区分に属する)。
+
+加えて、プロジェクトオーナーが実際に「サーバー側の設定が未完了です」
+という、このコードだけが返す文言を目にしているという事実そのものが、
+**Workers Buildsのデプロイが正しい`futo-site-preview`に届いており、
+最新のコードが動いている**ことの直接的な証拠になっている(ルーティング
+やデプロイ先そのものが誤っているなら、この特定の文言は出ようがない)。
+問題はデプロイ先ではなく、その`futo-site-preview`という1つのWorkerが
+実際に読んでいる`env`の中身(secretの過不足)にある可能性が高い。
+
+### 4. Previewで必要なsecret名とコードが参照する名前の完全一致
+
+| コードが参照する名前(`env.`の後に続く名前、大文字小文字・スペルとも完全一致が必要) | 用途 | プロジェクトオーナーの報告 |
+|---|---|---|
+| `ADMIN_PASSWORD_HASH` | ログインのパスワード照合 | 設定済み |
+| `ADMIN_PASSWORD_PEPPER` | 同上 | 設定済み |
+| `ADMIN_SESSION_SECRET` | セッションCookieの署名 | 設定済み |
+| `IP_HASH_SECRET` | ログイン試行のIPレート制限 | **報告に無し** |
+| `GOOGLE_VISION_API_KEY` | OCR(ログイン後に別途必要) | 設定済み |
+
+`IP_HASH_SECRET`は交換ノート機能(Decision Log 0141)から使われている
+名前で、Fieldnote OCR専用に新設したものではない。名前の綴り自体は
+コード上1箇所(`interface Env`)で定義され、`handleAdminLogin`・
+`handlePostEntries`など複数箇所から同じ`env.IP_HASH_SECRET`として
+参照されており、コード側の表記ゆれは無い。
+
+### 5. 今回の修正内容
+
+コード側の判定ロジック自体に誤り(本番かPreviewかを誤判定する分岐等)
+は見つからなかった。代わりに、**「4つのうちどれが欠けているか」が
+エラーメッセージから分からず、原因の特定に手間がかかる**という
+診断性の問題だったと判断し、以下を修正した:
+
+- `worker/index.ts`: `missingAdminLoginSecrets(env)`を追加し、
+  `handleAdminLogin`のfail closed応答に`missing`(未設定のsecret名
+  だけの配列、値は一切含まない)を含めるようにした。`handleOcrRecognize`
+  の`GOOGLE_VISION_API_KEY`未設定時の応答にも同様に`missing`を追加し、
+  形式を揃えた。
+- `src/lib/fieldnote/publishApi.ts`: `PublishApiError`に`missing?:
+  string[]`を追加し、応答本文の`missing`をそのまま運ぶようにした。
+- `src/lib/fieldnote/app.ts`: 新設の`describeMissingSecrets()`が
+  `missing`があればそのまま列挙した案内文
+  (例:「サーバー側の設定が未完了です(未設定: IP_HASH_SECRET)。」)
+  を組み立てる。セットアップ画面の「本人用ログイン」・公開プレビュー
+  画面の両方のログインUIで、この関数を共通で使う。
+- `worker/test-helpers.ts`(新規): これまで`ocr-recognize.test.ts`
+  に直書きしていたフェイクD1・テスト用Envの組み立てを切り出し、
+  `worker/admin-login.test.ts`(新規)と共有できるようにした。
+- `worker/admin-login.test.ts`(新規、6件): 4つすべて未設定・
+  `IP_HASH_SECRET`だけ未設定(今回の事象の再現)・
+  `ADMIN_PASSWORD_PEPPER`だけ未設定、それぞれで`missing`が正しい
+  内容になること、`missing`にsecretの値自体が含まれないこと、
+  4つとも揃っていれば200でセッションCookie・csrfTokenが発行される
+  こと、パスワードが違う場合は401になり`missing`は含まれないこと、
+  を検証する。
+
+**要件5(修正後、Previewでは有効・本番ではsecret未設定のまま無効)
+について:** これはコード変更を必要としない、fail closed設計そのものの
+帰結として既に成り立っている。Production側の4つのsecret(特に
+`IP_HASH_SECRET`はProduction用に既に設定済みのはずだが、
+`ADMIN_PASSWORD_HASH`等・`GOOGLE_VISION_API_KEY`は本PRのセットアップ
+手順の「段階3」まで未設定の想定)が揃うまで、Production側は自動的に
+「サーバー側の設定が未完了です」のまま無効であり続ける。これは
+Preview/Productionを判定する分岐が無いこと自体の帰結でもある
+(判定していないからこそ、secretの有無だけで両者が独立して
+正しく振る舞う)。
 
 ## 採用理由 (Rationale)
 
