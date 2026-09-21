@@ -541,7 +541,9 @@ D1へ未適用、または適用先のデータベースを取り違えている
 無い応答が返ってくれば、`describeMissingSecrets()`は空の`missing`
 として扱い、汎用の文言だけを表示する——これが観測された症状と一致する。
 
-**修正(値を一切出さない範囲で、断定ではなく反証可能な形にした):**
+**修正(値を一切出さない範囲で、断定ではなく反証可能な形にした。
+ただし2.の`GET /api/admin/diagnostics`は、この直後の「追記2」で
+撤回している——先に結論だけ知りたい場合はそちらを参照):**
 
 1. `worker/index.ts`の`fetch`ハンドラ全体を`routeRequest()`に切り出し、
    `export default { fetch }`側でtry/catchするようにした。ハンドラの
@@ -577,6 +579,69 @@ D1へ未適用、または適用先のデータベースを取り違えている
 ではない。** プロジェクトオーナーがこのエンドポイントを開いて結果を
 共有してくれれば、原因をその場で確定できる。それまでは「ログイン
 成功まで確認した」とは報告しない。
+
+### 追記2: `/api/admin/diagnostics`を撤回し、migrationファイルの対応を確認
+
+**上記2.で追加した`GET /api/admin/diagnostics`(未認証の公開GET、
+secretの真偽値・D1テーブル名一覧を返す)は、プロジェクトオーナーから
+明確な却下を受け、撤回・削除した。** 「未認証の公開エンドポイントとして
+secretの有無・D1テーブル名を外部へ返す設計は採用しない」という判断
+で、値を含まない設計であっても不採用とする、という方針として記録する
+(将来、似た「値は含まないから安全」という理由で診断用エンドポイントを
+足したくなった場合も、まずこの判断を踏まえること)。
+
+**あわせて、`fetch()`の catch-all(追記1で追加)の応答も見直した。**
+D1クエリの例外メッセージ(SQLエラー文言、値は含まないがスキーマ情報
+ではある)を応答本文の`detail`に含めていたが、`/api/admin/login`は
+未認証から呼べるエンドポイントのため、この`detail`も同じ理由で
+不適切だった。例外の詳細は`console.error`でCloudflare側のログ
+(Dashboard の Workers Logs)にだけ出し、応答本文は
+`{ error: "internal error" }`という定型文のみに変更した。
+
+**原因の切り分けは、プロジェクトオーナーの指定した2つの安全な方法の
+うち、後者(ローカルterminalでのD1確認コマンド)で行う。**
+
+`npm run d1:migrate:preview`は**`package.json`上、
+`migrations/0001_init.sql`だけを`futo-lab-notebooks-preview`
+(`--env preview --remote`)に適用するスクリプト**であることを確認した:
+```json
+"d1:migrate:preview": "wrangler d1 execute futo-lab-notebooks-preview --env preview --remote --file=./migrations/0001_init.sql",
+```
+`admin_login_attempts`テーブルは`migrations/0002_reading_notes.sql`
+が作る(`reading_notes`テーブルと同じファイル)。Previewに対して
+このファイルを適用するスクリプトは別名の
+`d1:migrate:reading-notes:preview`であり、プロジェクトオーナーの
+報告には登場していない。**したがって、実際に実行されたコマンド名から
+推測できる最有力の候補は「`admin_login_attempts`テーブルが
+`futo-lab-notebooks-preview`にまだ存在しない」であり、これは
+コードだけからの憶測ではなく、`package.json`のスクリプト定義と
+報告されたコマンド名の突き合わせから導いている。**
+
+これを断定ではなく本人の手元で確認できるよう、secretの値を一切
+出さない読み取り専用のD1コマンドを示す(`wrangler`は既にログイン
+済みのはずなので、追加のCloudflare認証は不要):
+
+```
+npx wrangler d1 execute futo-lab-notebooks-preview --env preview --remote --command "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+```
+
+出力に`admin_login_attempts`(および`reading_notes`)が無ければ、
+`npm run d1:migrate:reading-notes:preview`をこの後で実行すれば
+解消するはずである(`ocr_usage_monthly`/`ocr_recent_calls`が無い
+場合は`npm run d1:migrate:ocr-usage:preview`)。secretの再設定は
+一切不要と見込まれる。
+
+**もう一つの方法(Cloudflare Workers Logsでの例外確認)** も、
+今回のcatch-all修正(`console.error`)により有効になった:
+Cloudflare Dashboard > Workers & Pages > `futo-site-preview` >
+「Logs」(リアルタイムログ、通称tail)を開いた状態でログインを試すと、
+`unhandled exception in routeRequest: ...`という行に、上記のD1
+エラーの実際のメッセージがそのまま出るはずである。
+
+**この節も、コードとpackage.jsonの対応関係からの推論であり、
+実際にPreviewの`futo-lab-notebooks-preview`に対してこのコマンドを
+実行した結果そのものではない。** 結果を共有してもらい次第、この
+Decision Logにも反映する。
 
 ## 採用理由 (Rationale)
 
