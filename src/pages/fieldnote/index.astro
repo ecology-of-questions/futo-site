@@ -60,6 +60,12 @@
  * 表示は「ブラウザ非対応」への一括集約をやめ、どの段階
  * (コア読み込み/言語データ/初期化/認識実行)で失敗したかを具体的に
  * 示すようにした。詳細はDecision Log 0192参照。
+ *
+ * 【OCRをGoogle Cloud Vision化・専用ログイン導線を追加(2026-09-21、
+ * Decision Log 0198)】OCRは管理者ログイン済みの本人だけが使える。
+ * セットアップ画面(このファイルの最初の`<section>`)に、公開プレビュー
+ * とは無関係な「本人用ログイン」(`#account-login-section`)を置いた
+ * (新規撮影・既存記録の有無を問わず使える、控えめな`<details>`)。
  * ------------------------------------------------------------
  */
 import "@styles/tokens.css";
@@ -152,6 +158,27 @@ import { books } from "@/data/bookshelf";
         <div class={styles.setupLinks}>
           <button type="button" id="open-history-btn" class={styles.historyLink}>過去の記録を見る →</button>
           <button type="button" id="open-collections-btn" class={styles.historyLink}>まとめを見る →</button>
+        </div>
+
+        <div id="account-login-section" class={styles.accountLogin}>
+          <details id="account-login-details">
+            <summary id="account-login-summary">本人用ログイン</summary>
+            <div class={styles.accountLoginForm}>
+              <label class={styles.label} for="account-login-password">パスワード</label>
+              <input
+                id="account-login-password"
+                type="password"
+                class={styles.titleInput}
+                autocomplete="current-password"
+              />
+              <button type="button" id="account-login-submit-btn" class={styles.secondaryButton}>ログイン</button>
+              <p id="account-login-status" class={styles.backupStatus} role="status" aria-live="polite"></p>
+            </div>
+          </details>
+          <div id="account-logged-in-row" class={styles.accountLoggedInRow} hidden>
+            <span>ログイン済みです(OCRが使えます)</span>
+            <button type="button" id="account-logout-btn" class={styles.historyLink}>ログアウト</button>
+          </div>
         </div>
 
         <div class={styles.backupRow}>

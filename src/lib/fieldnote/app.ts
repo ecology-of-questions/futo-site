@@ -46,6 +46,19 @@
  * (Google呼び出しは短時間のネットワーク処理のため、中断されたら
  * 本人が改めて押し直す)。
  *
+ * 【OCR専用のログイン導線を追加(2026-09-21、Decision Log 0198、実機
+ * 確認前の指摘を受けて修正)】当初は公開プレビュー画面のログインを
+ * OCRの認証にも流用していたが、「撮影→公開プレビューへ移動→戻る→
+ * 過去の記録を開き直す」という遠回りな導線になっていたため撤回した。
+ * セットアップ画面(`view-setup`)に、公開・本棚反映とは無関係な
+ * 「本人用ログイン」(`accountLoginDetails`等)を追加し、新規撮影・
+ * 既存記録の有無に関わらずログインできるようにした。ログイン状態は
+ * `renderAdminAuthState()`が一元管理し、ログイン/ログアウトのたびに
+ * `currentListRefresh()`を呼んで、表示中の記録一覧のOCRボタンをその場
+ * で更新する(画面の再訪・再読込を要求しない)。公開プレビュー画面側の
+ * ログインUIはそのまま残っている(公開機能はそちらでログインしても
+ * 使える。同じ`adminSession`を共有する)。
+ *
  * 【元の写真を共有/ダウンロードできるようにした(2026-09-21、Decision
  * Log 0194)】「撮影した元の写真ファイルを取り出せない」という指摘を
  * 受け、「元の写真を見る」に写真の実際の解像度表示と、共有/ダウンロード
@@ -96,6 +109,13 @@ let sessionOcrOrientation: OcrOrientation = "horizontal";
 const captureObjectUrls: string[] = [];
 let publishCapture: FieldnoteCapture | null = null;
 let publishSession: FieldnoteSession | null = null;
+/**
+ * 直近に表示した記録一覧を、同じ内容でもう一度組み立て直すための
+ * クロージャ(2026-09-21、Decision Log 0198)。ログイン状態が変わった
+ * 際、表示中の記録一覧のOCRボタンをその場で更新するために使う
+ * (画面遷移・再読込は要求しない。`renderAdminAuthState()`参照)。
+ */
+let currentListRefresh: (() => Promise<void>) | null = null;
 
 function byId<T extends HTMLElement>(id: string): T {
   const el = document.getElementById(id);
@@ -121,6 +141,19 @@ const ocrOrientationSelect = byId<HTMLSelectElement>("ocr-orientation-select");
 const setupErrorEl = byId<HTMLElement>("setup-error");
 const openHistoryBtn = byId<HTMLButtonElement>("open-history-btn");
 const openCollectionsBtn = byId<HTMLButtonElement>("open-collections-btn");
+
+/**
+ * OCRのためだけの、控えめな本人用ログイン導線(2026-09-21、Decision
+ * Log 0198)。公開プレビュー内の既存ログインUI(`publishLoginBlock`等)
+ * とは独立している。Fieldnoteの最初の画面(セットアップ画面)に置き、
+ * 新規撮影・既存記録の有無に関わらず使える。
+ */
+const accountLoginDetails = byId<HTMLDetailsElement>("account-login-details");
+const accountLoginPassword = byId<HTMLInputElement>("account-login-password");
+const accountLoginSubmitBtn = byId<HTMLButtonElement>("account-login-submit-btn");
+const accountLoginStatus = byId<HTMLElement>("account-login-status");
+const accountLoggedInRow = byId<HTMLElement>("account-logged-in-row");
+const accountLogoutBtn = byId<HTMLButtonElement>("account-logout-btn");
 
 const quickTextInput = byId<HTMLTextAreaElement>("quick-text-input");
 const quickUrlInput = byId<HTMLInputElement>("quick-url-input");
@@ -1040,6 +1073,7 @@ async function renderEntryList(
   captures: FieldnoteCapture[],
   bookLinkInfo?: { bookId?: string; bookLocation?: string },
 ): Promise<void> {
+  currentListRefresh = () => renderEntryList(headingText, metaText, captures, bookLinkInfo);
   captureObjectUrls.forEach((url) => URL.revokeObjectURL(url));
   captureObjectUrls.length = 0;
   entryList.replaceChildren();
@@ -1405,6 +1439,21 @@ function renderAdminAuthState(): void {
     const expires = new Date(adminSession.expiresAt);
     publishSessionStatus.textContent = `ログイン中(有効期限: ${expires.toLocaleString("ja-JP")})`;
   }
+
+  accountLoginDetails.hidden = loggedIn;
+  accountLoggedInRow.hidden = !loggedIn;
+  if (loggedIn) {
+    accountLoginDetails.open = false;
+    accountLoginPassword.value = "";
+    accountLoginStatus.textContent = "";
+  }
+
+  // ログイン状態が変わった瞬間、既に表示中の記録一覧のOCRボタンへ
+  // その場で反映する(画面の再訪・再読込を要求しない、2026-09-21、
+  // Decision Log 0198)。ここは同期関数のままにしたいため、非同期の
+  // 再構築は待たずに投げっぱなしにする(失敗しても致命的ではない——
+  // 次に一覧を開き直した際にまた最新状態で作られる)。
+  void currentListRefresh?.();
 }
 
 async function renderExistingNotesForBook(): Promise<void> {
@@ -1497,6 +1546,45 @@ async function handleAdminLogoutClick(): Promise<void> {
   await adminLogout(adminSession.csrfToken).catch(() => {});
   adminSession = null;
   publishAdminStatus.textContent = "ログアウトしました。";
+  renderAdminAuthState();
+}
+
+/**
+ * セットアップ画面の「本人用ログイン」からのログイン(2026-09-21、
+ * Decision Log 0198)。公開プレビュー画面のログイン(`handleAdminLoginClick`)
+ * とは入口が別なだけで、同じ`adminSession`・同じ`/api/admin/login`を使う
+ * (OCRも公開機能も、この1つのセッションで両方使えるようになる)。
+ */
+async function handleAccountLoginClick(): Promise<void> {
+  const password = accountLoginPassword.value;
+  if (!password) {
+    accountLoginStatus.textContent = "パスワードを入力してください。";
+    return;
+  }
+  accountLoginSubmitBtn.disabled = true;
+  accountLoginStatus.textContent = "ログイン中…";
+  try {
+    adminSession = await adminLogin(password);
+    renderAdminAuthState();
+  } catch (error) {
+    if (error instanceof PublishApiError && error.status === 401) {
+      accountLoginStatus.textContent = "パスワードが違います。";
+    } else if (error instanceof PublishApiError && error.status === 429) {
+      accountLoginStatus.textContent = "試行回数が多すぎます。しばらく待ってから試してください。";
+    } else if (error instanceof PublishApiError && error.status === 500) {
+      accountLoginStatus.textContent = "サーバー側の設定が未完了です(本番未配線)。";
+    } else {
+      accountLoginStatus.textContent = "通信できませんでした。";
+    }
+  } finally {
+    accountLoginSubmitBtn.disabled = false;
+  }
+}
+
+async function handleAccountLogoutClick(): Promise<void> {
+  if (!adminSession) return;
+  await adminLogout(adminSession.csrfToken).catch(() => {});
+  adminSession = null;
   renderAdminAuthState();
 }
 
@@ -1689,6 +1777,13 @@ startNewSessionBtn.addEventListener("click", () => {
 
 openHistoryBtn.addEventListener("click", () => {
   void renderHistory("").then(() => showView("history"));
+});
+
+accountLoginSubmitBtn.addEventListener("click", () => {
+  void handleAccountLoginClick();
+});
+accountLogoutBtn.addEventListener("click", () => {
+  void handleAccountLogoutClick();
 });
 
 listOpenHistoryBtn.addEventListener("click", () => {

@@ -446,6 +446,44 @@
   gap: var(--space-3);
 }
 
+/* -----------------------------
+ * 本人用ログイン(2026-09-21、Decision Log 0198)。OCRのためだけの
+ * 控えめなログイン導線。公開プレビュー内の既存ログインUIとは別に、
+ * Fieldnoteの最初の画面に置く(新規撮影・既存記録の有無を問わず
+ * 使える)。
+ * ----------------------------- */
+.accountLogin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 20rem;
+}
+
+.accountLogin summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-accent-blue);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.accountLoginForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.accountLoggedInRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
 .backupRow {
   display: flex;
   flex-wrap: wrap;
