@@ -357,7 +357,7 @@ PreviewのURLで、実機(iPhone)から:
 - `recognizeExcerpt`が失敗した場合も同様に、既存の抜粋・ページは
   変化しない。
 
-### `src/lib/fieldnote/ocr.test.ts`(4件、送信先の確認+iOS Safariフォールバック)
+### `src/lib/fieldnote/ocr.test.ts`(7件、送信先の確認+iOS Safariフォールバック。件数は「iOS SafariでcreateImageBitmapが失敗する事象への対応」の追記時点)
 
 `createImageBitmap`/`FileReader`(Node に無いブラウザAPI)だけを
 最小限のフェイクに差し替え、`recognizeExcerpt`が実際に`fetch`する
@@ -707,6 +707,61 @@ InvalidStateError: An error occurred reading the Blob argument to createImageBit
   無いため)。フォールバック経路自体が動くことは上記のユニットテストで
   検証したが、実際のiPhone Safari・実際の写真での再現・解消の確認は、
   プロジェクトオーナーの実機確認に委ねる。
+
+### 追記: object URLベースのフォールバックも実機で失敗、Data URL経由へ作り直し
+
+上記の`URL.createObjectURL`+`<img>`フォールバックをPreviewへデプロイし、
+実機のiPhone Safariで再度OCRを試したところ、今度は
+`Error: failed to load image via <img> fallback`(=object URLを
+`<img src>`に渡す経路自体の失敗)で止まることが報告された。
+`createImageBitmap`・object URL経由の`<img>`のどちらも同じ端末・
+同じ写真で失敗しており、Google Vision・Workerのどちらにも未到達
+のまま。
+
+**対応(3段構成への作り直し):**
+
+1. `loadImageSource()`を、指示どおり2段構成(`createImageBitmap`→
+   失敗時はData URL経由の`<img>`)に作り直した。object URL経由の
+   `<img>`は削除した(実機で機能しないことが確認されたため、「補助
+   経路として残す」ではなく削除を選んだ)。
+2. 新しい経路: `Blob`→`FileReader.readAsDataURL()`→`data:`URL文字列を
+   `src`に持つ`<img>`の`load`完了→(呼び出し側で)Canvasへ
+   `drawImage`。`FileReader`の`onload`/`onerror`/`onabort`をすべて
+   明示的にハンドリングする(`readBlobAsDataUrl()`)。`img`側も
+   `onload`/`onerror`を`src`設定前に必ず登録する。
+3. **撮影直後のBlob検証を追加**(`validateImageBlob()`)。OCR実行の
+   最初に、渡された画像が`image/jpeg`かつ`size > 0`であることを
+   確認し、そうでなければGoogle Visionへ送らず、その場で
+   `OcrError`(`stage: "image_read"`)を投げる。原本は削除しない
+   (検証するだけで書き換え・削除は一切しない)。
+4. **利用者向けメッセージから実装詳細を除いた。** `OcrStage`に
+   `"image_read"`を追加し、この段階の失敗だけは
+   `describeFailure()`(元のエラー文言をそのまま付け足す、Decision
+   Log 0192からの既存方針)を使わず、`describeImageReadFailure()`が
+   固定文言
+   「写真を読み込めませんでした。もう一度試すか、撮り直してください。」
+   だけを返すようにした。`createImageBitmap`・`<img>`・
+   `InvalidStateError`といった実装詳細は、`console.error`
+   (開発用ログ)にだけ出す。この方針転換は、Google Vision側の失敗
+   (network/auth/quota/server等)には適用していない——それらは
+   引き続き元のエラー文言をそのまま表示する、既存方針のまま。
+
+**検証:** `ocr.test.ts`にさらに3件追加(このファイル全体で7件)。
+(1)(2)は前回の2件をData URL経由に書き換えたもの(読み取り範囲の
+有無それぞれでフォールバックが機能し送信まで完了すること)、
+(3)は`createImageBitmap`・`<img>`(Data URL)の両方が失敗した場合に
+利用者向けメッセージに実装詳細(`createImageBitmap`/`<img>`/
+`InvalidStateError`)が一切含まれないこと、(4)(5)は撮影直後のBlobが
+`image/jpeg`でない・空である場合に、画像読み込み処理を一切試みずに
+Google Visionへも送らないこと、をそれぞれ検証した。
+
+**この修正も、実機のiOS Safariでは確認できていない。** 同じ端末・
+同じ写真でこの3段構成(特にData URL経由の`<img>`)が実際に成功するか
+は、プロジェクトオーナーの次回の実機確認に委ねる。もしこれも失敗する
+場合、報告される実際のエラー文言(開発用ログ、または「もう一度試すか、
+撮り直してください」という定型文しか出ないため、必要なら実機の
+開発者ツール/リモートデバッグでのconsole確認をお願いすることになる)
+を踏まえて、次の手を検討する。
 
 ## 採用理由 (Rationale)
 
