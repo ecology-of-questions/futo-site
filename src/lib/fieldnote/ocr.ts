@@ -27,6 +27,27 @@
  * (または手動調整した範囲)だけを切り出し、`resizeForOcr()`で
  * アップロード用に縮小したコピーだけをWorkerへ送る(Decision Log
  * 0194・0195で確立した設計をそのまま踏襲)。
+ *
+ * 【iOS Safariでの`createImageBitmap`失敗への対応(2026-09-22、
+ * Decision Log 0198追記)】実機のiPhone Safariで、写真によっては
+ * `createImageBitmap(photoBlob)`が
+ * 「InvalidStateError: An error occurred reading the Blob argument to
+ * createImageBitmap」を投げ、Google Vision・Workerに到達する前に
+ * OCRが失敗する事象が起きた。`loadImageSource()`が、この2つの経路を
+ * 自動的に切り替える:
+ * 1. `createImageBitmap`が使える(かつ失敗しない)環境では、従来どおり
+ *    それを使う(`ImageBitmap`は`close()`でメモリを即座に解放できる
+ *    ため、使える場合はこちらを優先する)。
+ * 2. 使えない・失敗する環境では、`Blob`→`URL.createObjectURL`→
+ *    `HTMLImageElement`の`load`完了→(呼び出し側で)Canvasへ
+ *    `drawImage`、というSafari互換の経路に自動でフォールバックする。
+ * どちらの経路でも、`cropForOcr()`/`resizeForOcr()`から見た形
+ * (幅・高さ・`CanvasImageSource`として`drawImage`に渡せること)は
+ * 同じにしてあるため、読み取り範囲・回転・縦書き選択・原本保持といった
+ * 既存の仕様は変えていない。このフォールバック経路は実機のiOS Safari
+ * では確認できていない(このセッションに実機が無いため)。
+ * `createImageBitmap`が例外を投げる状況を再現したテスト
+ * (`ocr.test.ts`)で、フォールバック経路自体の動作は検証済み。
  * ------------------------------------------------------------
  */
 
@@ -99,6 +120,68 @@ const OCR_INPUT_JPEG_QUALITY = 0.9;
 const CROP_OUTPUT_JPEG_QUALITY = 0.92;
 
 /**
+ * `createImageBitmap`(高速・`close()`で即解放できる)と、iOS Safari
+ * 向けフォールバックの`<img>`(遅いが互換性が高い)の、どちらで読み込んだ
+ * かをcrop/resize側が意識しなくて済むようにする共通の形。
+ */
+interface ImageSourceHandle {
+  readonly width: number;
+  readonly height: number;
+  /** `CanvasRenderingContext2D#drawImage`にそのまま渡せる。 */
+  readonly source: CanvasImageSource;
+  /** ImageBitmapの`close()`、または`<img>`用のobject URLの解放。 */
+  close(): void;
+}
+
+/**
+ * `Blob`→object URL→`<img>`の`load`完了、というSafari互換の経路。
+ * `createImageBitmap`が使えない・失敗する環境向けのフォールバック
+ * (2026-09-22、Decision Log 0198追記)。
+ */
+function loadImageSourceViaImgElement(blob: Blob): Promise<ImageSourceHandle> {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      resolve({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        source: img,
+        close: () => URL.revokeObjectURL(objectUrl),
+      });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("failed to load image via <img> fallback"));
+    };
+    img.src = objectUrl;
+  });
+}
+
+/**
+ * 画像を読み込む。`createImageBitmap`が使える環境ではそれを優先し、
+ * 使えない・例外を投げる環境(実機のiOS Safariで
+ * 「InvalidStateError: An error occurred reading the Blob argument to
+ * createImageBitmap」が起きる場合があった)では、自動で`<img>`ベースの
+ * 経路にフォールバックする(2026-09-22、Decision Log 0198追記)。
+ * `createImageBitmap`を必須にしない。
+ */
+async function loadImageSource(blob: Blob): Promise<ImageSourceHandle> {
+  if (typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(blob);
+      return { width: bitmap.width, height: bitmap.height, source: bitmap, close: () => bitmap.close() };
+    } catch {
+      // createImageBitmapが失敗した場合は、例外を握りつぶして
+      // フォールバック経路へ進む(この関数はOcrErrorを投げない。
+      // 両方の経路が失敗した場合のエラーはloadImageSourceViaImgElement
+      // 側のPromise rejectionとしてそのまま呼び出し元へ伝播する)。
+    }
+  }
+  return loadImageSourceViaImgElement(blob);
+}
+
+/**
  * 原本のBlobを一切変更せず、指定範囲(`OcrCropRect`)だけを切り出した
  * コピーを都度作る。`cropRect`が無い場合は原本をそのまま返す(下位
  * 互換。この機能より前に撮影された記録には範囲の情報が無い)。
@@ -109,13 +192,13 @@ const CROP_OUTPUT_JPEG_QUALITY = 0.92;
 async function cropForOcr(image: Blob, cropRect: OcrCropRect | undefined): Promise<Blob> {
   if (!cropRect) return image;
 
-  const bitmap = await createImageBitmap(image);
+  const imageSource = await loadImageSource(image);
   try {
-    const srcWidth = bitmap.width;
-    const srcHeight = bitmap.height;
+    const srcWidth = imageSource.width;
+    const srcHeight = imageSource.height;
     const rotationDeg = cropRect.rotationDeg ?? 0;
 
-    let rotatedSource: CanvasImageSource = bitmap;
+    let rotatedSource: CanvasImageSource = imageSource.source;
     if (rotationDeg !== 0) {
       const rotatedCanvas = document.createElement("canvas");
       rotatedCanvas.width = srcWidth;
@@ -124,7 +207,7 @@ async function cropForOcr(image: Blob, cropRect: OcrCropRect | undefined): Promi
       if (rotatedCtx) {
         rotatedCtx.translate(srcWidth / 2, srcHeight / 2);
         rotatedCtx.rotate((rotationDeg * Math.PI) / 180);
-        rotatedCtx.drawImage(bitmap, -srcWidth / 2, -srcHeight / 2);
+        rotatedCtx.drawImage(imageSource.source, -srcWidth / 2, -srcHeight / 2);
         rotatedSource = rotatedCanvas;
       }
     }
@@ -145,7 +228,7 @@ async function cropForOcr(image: Blob, cropRect: OcrCropRect | undefined): Promi
       outCanvas.toBlob((blob) => resolve(blob ?? image), "image/jpeg", CROP_OUTPUT_JPEG_QUALITY);
     });
   } finally {
-    bitmap.close();
+    imageSource.close();
   }
 }
 
@@ -155,28 +238,28 @@ async function cropForOcr(image: Blob, cropRect: OcrCropRect | undefined): Promi
  * ため、通常はこの範囲に収まっており、実際に縮小されることは少ない。
  */
 async function resizeForOcr(image: Blob): Promise<Blob> {
-  const bitmap = await createImageBitmap(image);
+  const imageSource = await loadImageSource(image);
   try {
-    const longSide = Math.max(bitmap.width, bitmap.height);
+    const longSide = Math.max(imageSource.width, imageSource.height);
     if (longSide <= OCR_INPUT_MAX_DIMENSION) {
       return image;
     }
     const scale = OCR_INPUT_MAX_DIMENSION / longSide;
-    const width = Math.round(bitmap.width * scale);
-    const height = Math.round(bitmap.height * scale);
+    const width = Math.round(imageSource.width * scale);
+    const height = Math.round(imageSource.height * scale);
 
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d");
     if (!ctx) return image;
-    ctx.drawImage(bitmap, 0, 0, width, height);
+    ctx.drawImage(imageSource.source, 0, 0, width, height);
 
     return await new Promise<Blob>((resolve) => {
       canvas.toBlob((blob) => resolve(blob ?? image), "image/jpeg", OCR_INPUT_JPEG_QUALITY);
     });
   } finally {
-    bitmap.close();
+    imageSource.close();
   }
 }
 
