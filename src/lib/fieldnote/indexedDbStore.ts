@@ -213,7 +213,7 @@ export class IndexedDbFieldnoteStore implements FieldnoteStore {
       throw new Error(`記録が見つかりません: ${captureId}`);
     }
     const updated: FieldnoteCapture = { ...capture };
-    updated.ocrStatus = patch.ocrStatus;
+    if (patch.ocrStatus !== undefined) updated.ocrStatus = patch.ocrStatus;
     updated.ocrOrientation = patch.ocrOrientation;
     updated.ocrCropRect = patch.ocrCropRect;
     updated.ocrCandidateText = patch.ocrCandidateText;
@@ -229,18 +229,6 @@ export class IndexedDbFieldnoteStore implements FieldnoteStore {
     const db = await this.db();
     const tx = db.transaction(CAPTURES_STORE, "readonly");
     return requestToPromise<FieldnoteCapture | undefined>(tx.objectStore(CAPTURES_STORE).get(captureId));
-  }
-
-  /**
-   * "processing"のまま中断された記録は、実際に処理が続いているとは
-   * 仮定せず"pending"扱いで再開対象に含める(タブを閉じた・再読み込み
-   * した場合、処理中だったOCRは実際には止まっているため)。
-   */
-  async listUnfinishedOcrCaptures(): Promise<FieldnoteCapture[]> {
-    const db = await this.db();
-    const tx = db.transaction(CAPTURES_STORE, "readonly");
-    const all = await requestToPromise<FieldnoteCapture[]>(tx.objectStore(CAPTURES_STORE).getAll());
-    return all.filter((capture) => capture.ocrStatus === "pending" || capture.ocrStatus === "processing");
   }
 
   async listCaptures(sessionId: string): Promise<FieldnoteCapture[]> {
