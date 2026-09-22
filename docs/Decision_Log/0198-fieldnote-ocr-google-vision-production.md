@@ -256,7 +256,10 @@ PreviewのURLで、実機(iPhone)から:
   呼ぶ実装に全面差し替え。クロップ・縮小(`cropForOcr`/`resizeForOcr`、
   Decision Log 0194・0195で確立)はそのまま踏襲し、Base64化して
   `/api/ocr/recognize`へPOSTする関数を追加した。CSRFトークンを
-  引数に取るようになった(`csrfToken`必須)。
+  引数に取るようになった(`csrfToken`必須)。**(2026-09-22追記)**
+  `loadImageSource()`を新設し、`createImageBitmap`が失敗する
+  iOS Safari環境向けに`<img>`ベースのフォールバックを追加した
+  (「iOS SafariでcreateImageBitmapが失敗する事象への対応」参照)。
 - `src/lib/fieldnote/ocrTesseractLocal.ts`(旧`ocr.ts`を`git mv`):
   Tesseract.js実装をそのまま保持。どこからもimportしない。
 - `src/lib/fieldnote/ocrQueue.ts`: `getCsrfToken`コールバックを
@@ -354,7 +357,7 @@ PreviewのURLで、実機(iPhone)から:
 - `recognizeExcerpt`が失敗した場合も同様に、既存の抜粋・ページは
   変化しない。
 
-### `src/lib/fieldnote/ocr.test.ts`(2件、送信先の確認)
+### `src/lib/fieldnote/ocr.test.ts`(4件、送信先の確認+iOS Safariフォールバック)
 
 `createImageBitmap`/`FileReader`(Node に無いブラウザAPI)だけを
 最小限のフェイクに差し替え、`recognizeExcerpt`が実際に`fetch`する
@@ -364,6 +367,13 @@ PreviewのURLで、実機(iPhone)から:
   (＝ブラウザからGoogleへ直接送信しないことの直接的な確認)。
 - 送信する本文は、画像原本ではなくJSON(`imageBase64`/`orientation`)
   であり、CSRFトークンがヘッダに含まれること。
+
+**(2026-09-22追記)** 2件追加し、`createImageBitmap`が
+`InvalidStateError`を投げる状況を再現。読み取り範囲を指定しない
+場合・読み取り範囲と回転(縦書き)を指定した場合の両方で、`<img>`
+ベースのフォールバックへ自動的に切り替わり、最終的な送信まで完了する
+こと、回転・切り抜きのCanvas操作が実際に呼ばれることを検証した
+(「iOS SafariでcreateImageBitmapが失敗する事象への対応」参照)。
 
 ### Tesseractの読み込みが無くなったことの確認(ビルド出力・実際のNetwork)
 
@@ -642,6 +652,61 @@ Cloudflare Dashboard > Workers & Pages > `futo-site-preview` >
 実際にPreviewの`futo-lab-notebooks-preview`に対してこのコマンドを
 実行した結果そのものではない。** 結果を共有してもらい次第、この
 Decision Logにも反映する。
+
+## iOS SafariでcreateImageBitmapが失敗する事象への対応(2026-09-22)
+
+実機のiPhone Safariで、OCRの「文字を読み取る」を押した際に、
+Google Vision・Cloudflare Workerのどちらにも到達する前に
+
+```
+InvalidStateError: An error occurred reading the Blob argument to createImageBitmap
+```
+
+というクライアント側の例外で失敗する事象が報告された。原因は、
+`src/lib/fieldnote/ocr.ts`の`cropForOcr()`/`resizeForOcr()`が、
+撮影した写真の切り抜き・縮小の前処理として`createImageBitmap
+(photoBlob)`を呼んでいた箇所。iOS Safariは、写真(特にHEIC由来や
+特定のメタデータを持つJPEG)によっては、この呼び出しで例外を投げる
+ことがある(ブラウザ側の既知の制限で、このリポジトリのコードの
+バグではない)。
+
+### 対応
+
+`createImageBitmap`を前処理の唯一の手段にせず、失敗時に自動で
+切り替わるフォールバックを追加した:
+
+- `loadImageSource(blob)`という共通の読み込み関数を新設。
+  `createImageBitmap`が使える(かつ例外を投げない)場合はそれを使う
+  (`ImageBitmap`は`close()`で即座にメモリを解放できるため優先する)。
+  使えない・例外を投げた場合は、自動的に
+  `Blob → URL.createObjectURL → <img>の load 完了 → (呼び出し側で)
+  CanvasへdrawImage`という、Safari互換の経路にフォールバックする。
+- `cropForOcr()`/`resizeForOcr()`側は、`ImageBitmap`か`<img>`かを
+  意識しない共通の形(幅・高さ・`CanvasImageSource`)だけを受け取る
+  ように書き換えた。読み取り範囲(crop)・回転・長辺での縮小といった
+  既存のロジック自体は変更していない。
+- 縦書き選択・原本写真の保持(呼び出し側から渡される`image`自体は
+  一切書き換えない)といった既存仕様も変更していない。
+- `document.createElement("canvas")`を使う既存のcrop/resizeロジック
+  自体は変更していないため、Canvas 2D APIが使えない環境(そもそも
+  無いに等しい)への対応は今回のスコープ外のまま。
+
+### 検証
+
+- `src/lib/fieldnote/ocr.test.ts`に2件追加: `createImageBitmap`が
+  `InvalidStateError`を投げる状況を再現し、(1)
+  読み取り範囲を指定しない場合(`resizeForOcr`だけが画像を読み込む
+  経路)、(2) 読み取り範囲・回転(縦書き)を指定した場合(`cropForOcr`
+  も画像を読み込む経路)の両方で、`<img>`ベースのフォールバックへ
+  自動的に切り替わり、最終的に`/api/ocr/recognize`への送信まで
+  完了することを確認した。回転・切り抜きのCanvas操作
+  (`translate`/`rotate`/`drawImage`)が実際に呼ばれていることも
+  あわせて確認し、「読み取り範囲・回転の仕様は変えない」ことを
+  自動テストで担保した。
+- **実機のiOS Safariでは確認できていない**(このセッションに実機が
+  無いため)。フォールバック経路自体が動くことは上記のユニットテストで
+  検証したが、実際のiPhone Safari・実際の写真での再現・解消の確認は、
+  プロジェクトオーナーの実機確認に委ねる。
 
 ## 採用理由 (Rationale)
 
