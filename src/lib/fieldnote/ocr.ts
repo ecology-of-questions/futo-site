@@ -28,33 +28,55 @@
  * アップロード用に縮小したコピーだけをWorkerへ送る(Decision Log
  * 0194・0195で確立した設計をそのまま踏襲)。
  *
- * 【iOS Safariでの`createImageBitmap`失敗への対応(2026-09-22、
- * Decision Log 0198追記)】実機のiPhone Safariで、写真によっては
- * `createImageBitmap(photoBlob)`が
- * 「InvalidStateError: An error occurred reading the Blob argument to
- * createImageBitmap」を投げ、Google Vision・Workerに到達する前に
- * OCRが失敗する事象が起きた。`loadImageSource()`が、この2つの経路を
- * 自動的に切り替える:
+ * 【iOS Safariでの画像読み込み失敗への対応(2026-09-22、Decision Log
+ * 0198追記・再修正)】実機のiPhone Safariで、`createImageBitmap
+ * (photoBlob)`が「InvalidStateError: An error occurred reading the
+ * Blob argument to createImageBitmap」を投げ、Google Vision・Workerに
+ * 到達する前にOCRが失敗する事象が起きた。当初`URL.createObjectURL`+
+ * `<img>`によるフォールバックを追加したが、実機ではこちらも
+ * 「failed to load image via <img> fallback」で失敗した(object URLを
+ * `<img src>`に渡す経路自体がこの端末で読めていなかった)。そのため
+ * object URL経由の`<img>`は廃止し、`loadImageSource()`を次の2段構成に
+ * 作り直した:
  * 1. `createImageBitmap`が使える(かつ失敗しない)環境では、従来どおり
  *    それを使う(`ImageBitmap`は`close()`でメモリを即座に解放できる
  *    ため、使える場合はこちらを優先する)。
- * 2. 使えない・失敗する環境では、`Blob`→`URL.createObjectURL`→
- *    `HTMLImageElement`の`load`完了→(呼び出し側で)Canvasへ
- *    `drawImage`、というSafari互換の経路に自動でフォールバックする。
+ * 2. 失敗した場合は、`Blob`→`FileReader.readAsDataURL()`→
+ *    `data:`URLを`src`に持つ`HTMLImageElement`の`load`完了→
+ *    (呼び出し側で)Canvasへ`drawImage`、というData URL経由の経路に
+ *    フォールバックする。object URLではなくBase64のData URLを使うのは、
+ *    実機で観測された「object URLを`<img>`に渡すと読めない」という
+ *    事象を避けるため。
  * どちらの経路でも、`cropForOcr()`/`resizeForOcr()`から見た形
  * (幅・高さ・`CanvasImageSource`として`drawImage`に渡せること)は
  * 同じにしてあるため、読み取り範囲・回転・縦書き選択・原本保持といった
- * 既存の仕様は変えていない。このフォールバック経路は実機のiOS Safari
- * では確認できていない(このセッションに実機が無いため)。
- * `createImageBitmap`が例外を投げる状況を再現したテスト
- * (`ocr.test.ts`)で、フォールバック経路自体の動作は検証済み。
+ * 既存の仕様は変えていない。
+ *
+ * 画像そのものが読み込めない場合(上記の2段構成が両方失敗した場合、
+ * または撮影直後に保存されたBlobが`image/jpeg`でない・空である場合)、
+ * 利用者には`createImageBitmap`や`<img>`といった実装詳細を見せず、
+ * 「写真を読み込めませんでした。もう一度試すか、撮り直してください。」
+ * という定型文だけを表示する(`OcrStage`の`"image_read"`)。実際の
+ * エラー内容は`console.error`(開発者ツール/実機のリモートデバッグで
+ * 確認する用)にだけ出す。
+ *
+ * このフォールバック経路自体は、実機のiOS Safariでは確認できていない
+ * (このセッションに実機が無いため)。`createImageBitmap`が例外を
+ * 投げる状況を再現したテスト(`ocr.test.ts`)で、Data URL経由の
+ * フォールバック経路の動作は検証済み。
  * ------------------------------------------------------------
  */
 
 export type OcrOrientation = "horizontal" | "vertical";
 
-/** 失敗の大まかな分類。UI側はstageに応じたラベル+元のエラー文言の両方を表示する。 */
-export type OcrStage = "auth" | "network" | "rate_limit" | "quota" | "server" | "unknown";
+/**
+ * 失敗の大まかな分類。UI側はstageに応じたラベル+元のエラー文言の両方を
+ * 表示する——ただし`"image_read"`(写真そのものが読み込めなかった場合)
+ * だけは例外で、実装詳細(`createImageBitmap`/`<img>`等)を含む元の
+ * エラー文言を利用者には見せない(2026-09-22、Decision Log 0198追記。
+ * `describeImageReadFailure()`参照)。
+ */
+export type OcrStage = "auth" | "network" | "rate_limit" | "quota" | "server" | "image_read" | "unknown";
 
 export interface OcrProgress {
   status: string;
@@ -100,6 +122,7 @@ const STAGE_LABELS: Record<OcrStage, string> = {
   rate_limit: "短時間に実行しすぎました。少し待ってからお試しください",
   quota: "今月の読み取り回数の上限に達しました",
   server: "サーバー側でエラーが発生しました",
+  image_read: "写真を読み込めませんでした。もう一度試すか、撮り直してください。",
   unknown: "読み取りに失敗しました",
 };
 
@@ -113,6 +136,19 @@ function stageForStatus(status: number): OcrStage {
 function describeFailure(stage: OcrStage, detail: string): string {
   const label = STAGE_LABELS[stage];
   return `${label}\n詳細: ${detail.slice(0, 300)}`;
+}
+
+/**
+ * 写真そのものが読み込めなかった場合の専用メッセージ組み立て
+ * (2026-09-22、Decision Log 0198追記)。`describeFailure()`と違い、
+ * `createImageBitmap`/`<img>`といった実装詳細を利用者向けの文言には
+ * 一切含めない(Google Vision等の失敗とは異なり、ブラウザ内部の
+ * 技術的な話であり、本人が対処しようがないため)。実際の詳細は
+ * 開発用ログ(`console.error`)にだけ残す。
+ */
+function describeImageReadFailure(detail: string): string {
+  console.error("OCR: failed to read the photo before sending it.", detail);
+  return STAGE_LABELS.image_read;
 }
 
 const OCR_INPUT_MAX_DIMENSION = 2600;
@@ -129,32 +165,50 @@ interface ImageSourceHandle {
   readonly height: number;
   /** `CanvasRenderingContext2D#drawImage`にそのまま渡せる。 */
   readonly source: CanvasImageSource;
-  /** ImageBitmapの`close()`、または`<img>`用のobject URLの解放。 */
+  /** ImageBitmapの`close()`。Data URL経由の`<img>`側は特に解放するものが無いため何もしない。 */
   close(): void;
 }
 
 /**
- * `Blob`→object URL→`<img>`の`load`完了、というSafari互換の経路。
- * `createImageBitmap`が使えない・失敗する環境向けのフォールバック
- * (2026-09-22、Decision Log 0198追記)。
+ * `Blob`を`data:`URL文字列として読み込む。`FileReader`の
+ * `onload`/`onerror`/`onabort`をすべて明示的に扱う(2026-09-22、
+ * Decision Log 0198追記)。
  */
-function loadImageSourceViaImgElement(blob: Blob): Promise<ImageSourceHandle> {
+function readBlobAsDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(blob);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error("FileReader did not return a data URL"));
+      }
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("FileReader failed to read the image"));
+    reader.onabort = () => reject(new Error("FileReader aborted while reading the image"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * `Blob`→`FileReader.readAsDataURL()`→`data:`URLを`src`に持つ`<img>`の
+ * `load`完了、というSafari互換の経路。`createImageBitmap`が使えない・
+ * 失敗する環境向けのフォールバック(2026-09-22、Decision Log 0198
+ * 追記)。イベントハンドラ(`onload`/`onerror`)は、`img.src`を設定する
+ * より前に必ず設定する(Safariで読み込みが速く終わっても取りこぼさない
+ * ため)。
+ */
+async function loadImageSourceViaDataUrl(blob: Blob): Promise<ImageSourceHandle> {
+  const dataUrl = await readBlobAsDataUrl(blob);
+  return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      resolve({
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-        source: img,
-        close: () => URL.revokeObjectURL(objectUrl),
-      });
+      resolve({ width: img.naturalWidth, height: img.naturalHeight, source: img, close: () => {} });
     };
     img.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error("failed to load image via <img> fallback"));
+      reject(new Error("failed to load image via <img> (data URL) fallback"));
     };
-    img.src = objectUrl;
+    img.src = dataUrl;
   });
 }
 
@@ -162,9 +216,9 @@ function loadImageSourceViaImgElement(blob: Blob): Promise<ImageSourceHandle> {
  * 画像を読み込む。`createImageBitmap`が使える環境ではそれを優先し、
  * 使えない・例外を投げる環境(実機のiOS Safariで
  * 「InvalidStateError: An error occurred reading the Blob argument to
- * createImageBitmap」が起きる場合があった)では、自動で`<img>`ベースの
- * 経路にフォールバックする(2026-09-22、Decision Log 0198追記)。
- * `createImageBitmap`を必須にしない。
+ * createImageBitmap」が起きる場合があった)では、自動でData URL経由の
+ * `<img>`ベースの経路にフォールバックする(2026-09-22、Decision Log
+ * 0198追記)。`createImageBitmap`を必須にしない。
  */
 async function loadImageSource(blob: Blob): Promise<ImageSourceHandle> {
   if (typeof createImageBitmap === "function") {
@@ -174,11 +228,11 @@ async function loadImageSource(blob: Blob): Promise<ImageSourceHandle> {
     } catch {
       // createImageBitmapが失敗した場合は、例外を握りつぶして
       // フォールバック経路へ進む(この関数はOcrErrorを投げない。
-      // 両方の経路が失敗した場合のエラーはloadImageSourceViaImgElement
+      // 両方の経路が失敗した場合のエラーはloadImageSourceViaDataUrl
       // 側のPromise rejectionとしてそのまま呼び出し元へ伝播する)。
     }
   }
-  return loadImageSourceViaImgElement(blob);
+  return loadImageSourceViaDataUrl(blob);
 }
 
 /**
@@ -292,6 +346,26 @@ function extractPageCandidate(text: string): string | undefined {
   return undefined;
 }
 
+const CAPTURE_JPEG_MIME_TYPE = "image/jpeg";
+
+/**
+ * 撮影直後に保存されるはずの写真Blobが、実際に読み取れる形かどうかを
+ * OCR実行前に確認する(2026-09-22、Decision Log 0198追記)。
+ * `FieldnoteCamera#capture()`は常に`image/jpeg`のBlobを生成するため
+ * (`camera.ts`参照)、それ以外のtype・サイズ0のBlobは、保存に何らかの
+ * 問題があった写真とみなし、Google Visionへ送る前にその場で止める。
+ * 原本(呼び出し元が保持している`image`)はここでは一切削除しない
+ * (この関数は検証するだけで、Blobを書き換えも削除もしない)。
+ */
+function validateImageBlob(image: Blob): void {
+  if (image.type !== CAPTURE_JPEG_MIME_TYPE || image.size === 0) {
+    throw new OcrError(
+      describeImageReadFailure(`invalid capture blob: type="${image.type}", size=${image.size}`),
+      "image_read",
+    );
+  }
+}
+
 /**
  * 与えられた画像から文字を読み取る。`cropRect`が指定された場合、原本の
  * その範囲だけを切り出してから、Worker経由でGoogle Cloud Visionへ送る
@@ -301,7 +375,10 @@ function extractPageCandidate(text: string): string | undefined {
  *
  * 失敗時は`OcrError`(大まかな分類+元のエラー内容)を投げる。呼び出し
  * 側はこれを捕捉して、元のエラー文言を要約せずそのまま表示すること
- * (Decision Log 0192から続く方針)。
+ * (Decision Log 0192から続く方針)。**ただし`stage === "image_read"`
+ * (写真そのものが読み込めなかった場合)だけは例外で、`message`は
+ * 最初から実装詳細を含まない定型文になっている(2026-09-22、Decision
+ * Log 0198追記。`describeImageReadFailure()`参照)。**
  */
 export async function recognizeExcerpt(
   image: Blob,
@@ -310,13 +387,15 @@ export async function recognizeExcerpt(
   csrfToken: string,
   onProgress?: (progress: OcrProgress) => void,
 ): Promise<OcrResult> {
+  validateImageBlob(image);
+
   let uploadImage: Blob;
   try {
     const cropped = await cropForOcr(image, cropRect);
     uploadImage = await resizeForOcr(cropped);
   } catch (error) {
     const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-    throw new OcrError(describeFailure("unknown", detail), "unknown");
+    throw new OcrError(describeImageReadFailure(detail), "image_read");
   }
 
   onProgress?.({ status: "uploading", progress: 0 });

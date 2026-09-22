@@ -86,9 +86,17 @@ describe("recognizeExcerpt", () => {
  * `createImageBitmap(photoBlob)`が「InvalidStateError: An error
  * occurred reading the Blob argument to createImageBitmap」を投げ、
  * Google Vision・Workerに到達する前にOCRが失敗する。`createImageBitmap`
- * が例外を投げる状況をここで再現し、Blob→object URL→`<img>`の`load`
- * 完了→Canvasという、Safari互換のフォールバック経路(`ocr.ts`の
- * `loadImageSourceViaImgElement`)へ自動的に切り替わることを検証する。
+ * が例外を投げる状況をここで再現し、Blob→`FileReader.readAsDataURL()`
+ * →`data:`URLを持つ`<img>`の`load`完了→Canvasという、Safari互換の
+ * フォールバック経路(`ocr.ts`の`loadImageSourceViaDataUrl`)へ自動的に
+ * 切り替わることを検証する。
+ *
+ * 【object URLベースのフォールバックは廃止した】当初`URL.
+ * createObjectURL`+`<img>`によるフォールバックを実装したが、実機の
+ * iOS Safariではこちらも「failed to load image via <img> fallback」で
+ * 失敗した(プロジェクトオーナーからの報告)。そのため、Blobの中身を
+ * Base64のData URLとして直接`<img src>`に渡す、現在の実装に作り直した。
+ *
  * このフォールバック経路自体は、実機のiOS Safariでは確認できていない
  * (このセッションに実機が無いため)。
  */
@@ -109,9 +117,6 @@ describe("recognizeExcerpt: createImageBitmapが失敗した場合のフォー�
     }
   }
 
-  let createObjectURLMock: ReturnType<typeof vi.fn>;
-  let revokeObjectURLMock: ReturnType<typeof vi.fn>;
-
   beforeEach(() => {
     // createImageBitmap自体は「使える」が、実行すると必ず失敗する
     // (iOS Safariの実際の事象を再現)。
@@ -125,25 +130,16 @@ describe("recognizeExcerpt: createImageBitmapが失敗した場合のフォー�
       }),
     );
     vi.stubGlobal("Image", FakeImage);
-    // Node標準のURLにはcreateObjectURL/revokeObjectURLが無いため、
-    // グローバルのURLクラス自体は差し替えず、この2つの静的メソッドだけ
-    // 追加する(newで使う他のURL用途に影響させないため)。
-    createObjectURLMock = vi.fn(() => "blob:fake-object-url");
-    revokeObjectURLMock = vi.fn();
-    (URL as unknown as { createObjectURL: typeof createObjectURLMock }).createObjectURL = createObjectURLMock;
-    (URL as unknown as { revokeObjectURL: typeof revokeObjectURLMock }).revokeObjectURL = revokeObjectURLMock;
+    // FileReaderは、ファイル冒頭のbeforeEachで既にFakeFileReaderへ
+    // 差し替え済み(readAsDataURLが実際にBase64のdata:URLを返す)。
   });
 
-  afterEach(() => {
-    delete (URL as unknown as Record<string, unknown>).createObjectURL;
-    delete (URL as unknown as Record<string, unknown>).revokeObjectURL;
-  });
-
-  it("cropRect省略時(resizeForOcrだけが画像を読み込む経路)でも、<img>フォールバックでOCRを完了できる", async () => {
+  it("cropRect省略時(resizeForOcrだけが画像を読み込む経路)でも、Data URLフォールバックでOCRを完了できる", async () => {
     const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) =>
       new Response(JSON.stringify({ text: "OK", confidence: 0.5 }), { status: 200 }),
     );
     vi.stubGlobal("fetch", fetchMock);
+    const createImageBitmapSpy = createImageBitmap as unknown as ReturnType<typeof vi.fn>;
 
     const { recognizeExcerpt } = await import("./ocr");
     const image = new Blob(["fake-image-bytes"], { type: "image/jpeg" });
@@ -151,12 +147,11 @@ describe("recognizeExcerpt: createImageBitmapが失敗した場合のフォー�
 
     expect(result.text).toBe("OK");
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    // createImageBitmapは試みた上で失敗し、<img>ベースの経路へ切り替わっている。
-    expect(createObjectURLMock).toHaveBeenCalledTimes(1);
-    expect(revokeObjectURLMock).toHaveBeenCalledTimes(1);
+    // createImageBitmapは試みた上で失敗し、Data URLベースの経路へ切り替わっている。
+    expect(createImageBitmapSpy).toHaveBeenCalledTimes(1);
   });
 
-  it("読み取り範囲・回転を指定した場合(cropForOcrも画像を読み込む経路)でも、<img>フォールバックで切り抜き済みJPEGを送信できる", async () => {
+  it("読み取り範囲・回転を指定した場合(cropForOcrも画像を読み込む経路)でも、Data URLフォールバックで切り抜き済みJPEGを送信できる", async () => {
     // cropForOcr/resizeForOcrが使うcanvas APIの最小限のフェイク。
     const fakeCtx = { translate: vi.fn(), rotate: vi.fn(), drawImage: vi.fn() };
     const fakeCanvas = {
@@ -191,7 +186,83 @@ describe("recognizeExcerpt: createImageBitmapが失敗した場合のフォー�
     expect(fakeCtx.translate).toHaveBeenCalled();
     expect(fakeCtx.rotate).toHaveBeenCalled();
     expect(fakeCtx.drawImage).toHaveBeenCalled();
-    expect(createObjectURLMock).toHaveBeenCalled();
-    expect(revokeObjectURLMock).toHaveBeenCalled();
+  });
+
+  it("createImageBitmap・Data URLフォールバックの両方が失敗しても、利用者向けメッセージに実装詳細を含めない", async () => {
+    class FailingImage {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      private _src = "";
+      set src(value: string) {
+        this._src = value;
+        queueMicrotask(() => this.onerror?.());
+      }
+      get src(): string {
+        return this._src;
+      }
+    }
+    vi.stubGlobal("Image", FailingImage);
+
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { recognizeExcerpt, OcrError } = await import("./ocr");
+    const image = new Blob(["fake-image-bytes"], { type: "image/jpeg" });
+
+    await expect(recognizeExcerpt(image, "horizontal", undefined, "csrf-token-value")).rejects.toSatisfy(
+      (error: unknown) => {
+        expect(error).toBeInstanceOf(OcrError);
+        const ocrError = error as InstanceType<typeof OcrError>;
+        expect(ocrError.stage).toBe("image_read");
+        expect(ocrError.message).toBe("写真を読み込めませんでした。もう一度試すか、撮り直してください。");
+        // createImageBitmap/<img>/InvalidStateErrorといった実装詳細を、
+        // 利用者向けメッセージには一切含めない。
+        expect(ocrError.message).not.toMatch(/createImageBitmap|<img>|InvalidStateError/);
+        return true;
+      },
+    );
+    // 画像を読み込めなかった時点でGoogle Vision(Worker)へは送信しない。
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("recognizeExcerpt: 撮影直後のBlobがおかしい場合(OCR実行前の検証)", () => {
+  it("Blobのtypeがimage/jpegでない場合、Googleへ送らずに定型メッセージのOcrErrorを投げる", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const createImageBitmapSpy = createImageBitmap as unknown as ReturnType<typeof vi.fn>;
+
+    const { recognizeExcerpt, OcrError } = await import("./ocr");
+    const image = new Blob(["not actually a jpeg"], { type: "image/heic" });
+
+    await expect(recognizeExcerpt(image, "horizontal", undefined, "csrf-token-value")).rejects.toSatisfy(
+      (error: unknown) => {
+        expect(error).toBeInstanceOf(OcrError);
+        const ocrError = error as InstanceType<typeof OcrError>;
+        expect(ocrError.stage).toBe("image_read");
+        expect(ocrError.message).toBe("写真を読み込めませんでした。もう一度試すか、撮り直してください。");
+        return true;
+      },
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    // typeの時点で弾くため、画像を読み込む処理自体も一切試みない。
+    expect(createImageBitmapSpy).not.toHaveBeenCalled();
+  });
+
+  it("Blobのsizeが0の場合も、Googleへ送らずに定型メッセージのOcrErrorを投げる", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { recognizeExcerpt, OcrError } = await import("./ocr");
+    const image = new Blob([], { type: "image/jpeg" });
+
+    await expect(recognizeExcerpt(image, "horizontal", undefined, "csrf-token-value")).rejects.toSatisfy(
+      (error: unknown) => {
+        expect(error).toBeInstanceOf(OcrError);
+        expect((error as InstanceType<typeof OcrError>).stage).toBe("image_read");
+        return true;
+      },
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
