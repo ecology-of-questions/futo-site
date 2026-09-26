@@ -3,8 +3,69 @@
 .home a:focus-visible, .home button:focus-visible, .home input:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 5px; }
 .intro { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); padding-block: var(--home-intro-space); }
 .eyebrow { font-family: var(--font-sans); font-size: var(--home-label-size); letter-spacing: var(--home-tracking); color: var(--color-ink-muted); text-decoration: none; }
-.intro h1 { font-size: var(--home-heading); line-height: var(--lh-heading); letter-spacing: var(--home-heading-tracking); margin-top: 0; }
 .introAside { font-size: var(--fs-sm); line-height: var(--home-leading); padding-bottom: var(--space-1); }
+
+/**
+ * Heroの見出し「暮らす　観察　学ぶ　試す」(2026-09-26、Decision Log
+ * 0193)。旧「日々の気づきから、問いを育てる。」(2行見出し+右側の
+ * 点と線の抽象アニメーション`HomeMotion kind="question"`)を置き換えた。
+ *
+ * - `white-space: nowrap`+専用clamp()(`--home-hero-words`)で、
+ *   4語+全角スペース3つ(表示上12文字相当)がiPhone幅でも折り返さず
+ *   1行に収まるようにしている。`--home-heading-tracking`(既存の
+ *   見出し用letter-spacing)はここでは使わない(nowrap行の幅に
+ *   余計な広がりを持たせないため)。
+ * - 各語の色の変化(`--color-ink-muted`→`--color-ink`)+ごく僅かな
+ *   `translateY`だけで「暮らす→観察→学ぶ→試す」の順に息をするように
+ *   促す。円環図・矢印・ラベルは使わない。
+ * - `prefers-reduced-motion: no-preference`のときだけ`animation`を
+ *   適用する。reduced-motion環境・CSSアニメーション非対応環境では、
+ *   `.heroWord`の既定スタイル(`--color-ink`固定、transformなし)が
+ *   そのまま静止表示になり、JS・専用のフォールバック分岐は不要。
+ * - ループ型のアニメーションのため、`HomeMotion`が持っていた「もう一度
+ *   再生」ボタンに相当する操作は設けていない(常時ゆっくり繰り返す
+ *   ため、単発再生という概念自体が無い)。
+ */
+.heroWords {
+  margin: 0;
+  font-size: var(--home-hero-words);
+  line-height: var(--lh-heading);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.heroWord {
+  display: inline-block;
+  /* prefers-reduced-motion: reduce・アニメーション非対応環境の既定色。
+     `--color-ink`(通常の見出しと同じ濃さ)にしておくことで、静止表示
+     でも他の見出しと変わらない強さで読める。motionが有効な環境では
+     下の@keyframesがcolorを常時上書きするため、この既定値は実質
+     「アイドル時に薄くなる」演出には使われない(アイドル→濃いの
+     サイクルは@keyframes側の0%〜100%だけで完結する)。 */
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .heroWord {
+    /* backwards: delay中(自分の番がまだ来ていない語)も、既定色
+       (--color-ink)ではなく@keyframes 0%の値(アイドル状態)を先に
+       適用する。こうしないと、まだ一度も再生されていない語だけ
+       最初の数秒だけ既定色のまま濃く見えてしまい、初回ループの
+       見え方が2周目以降とずれてしまう。 */
+    animation: heroWordPulse 9s ease-in-out infinite backwards;
+  }
+  .heroWord:nth-child(1) { animation-delay: 0s; }
+  .heroWord:nth-child(2) { animation-delay: 1.8s; }
+  .heroWord:nth-child(3) { animation-delay: 3.6s; }
+  .heroWord:nth-child(4) { animation-delay: 5.4s; }
+}
+
+@keyframes heroWordPulse {
+  0%, 100% { color: var(--color-ink-muted); transform: translateY(0); }
+  4% { color: var(--color-ink); transform: translateY(-1.5px); }
+  14% { color: var(--color-ink); transform: translateY(-1.5px); }
+  20% { color: var(--color-ink-muted); transform: translateY(0); }
+}
 .introAside .textLink { margin-top: var(--space-3); }
 .textLink { display: inline-flex; gap: var(--space-3); align-items: center; font-size: var(--fs-sm); padding-block: var(--space-1); text-decoration: none; border-bottom: 1px solid var(--color-accent-beige); }
 .textLink:hover { border-color: var(--color-ink); }
@@ -87,7 +148,6 @@
 }
 
 /* Motion is a compact conceptual illustration, not an image placeholder. */
-.introAside { min-width: min(100%, var(--home-motion-width)); }
 .introAside .textLink { margin-top: 0; }
 .soundMotion { grid-column: 1; }
 .featureWithoutImage .textLink { grid-row: 2 / 5; }

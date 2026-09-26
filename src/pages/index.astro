@@ -21,10 +21,11 @@ const bookshelfPhoto: string | undefined = undefined;
   <div class={styles.home}>
     <section class={styles.intro} aria-labelledby="home-title">
       <div>
-        <h1 id="home-title">日々の気づきから、<br />問いを育てる。</h1>
+        <h1 id="home-title" class={styles.heroWords}>
+          <span class={styles.heroWord}>暮らす</span>{"　"}<span class={styles.heroWord}>観察</span>{"　"}<span class={styles.heroWord}>学ぶ</span>{"　"}<span class={styles.heroWord}>試す</span>
+        </h1>
       </div>
       <div class={styles.introAside}>
-        <HomeMotion kind="question" />
         <a class={styles.textLink} href="/about">この場所について <span aria-hidden="true">↗</span></a>
       </div>
     </section>
