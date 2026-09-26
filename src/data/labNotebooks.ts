@@ -32,12 +32,17 @@
  * コメントリンク・Slides URLは変更していない(指示書「散歩譜＋支援」v2
  * のURL移行方針)。過去のDecision Log(0171・0172・0173等)の本文は
  * 「音の道」表記のまま残す(履歴改変はしない)。
+ *
+ * 【commonNotebookDescriptionの古い文言を削除(2026-09-26、Decision Log
+ * 0191)】交換ノート機能撤去(Decision Log 0178)後も残っていた「読んで、
+ * ふと思い出したことがあれば書き足せます。」を削除した。書き足す機能は
+ * 既に存在しないため。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
 
 export const commonNotebookDescription =
-  "このノートでは、つくっている途中の考えや試したことをひらいています。読んで、ふと思い出したことがあれば書き足せます。";
+  "このノートでは、つくっている途中の考えや試したことをひらいています。";
 
 export const labNotebooks: LabNotebook[] = [
   {
