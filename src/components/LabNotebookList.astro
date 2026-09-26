@@ -41,10 +41,17 @@
  * だった)。タイトルの右に添える形に配置が変わったことに伴い、
  * それぞれの図形自体も見出しの高さと釣り合う横長比率に描き直して
  * いる。
+ *
+ * 【中身が無いノートはリンクにしない(2026-09-26、Decision Log 0192)】
+ * `hasDetailPage()`がfalseのノート(現状Fieldnote・研究断面をひらく)は、
+ * `<a>`ではなく`<div>`で同じ見た目(category/title/description)だけを
+ * 表示し、CTA(`ctaLabel`の文字列+矢印)も出さない。詳細ページ自体が
+ * 存在しない([slug].astro参照)ため、リンク切れを作らない。
  * ------------------------------------------------------------
  */
 import HomeMotion from "./HomeMotion.astro";
 import styles from "./LabNotebookList.module.css";
+import { hasDetailPage } from "@/data/labNotebooks";
 import type { LabNotebook } from "@/types/labNotebook";
 
 interface Props {
@@ -76,27 +83,36 @@ const traces: Record<string, string> = {
 
 <ul class={styles.list}>
   {
-    notebooks.map((notebook) => (
-      <li class={styles.item}>
-        <a
-          class={styles.link}
-          href={`/participate/${notebook.slug}`}
-          aria-label={`「${notebook.title}」の${ctaLabel}`}
-        >
+    notebooks.map((notebook) => {
+      const linked = hasDetailPage(notebook);
+      const body = (
+        <>
           <p class={styles.label}>{notebook.category}</p>
           <div class={styles.titleRow}>
             <h3 class={styles.title}>{notebook.title}</h3>
-
           </div>
           <p class={styles.description}>{descriptions[notebook.slug] ?? notebook.description}</p>
-          <span class={styles.readMore}>
-            {ctaLabel} <span class={styles.arrow} aria-hidden="true">→</span>
-          </span>
-        </a>
-        <div class={styles.visual}>
-          {notebook.slug === 'oto-no-michi' ? <HomeMotion kind="sound" /> : notebook.slug === 'fieldnote' ? <HomeMotion kind="question" /> : <span class={styles.trace} set:html={traces[notebook.slug]} />}
-        </div>
-      </li>
-    ))
+          {linked && (
+            <span class={styles.readMore}>
+              {ctaLabel} <span class={styles.arrow} aria-hidden="true">→</span>
+            </span>
+          )}
+        </>
+      );
+      return (
+        <li class={styles.item}>
+          {linked ? (
+            <a class={styles.link} href={`/participate/${notebook.slug}`} aria-label={`「${notebook.title}」の${ctaLabel}`}>
+              {body}
+            </a>
+          ) : (
+            <div class={styles.linkless}>{body}</div>
+          )}
+          <div class={styles.visual}>
+            {notebook.slug === 'oto-no-michi' ? <HomeMotion kind="sound" /> : notebook.slug === 'fieldnote' ? <HomeMotion kind="question" /> : <span class={styles.trace} set:html={traces[notebook.slug]} />}
+          </div>
+        </li>
+      );
+    })
   }
 </ul>

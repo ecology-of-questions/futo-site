@@ -59,6 +59,18 @@
  * `src/data/labNotebooks.ts`側の`commonNotebookDescription`から削除
  * した。このページ側の分岐(散歩譜では表示しない/Fieldnote・研究断面を
  * ひらくでは表示する)は変更していない。
+ *
+ * 【中身が無いノートのページ自体を無くす(2026-09-26、Decision Log
+ * 0192)】Fieldnote・研究断面をひらくは、entriesも無くGoogleスライドも
+ * 無いため、詳細ページを開いても実質的な中身が無かった。
+ * `getStaticPaths`を`hasDetailPage()`(実際にはGoogleスライドの有無)で
+ * フィルタし、この2つのslugのページ自体を生成しないようにした
+ * (アクセスすると404、`wrangler.toml`の`not_found_handling =
+ * "404-page"`によりビルド後は自然に404になる)。これに伴い、
+ * `slidesEmbedSrc`が無い場合の非スライド用レイアウト(旧Fieldnote・
+ * 研究断面をひらく向け、Decision Log 0184の体験デモ跡地を含む)は
+ * 到達不能になったため削除した。`/participate`一覧側の対応
+ * (リンクを外す)は`LabNotebookList.astro`参照。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -67,12 +79,12 @@ import ArrowLink from "@components/ArrowLink.astro";
 import SupportSection from "@components/SupportSection.astro";
 import SupportLedger from "@components/SupportLedger.astro";
 import styles from "./[slug].module.css";
-import { labNotebooks, commonNotebookDescription } from "@/data/labNotebooks";
+import { labNotebooks, hasDetailPage } from "@/data/labNotebooks";
 import { supportConfig, isSupportConfigured } from "@/config/support";
 import type { LabNotebook } from "@/types/labNotebook";
 
 export function getStaticPaths() {
-  return labNotebooks.map((notebook) => ({
+  return labNotebooks.filter(hasDetailPage).map((notebook) => ({
     params: { slug: notebook.slug },
     props: { notebook },
   }));
@@ -83,7 +95,7 @@ interface Props {
 }
 
 const { notebook } = Astro.props;
-const otherNotebooks = labNotebooks.filter((n) => n.slug !== notebook.slug);
+const otherNotebooks = labNotebooks.filter((n) => n.slug !== notebook.slug && hasDetailPage(n));
 
 /**
  * Googleスライドの埋め込み用URL(「ウェブに公開」で取得したもの)に、
@@ -109,7 +121,7 @@ const hasSupport = isSupportConfigured(supportConfig);
 <DefaultLayout title={`${notebook.title} ｜ 実験室 ｜ 公開研究室ふ、と`} description={notebook.description} theme="editorial">
 
   {
-    slidesEmbedSrc ? (
+    slidesEmbedSrc && (
       <ResearchSection ariaLabel={notebook.title} id="notebook-top">
         <a class:list={[styles.back, styles.backTight]} href="/participate">
           ← 実験室
@@ -145,36 +157,25 @@ const hasSupport = isSupportConfigured(supportConfig);
           )}
         </div>
       </ResearchSection>
-    ) : (
-      <ResearchSection ariaLabel={notebook.title} id="notebook-top">
-        <a class={styles.back} href="/participate">
-          ← 実験室
-        </a>
-        <p class={styles.eyebrow}>{notebook.category}</p>
-        <h1 class={styles.heading}>{notebook.title}</h1>
-        <p class={styles.lead}>{notebook.description}</p>
-        <p class={styles.commonNote}>{commonNotebookDescription}</p>
-        {notebook.slug === "fieldnote" && (
-          <p class={styles.commonNote}>実際に触れるデモは、まだつくっている途中です。</p>
-        )}
-      </ResearchSection>
     )
   }
 
-  <ResearchSection ariaLabel="他のノートを見る" id="notebook-others">
-    <nav aria-label="他のノートを見る">
-      <p class={styles.otherNotebooksLabel}>他のノートを見る</p>
-      <ul class={styles.otherNotebooksList}>
-        {
-          otherNotebooks.map((other) => (
-            <li>
-              <a class={styles.otherNotebookLink} href={`/participate/${other.slug}`}>
-                {other.title} <span aria-hidden="true">→</span>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
-  </ResearchSection>
+  {otherNotebooks.length > 0 && (
+    <ResearchSection ariaLabel="他のノートを見る" id="notebook-others">
+      <nav aria-label="他のノートを見る">
+        <p class={styles.otherNotebooksLabel}>他のノートを見る</p>
+        <ul class={styles.otherNotebooksList}>
+          {
+            otherNotebooks.map((other) => (
+              <li>
+                <a class={styles.otherNotebookLink} href={`/participate/${other.slug}`}>
+                  {other.title} <span aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </ResearchSection>
+  )}
 </DefaultLayout>
