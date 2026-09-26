@@ -79,7 +79,7 @@ import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import LabNotebookList from "@components/LabNotebookList.astro";
 import styles from "./participate.module.css";
-import { publishedLabNotebooks } from "@/data/labNotebooks";
+import { labNotebooks } from "@/data/labNotebooks";
 
 /**
  * 「いま、考えていること」のランディング専用の説明文。
@@ -104,10 +104,8 @@ const landingDescriptions: Record<string, string> = {
  * 見た目・実装の追加は不要)。現時点では該当なし。
  */
 const liveExperimentSlugs: string[] = [];
-const liveExperiments = publishedLabNotebooks.filter((notebook) => liveExperimentSlugs.includes(notebook.slug));
-const consideringNotebooks = publishedLabNotebooks.filter(
-  (notebook) => !liveExperimentSlugs.includes(notebook.slug),
-);
+const liveExperiments = labNotebooks.filter((notebook) => liveExperimentSlugs.includes(notebook.slug));
+const consideringNotebooks = labNotebooks.filter((notebook) => !liveExperimentSlugs.includes(notebook.slug));
 ---
 
 <DefaultLayout

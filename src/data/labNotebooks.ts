@@ -32,15 +32,6 @@
  * コメントリンク・Slides URLは変更していない(指示書「散歩譜＋支援」v2
  * のURL移行方針)。過去のDecision Log(0171・0172・0173等)の本文は
  * 「音の道」表記のまま残す(履歴改変はしない)。
- *
- * 【散歩譜(oto-no-michi)を公開停止(2026-09-26、Decision Log 0187)】
- * まだ試作段階であることを理由に、プロジェクトオーナーの判断で公開を
- * 停止した。`published: false`を追加し、下の`publishedLabNotebooks`
- * (`/participate`・`/participate/[slug]`・トップページ・研究断面の
- * 関連リンクが参照する、実際に公開する配列)から除外する形にした。
- * このオブジェクト自体・Google SlidesのURL・`WalkingScorePlayer`等の
- * コード資産は削除していない。`published: true`に戻すだけで再公開
- * できる。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
@@ -56,8 +47,6 @@ export const labNotebooks: LabNotebook[] = [
     description: "歩く、止まる、待つ。散歩の時間を、音と動きで記す。",
     tone: "warm",
     entries: [],
-    // 2026-09-26、Decision Log 0187: まだ試作段階のため公開停止。
-    published: false,
     // Googleスライド「ウェブに公開」の埋め込みURL(2026-09-17設定)
     slidesEmbedUrl:
       "https://docs.google.com/presentation/d/e/2PACX-1vR3mNN6yjbJ4JhPRUGYBJU3Gk1gI3pD9P4DgFAjrEUdez91wJT8v4NM2iBz2__hvSr4j4ycT4oO5Wxp/pubembed",
@@ -82,14 +71,3 @@ export const labNotebooks: LabNotebook[] = [
     entries: [],
   },
 ];
-
-/**
- * 公開サイトが表示してよいノートだけの配列(2026-09-26、Decision Log
- * 0187)。`published`が明示的に`false`のものだけを除外する(省略時は
- * 公開扱い)。`/participate`一覧・`/participate/[slug]`のルーティング・
- * トップページの注目ノート・研究断面の関連リンクは、すべてこの配列を
- * 参照すること(生の`labNotebooks`を直接参照しない)。
- */
-export const publishedLabNotebooks: LabNotebook[] = labNotebooks.filter(
-  (notebook) => notebook.published !== false,
-);

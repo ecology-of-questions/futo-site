@@ -22,12 +22,6 @@
  * 作らない)。`getRelatedContent()`はidが実データ側に存在しない場合
  * 自動的に除外するため、bookshelf.ts/labNotebooks.ts側でデータが
  * 削除されても壊れたリンクにはならない。
- *
- * 【公開停止中のノートは関連リンクにも出さない(2026-09-26、Decision
- * Log 0187)】ノート解決には`labNotebooks`の生配列ではなく
- * `publishedLabNotebooks`(`published: false`を除いたもの)を使う。
- * 公開停止中のノートのslugを将来`relatedNotebookSlugs`に書いても、
- * 再公開するまでは自動的に除外される。
  * ------------------------------------------------------------
  */
 import type {
@@ -35,7 +29,7 @@ import type {
   PublishedReviewEntry,
 } from "@/types/researchReviewListing";
 import { books } from "@/data/bookshelf";
-import { publishedLabNotebooks } from "@/data/labNotebooks";
+import { labNotebooks } from "@/data/labNotebooks";
 import type { BookEntry } from "@/types/bookshelf";
 import type { LabNotebook } from "@/types/labNotebook";
 
@@ -107,7 +101,7 @@ export function getRelatedContent(entry: PublishedReviewEntry | undefined): {
     .map((id) => books.find((book) => book.id === id))
     .filter((book): book is BookEntry => Boolean(book));
   const relatedNotebooks = (entry?.relatedNotebookSlugs ?? [])
-    .map((slug) => publishedLabNotebooks.find((notebook) => notebook.slug === slug))
+    .map((slug) => labNotebooks.find((notebook) => notebook.slug === slug))
     .filter((notebook): notebook is LabNotebook => Boolean(notebook));
   return { relatedBooks, relatedNotebooks };
 }

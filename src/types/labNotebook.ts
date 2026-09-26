@@ -82,17 +82,4 @@ export interface LabNotebook {
    * URLでは、コメント可能な共有URLを兼ねられないため)。
    */
   slidesCommentUrl?: string;
-  /**
-   * 公開サイトに出すかどうか(2026-09-26、Decision Log 0187)。省略時は
-   * true扱い。falseのノートは、`/participate`一覧・トップページ・他の
-   * ノート詳細ページの「他のノートを見る」・研究断面の関連リンクの
-   * どこにも現れず、`/participate/[slug]`の静的ページ自体も生成
-   * されない(未生成のURLはCloudflare Workers Static Assetsの
-   * `not_found_handling = "404-page"`によりそのまま404になる)。
-   * データ(entries・slidesEmbedUrl等)は削除せず、この値をtrueに
-   * 戻すだけで再公開できる。`labNotebooks.ts`の`publishedLabNotebooks`
-   * を参照する側だけがこのフラグを見ればよく、各ページ側で
-   * slugを個別に判定する必要はない。
-   */
-  published?: boolean;
 }
