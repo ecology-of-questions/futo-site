@@ -135,9 +135,13 @@ body[data-theme="editorial"] {
   --home-book-sky: #d6e0e6;
   --home-muted-rule: #dde0de;
   --home-heading: clamp(1.5rem, 2.8vw, 2.25rem);
-  /* Hero見出し「暮らす　観察　学ぶ　試す」専用(2026-09-26、Decision Log
-     0193)。4語+全角スペース3つ(合計12文字相当)が390px幅でも1行に
-     収まるよう、--home-headingより控えめな上限で計算した専用clamp()。 */
+  /* 【2026-09-26、Decision Log 0193→0195】元は「暮らす　観察　学ぶ
+     試す」を大見出しとして表示するための専用clamp()(4語+全角スペース
+     3つ=12文字相当が390px幅でも1行に収まるよう計算)だった。Decision
+     Log 0195で大見出し表示自体は撤去したが、この値をそのまま
+     `.heroStage`の高さ・`.heroWalker`のサイズ算出の基準として再利用
+     している(旧見出しが占めていた行送りの高さと完全に一致させ、
+     Heroの合計の高さ・研究断面の開始位置を変えないため)。 */
   --home-hero-words: clamp(1.35rem, 0.78rem + 2.9vw, 2.5rem);
   --home-feature-title: clamp(1.5rem, 2.4vw, 2rem);
   --home-section-title: clamp(1.4rem, 2.4vw, 1.8rem);

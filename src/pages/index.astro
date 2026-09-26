@@ -20,9 +20,45 @@ const bookshelfPhoto: string | undefined = undefined;
   description="個人の探究をひらき、誰もがふらっと立ち寄り、ともに探究を深められる場です。" theme="editorial">
   <div class={styles.home}>
     <section class={styles.intro} aria-labelledby="home-title">
-      <div>
-        <h1 id="home-title" class={styles.heroWords}>
-          <span class={styles.heroWord}>暮らす</span>{"　"}<span class={styles.heroWord}>観察</span>{"　"}<span class={styles.heroWord}>学ぶ</span>{"　"}<span class={styles.heroWord}>試す</span>
+      <div class={styles.heroStage}>
+        <span class={styles.heroWalker} aria-hidden="true">
+          <svg viewBox="0 0 24 40" focusable="false">
+            <g class={styles.poseWalk}>
+              <circle class={styles.walkerHead} cx="12" cy="6" r="3.4" />
+              <ellipse class={styles.walkerTorso} cx="11.5" cy="15.5" rx="3.4" ry="6" />
+              <path class={styles.walkerLimb} d="M13,11 C10,12 8,11 7,8.5" />
+              <path class={styles.walkerLimb} d="M11,21 C13,24 15,26 17,29" />
+              <path class={styles.walkerLimb} d="M11,21 C9,25 7,29 6,33" />
+            </g>
+            <g class={styles.poseObserve}>
+              <path class={styles.walkerTorsoLine} d="M11,22 C11.2,19 12.3,16.3 13.8,14.5" />
+              <circle class={styles.walkerHead} cx="15.6" cy="12.2" r="2.7" />
+              <path class={styles.walkerLimb} d="M13,15.5 C11.3,17.5 10.2,19.3 9.6,21" />
+              <path class={styles.walkerLimb} d="M11,22 C11.3,25.3 12,28.3 12.4,31" />
+              <path class={styles.walkerLimb} d="M11,22 C10.3,25.3 9.6,28.3 9.4,31" />
+            </g>
+            <g class={styles.poseLearn}>
+              <ellipse class={styles.walkerTorso} cx="11.2" cy="16" rx="3" ry="6" />
+              <circle class={styles.walkerHead} cx="12" cy="6.6" r="3.4" />
+              <path class={styles.walkerLimb} d="M13.5,12.5 C15.5,13.3 16.5,15 16.2,17" />
+              <rect class={styles.walkerProp} x="15.4" y="16.6" width="3" height="2.2" rx="0.3" />
+              <path class={styles.walkerLimb} d="M11,22 C12,25.5 12.8,28.5 13.2,31" />
+              <path class={styles.walkerLimb} d="M11,22 C9.7,25.5 9,28.5 8.7,31" />
+            </g>
+            <g class={styles.poseTry}>
+              <circle class={styles.walkerHead} cx="12" cy="6" r="3.4" />
+              <ellipse class={styles.walkerTorso} cx="11.3" cy="15.5" rx="3.3" ry="6" />
+              <path class={styles.walkerLimb} d="M13,11 C16,11.5 19,12.5 21,13.5" />
+              <path class={styles.walkerLimb} d="M11,21 C14,24 17,26.5 20,29" />
+              <path class={styles.walkerLimb} d="M11,21 C9,25 7,29 6,33" />
+            </g>
+          </svg>
+        </span>
+        <h1 id="home-title" class={styles.heroCaptions}>
+          <span class={styles.heroCaption}>暮らす</span>
+          <span class={styles.heroCaption}>観察する</span>
+          <span class={styles.heroCaption}>学ぶ</span>
+          <span class={styles.heroCaption}>試す</span>
         </h1>
       </div>
       <div class={styles.introAside}>
