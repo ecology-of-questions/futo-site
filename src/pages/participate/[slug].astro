@@ -41,19 +41,26 @@
  * `FieldnoteMemoDemo`を追加した。プロジェクトオーナーが用意した
  * アプリ構想のモックアップを、サイト内で完結する静的なデモとして
  * 移植したもの。研究断面をひらくには対象外。
+ *
+ * 【操作可能なデモを両ノートから撤去(2026-09-26、Decision Log 0188)】
+ * 散歩譜の身体譜プレイヤー(`WalkingScorePlayer`、架空データ)と、
+ * Fieldnoteの`FieldnoteMemoDemo`(架空データ)は、どちらも「動く・
+ * 触れる」ため実際より完成しているという誤解を与えるとの判断により、
+ * 短い「制作中」の一文に置き換えた。コンポーネント・データ自体は
+ * 削除していない(`src/components/WalkingScorePlayer.astro`・
+ * `src/data/walkingScoreDemo.ts`・`src/components/FieldnoteMemoDemo.astro`・
+ * `src/data/fieldnoteMemoDemo.ts`はすべて維持、このページからの参照の
+ * みを外した)。散歩譜のGoogleスライド埋め込み・コメントリンクは
+ * 変更していない。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import ResearchSection from "@components/ResearchSection.astro";
 import ArrowLink from "@components/ArrowLink.astro";
-import WalkingScorePlayer from "@components/WalkingScorePlayer.astro";
 import SupportSection from "@components/SupportSection.astro";
 import SupportLedger from "@components/SupportLedger.astro";
-import FieldnoteMemoDemo from "@components/FieldnoteMemoDemo.astro";
 import styles from "./[slug].module.css";
 import { labNotebooks, commonNotebookDescription } from "@/data/labNotebooks";
-import { walkingScoreDemo } from "@/data/walkingScoreDemo";
-import { fieldnoteMemoSessions } from "@/data/fieldnoteMemoDemo";
 import { supportConfig, isSupportConfigured } from "@/config/support";
 import type { LabNotebook } from "@/types/labNotebook";
 
@@ -89,7 +96,6 @@ function buildSlidesEmbedSrc(rawUrl: string): string | null {
 }
 
 const slidesEmbedSrc = notebook.slidesEmbedUrl ? buildSlidesEmbedSrc(notebook.slidesEmbedUrl) : null;
-const showWalkingScore = notebook.slug === "oto-no-michi" && Boolean(slidesEmbedSrc);
 const hasSupport = isSupportConfigured(supportConfig);
 ---
 
@@ -106,7 +112,9 @@ const hasSupport = isSupportConfigured(supportConfig);
 
         <div class:list={[styles.layout, !hasSupport && styles.layoutSingle]}>
           <div class={styles.main}>
-            {showWalkingScore && <WalkingScorePlayer score={walkingScoreDemo} />}
+            {notebook.slug === "oto-no-michi" && (
+              <p class={styles.commonNote}>身体の動きを記録する道具は、まだつくっている途中です。</p>
+            )}
 
             <section class={styles.record} aria-labelledby="notebook-record-title">
               <p class={styles.eyebrow}>OPEN NOTEBOOK</p>
@@ -139,7 +147,9 @@ const hasSupport = isSupportConfigured(supportConfig);
         <h1 class={styles.heading}>{notebook.title}</h1>
         <p class={styles.lead}>{notebook.description}</p>
         <p class={styles.commonNote}>{commonNotebookDescription}</p>
-        {notebook.slug === "fieldnote" && <FieldnoteMemoDemo sessions={fieldnoteMemoSessions} />}
+        {notebook.slug === "fieldnote" && (
+          <p class={styles.commonNote}>実際に触れるデモは、まだつくっている途中です。</p>
+        )}
       </ResearchSection>
     )
   }
