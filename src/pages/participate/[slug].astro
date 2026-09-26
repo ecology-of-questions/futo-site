@@ -51,14 +51,14 @@ import SupportSection from "@components/SupportSection.astro";
 import SupportLedger from "@components/SupportLedger.astro";
 import FieldnoteMemoDemo from "@components/FieldnoteMemoDemo.astro";
 import styles from "./[slug].module.css";
-import { labNotebooks, commonNotebookDescription } from "@/data/labNotebooks";
+import { publishedLabNotebooks, commonNotebookDescription } from "@/data/labNotebooks";
 import { walkingScoreDemo } from "@/data/walkingScoreDemo";
 import { fieldnoteMemoSessions } from "@/data/fieldnoteMemoDemo";
 import { supportConfig, isSupportConfigured } from "@/config/support";
 import type { LabNotebook } from "@/types/labNotebook";
 
 export function getStaticPaths() {
-  return labNotebooks.map((notebook) => ({
+  return publishedLabNotebooks.map((notebook) => ({
     params: { slug: notebook.slug },
     props: { notebook },
   }));
@@ -69,7 +69,7 @@ interface Props {
 }
 
 const { notebook } = Astro.props;
-const otherNotebooks = labNotebooks.filter((n) => n.slug !== notebook.slug);
+const otherNotebooks = publishedLabNotebooks.filter((n) => n.slug !== notebook.slug);
 
 /**
  * Googleスライドの埋め込み用URL(「ウェブに公開」で取得したもの)に、

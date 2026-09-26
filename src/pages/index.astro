@@ -4,12 +4,12 @@ import HomeMotion from "@components/HomeMotion.astro";
 import styles from "./index.module.css";
 import { publishedReviews } from "@/data/researchReviews";
 import { books } from "@/data/bookshelf";
-import { labNotebooks } from "@/data/labNotebooks";
+import { publishedLabNotebooks } from "@/data/labNotebooks";
 import { contactFormEndpoint } from "@/config/site";
 
 const reviews = [...publishedReviews].reverse().slice(0, 2);
 const reading = books.filter((book) => book.status === "reading").slice(0, 3);
-const featured = labNotebooks.find((notebook) => notebook.slug === "oto-no-michi");
+const featured = publishedLabNotebooks.find((notebook) => notebook.slug === "oto-no-michi");
 // Replace only this asset URL when the owner selects the main visual.
 const featureImage: string | undefined = undefined;
 // Owner-provided photo of the actual book spines; leave unset until supplied.
