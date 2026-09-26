@@ -8,13 +8,13 @@
 .introAside .textLink { margin-top: var(--space-3); }
 .textLink { display: inline-flex; gap: var(--space-3); align-items: center; font-size: var(--fs-sm); padding-block: var(--space-1); text-decoration: none; border-bottom: 1px solid var(--color-accent-beige); }
 .textLink:hover { border-color: var(--color-ink); }
-.feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.85fr); gap: var(--home-column-gap); align-items: center; padding-bottom: var(--home-section-space); }
+.feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.85fr); gap: var(--home-column-gap); align-items: center; padding-block: var(--space-4) var(--home-section-space); border-top: 1px solid var(--color-accent-beige); }
 .featureCopy h2 { font-size: var(--home-feature-title); letter-spacing: var(--home-heading-tracking); margin-block: var(--space-3); }
 .featureCopy > p { font-size: var(--fs-sm); line-height: var(--home-leading); max-width: 24em; }
 .featureCopy .textLink { margin-top: var(--space-4); }
 .featureVisual { display: block; text-decoration: none; min-width: 0; background: var(--home-visual); }
 .featureVisual > img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
-.collections { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--home-column-gap); padding-block: var(--space-4) var(--home-section-space); border-top: 1px solid var(--color-accent-beige); }
+.collections { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--home-column-gap); padding-bottom: var(--home-section-space); }
 .sectionHead { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
 .sectionHead h2, .newsletter h2 { font-size: var(--home-section-title); letter-spacing: var(--home-heading-tracking); }
 .sectionHead > a { font-family: var(--font-sans); font-size: var(--home-label-size); white-space: nowrap; text-decoration: none; padding-block: var(--space-1); }
