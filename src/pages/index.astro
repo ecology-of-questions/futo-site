@@ -29,19 +29,7 @@ const bookshelfPhoto: string | undefined = undefined;
       </div>
     </section>
 
-    {featured && <section class:list={[styles.feature, !featureImage && styles.featureWithoutImage]} aria-labelledby="feature-title">
-      <div class={styles.featureCopy}>
-        <a class={styles.eyebrow} href="/participate">実験室</a>
-        <h2 id="feature-title">{featured.title}</h2>
-        <p>誰かの気づきを、音から辿る。</p>
-        <div class={styles.soundMotion}><HomeMotion kind="sound" /></div>
-        <a class={styles.textLink} href={`/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
-      </div>
-      {featureImage && <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label={`${featured.title}のノートを開く`}>
-        <img src={featureImage} alt="" width="960" height="640" fetchpriority="high" />
-      </a>}
-    </section>}
-
+    {/* 表示順は「研究断面/本棚」→「実験室」(2026-09-26、Decision Log 0190で入れ替え)。 */}
     <div class={styles.collections}>
       <section class={styles.research} aria-labelledby="research-title">
         <div class={styles.sectionHead}><h2 id="research-title">研究断面</h2><a href="/research">すべて読む <span aria-hidden="true">→</span></a></div>
@@ -72,6 +60,19 @@ const bookshelfPhoto: string | undefined = undefined;
         </ul>}
       </section>
     </div>
+
+    {featured && <section class:list={[styles.feature, !featureImage && styles.featureWithoutImage]} aria-labelledby="feature-title">
+      <div class={styles.featureCopy}>
+        <a class={styles.eyebrow} href="/participate">実験室</a>
+        <h2 id="feature-title">{featured.title}</h2>
+        <p>誰かの気づきを、音から辿る。</p>
+        <div class={styles.soundMotion}><HomeMotion kind="sound" /></div>
+        <a class={styles.textLink} href={`/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
+      </div>
+      {featureImage && <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label={`${featured.title}のノートを開く`}>
+        <img src={featureImage} alt="" width="960" height="640" fetchpriority="high" />
+      </a>}
+    </section>}
 
     <section class={styles.newsletter} aria-labelledby="newsletter-title">
       <div><p class={styles.eyebrow}>ふ、とからのお知らせ</p><h2 id="newsletter-title">研究便り</h2><p class={styles.sectionDescription}>研究便りを受け取る</p></div>
