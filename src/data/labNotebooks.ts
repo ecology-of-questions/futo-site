@@ -37,6 +37,15 @@
  * 0191)】交換ノート機能撤去(Decision Log 0178)後も残っていた「読んで、
  * ふと思い出したことがあれば書き足せます。」を削除した。書き足す機能は
  * 既に存在しないため。
+ *
+ * 【中身が無いノートには詳細ページを持たせない(2026-09-26、Decision Log
+ * 0192)】Fieldnote・研究断面をひらくは、entriesが空でGoogleスライドも
+ * 無く、詳細ページ(`/participate/[slug]`)を開いても実質的な中身が
+ * 無いままだった。`hasDetailPage()`は、実際の中身(現状はGoogleスライド
+ * =`slidesEmbedUrl`)を持つノートだけを判定する。`/participate`一覧
+ * (`LabNotebookList.astro`)はこの判定結果に応じてリンクの有無を
+ * 切り替え、`[slug].astro`の`getStaticPaths`もこれでフィルタする
+ * (中身の無いノートのページ自体を生成しない)。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
@@ -76,3 +85,14 @@ export const labNotebooks: LabNotebook[] = [
     entries: [],
   },
 ];
+
+/**
+ * このノートに個別の詳細ページ(/participate/[slug])を持たせてよいか。
+ * entriesは現状すべて空で中身にならないため、実際の中身として扱うのは
+ * Googleスライド(`slidesEmbedUrl`)のみ(2026-09-26、Decision Log
+ * 0192)。中身が無いノートは`/participate`一覧にタイトル・説明のみ
+ * 表示し、リンクにしない。
+ */
+export function hasDetailPage(notebook: LabNotebook): boolean {
+  return Boolean(notebook.slidesEmbedUrl);
+}
