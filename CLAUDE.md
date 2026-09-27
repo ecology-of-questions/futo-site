@@ -49,14 +49,18 @@ Parking Lot (do not implement until after beta)
   `ResearchReviewArticle` component/structure. See Decision Log 0030.
 - Research Review version history display (still parked — no review
   has a revision history to show yet)
+- メルマガ (Newsletter/mailing list) signup UI — deferred again
+  2026-09-27 (Decision Log 0207): the form only forwarded addresses to
+  the owner via Formspree and never actually sent a newsletter, so it
+  promised readers something the site did not do. Removed from the
+  public homepage until a real delivery mechanism (e.g. Substack)
+  exists. Previously deferred 2026-09-04 (Decision Log 0081), released
+  2026-09-10 (Decision Log 0111).
 
 Released from Parking Lot
 - 支援（寄付）ページ (Support/Donation page) — deferred 2026-09-03
   (Decision Log 0075); Project Owner reversed this 2026-09-10 as part
   of the top-page redesign. See Decision Log 0111.
-- メルマガ (Newsletter/mailing list) — deferred 2026-09-04 (Decision
-  Log 0081); Project Owner reversed this 2026-09-10 as part of the
-  top-page redesign. See Decision Log 0111.
 - 研究の本棚 (Bookshelf) — new content type, added 2026-09-10 as part
   of the same top-page redesign. See Decision Log 0111.
 
