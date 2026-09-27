@@ -1,6 +1,7 @@
 ---
 import DefaultLayout from "@layouts/DefaultLayout.astro";
 import HomeMotion from "@components/HomeMotion.astro";
+import HeroWalkerFigure from "@components/HeroWalkerFigure.astro";
 import styles from "./index.module.css";
 import { publishedReviews } from "@/data/researchReviews";
 import { books } from "@/data/bookshelf";
@@ -20,10 +21,41 @@ const bookshelfPhoto: string | undefined = undefined;
   description="個人の探究をひらき、誰もがふらっと立ち寄り、ともに探究を深められる場です。" theme="editorial">
   <div class={styles.home}>
     <section class={styles.intro} aria-labelledby="home-title">
-      <div>
-        <h1 id="home-title" class={styles.heroWords}>
-          <span class={styles.heroWord}>暮らす</span>{"　"}<span class={styles.heroWord}>観察</span>{"　"}<span class={styles.heroWord}>学ぶ</span>{"　"}<span class={styles.heroWord}>試す</span>
+      <div class={styles.heroStage}>
+        <h1 id="home-title" class={styles.heroHeading}>
+          暮らしのなかで、<span class={styles.srOnly}>観察し、学び、試す。</span>
         </h1>
+        <div class={styles.heroScene} aria-hidden="true">
+          {/* デスクトップ: 3姿勢を常に静止表示(2026-09-27、Decision Log
+              0196)。モーションで人物が見えなくなる不具合を構造的に
+              無くすため、姿勢ごとに固定のインスタンスを1つずつ置く。 */}
+          <div class={styles.heroSceneDesktop}>
+            <span class={styles.heroGroundLine}></span>
+            <div class={styles.heroFigureCell}>
+              <span class:list={[styles.heroWalker, styles.heroWalkerObserve]}><HeroWalkerFigure /></span>
+              <span class={styles.heroCaption}>観察する</span>
+            </div>
+            <div class={styles.heroFigureCell}>
+              <span class:list={[styles.heroWalker, styles.heroWalkerLearn]}><HeroWalkerFigure /></span>
+              <span class={styles.heroCaption}>学ぶ</span>
+            </div>
+            <div class={styles.heroFigureCell}>
+              <span class:list={[styles.heroWalker, styles.heroWalkerTry]}><HeroWalkerFigure /></span>
+              <span class={styles.heroCaption}>試す</span>
+            </div>
+          </div>
+          {/* モバイル: 人物ひとりが中央で3姿勢をクロスフェード
+              (Decision Log 0195のしくみを流用、イラストのみ刷新)。 */}
+          <div class={styles.heroSceneMobile}>
+            <span class:list={[styles.heroWalker, styles.heroWalkerAnimated]}><HeroWalkerFigure /></span>
+            <span class={styles.heroCaptionGroup}>
+              <span class:list={[styles.heroCaptionMobile, styles.heroCaptionObserve]}>観察する</span>
+              <span class:list={[styles.heroCaptionMobile, styles.heroCaptionLearn]}>学ぶ</span>
+              <span class:list={[styles.heroCaptionMobile, styles.heroCaptionTry]}>試す</span>
+            </span>
+            <span class={styles.heroCaptionStatic}>観察する　学ぶ　試す</span>
+          </div>
+        </div>
       </div>
       <div class={styles.introAside}>
         <a class={styles.textLink} href="/about">この場所について <span aria-hidden="true">↗</span></a>

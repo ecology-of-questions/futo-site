@@ -1,32 +1,40 @@
 .home { max-width: var(--home-width); padding-inline: var(--home-gutter); margin-inline: auto; }
 .home a { text-underline-offset: .35em; }
 .home a:focus-visible, .home button:focus-visible, .home input:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 5px; }
-.intro { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); padding-block: var(--home-intro-space); }
+.intro { display: flex; align-items: start; justify-content: space-between; gap: var(--space-4); padding-block: var(--home-intro-space); }
 .eyebrow { font-family: var(--font-sans); font-size: var(--home-label-size); letter-spacing: var(--home-tracking); color: var(--color-ink-muted); text-decoration: none; }
 .introAside { font-size: var(--fs-sm); line-height: var(--home-leading); padding-bottom: var(--space-1); }
 
 /**
- * Heroの見出し「暮らす　観察　学ぶ　試す」(2026-09-26、Decision Log
- * 0193)。旧「日々の気づきから、問いを育てる。」(2行見出し+右側の
- * 点と線の抽象アニメーション`HomeMotion kind="question"`)を置き換えた。
+ * Heroの見出し「暮らしのなかで、」+人物イラスト(2026-09-27、
+ * Decision Log 0196)。以前は簡易な記号的SVG(頭+手足の線だけ)を
+ * CSSで拡大縮小していたが、それでは人物として読めない・服が
+ * 分からないとの指摘を受け、`HeroWalkerFigure`(髪・顔・Tシャツ・
+ * ジーンズ・スニーカーの輪郭を描いたSVG)に置き換えた。
  *
- * - `white-space: nowrap`+専用clamp()(`--home-hero-words`)で、
- *   4語+全角スペース3つ(表示上12文字相当)がiPhone幅でも折り返さず
- *   1行に収まるようにしている。`--home-heading-tracking`(既存の
- *   見出し用letter-spacing)はここでは使わない(nowrap行の幅に
- *   余計な広がりを持たせないため)。
- * - 各語の色の変化(`--color-ink-muted`→`--color-ink`)+ごく僅かな
- *   `translateY`だけで「暮らす→観察→学ぶ→試す」の順に息をするように
- *   促す。円環図・矢印・ラベルは使わない。
- * - `prefers-reduced-motion: no-preference`のときだけ`animation`を
- *   適用する。reduced-motion環境・CSSアニメーション非対応環境では、
- *   `.heroWord`の既定スタイル(`--color-ink`固定、transformなし)が
- *   そのまま静止表示になり、JS・専用のフォールバック分岐は不要。
- * - ループ型のアニメーションのため、`HomeMotion`が持っていた「もう一度
- *   再生」ボタンに相当する操作は設けていない(常時ゆっくり繰り返す
- *   ため、単発再生という概念自体が無い)。
+ * - 見出し(`.heroHeading`)は「暮らしのなかで、」だけを表示する。
+ *   「暮らし」はひとつの工程ではなく、人物のすべての行為を包む時間・
+ *   場そのものとして扱うため、見出しからは切り離した。
+ * - h1の読み上げ・SEO用テキストは「暮らしのなかで、観察し、学び、
+ *   試す。」の全文を保つ。「観察し、学び、試す。」は`.srOnly`で
+ *   視覚上は隠し、大見出しを増やさない指示を満たしている。
+ * - デスクトップ(`.heroSceneDesktop`)では、観察する/学ぶ/試すの
+ *   3姿勢を常に同時に静止表示する(モーションで人物が見えなくなる
+ *   不具合を構造的に無くすため、姿勢ごとに固定インスタンスを
+ *   1つずつ置き、位置・不透明度のアニメーションは行わない)。
+ * - モバイル(`.heroSceneMobile`)では、人物ひとりが中央でその場のまま
+ *   3姿勢をクロスフェードする(Decision Log 0195の仕組みを流用)。
+ * - `.heroScene`は通常のドキュメントフローに置き、Heroの高さは
+ *   人物イラストの実際の高さぶん増える。「研究断面を最初の画面内に
+ *   収める」よりも「人物が人として読める大きさであること」を優先する
+ *   指示のため、Hero高さを一切変えないための制約は設けていない
+ *   (検証はDecision Log 0196参照)。
+ * - `prefers-reduced-motion: reduce`、`scripting: none`(モバイルのみ)
+ *   では人物を「学ぶ」の自然な立ち姿勢で静止表示する。
  */
-.heroWords {
+.heroStage { position: relative; }
+
+.heroHeading {
   margin: 0;
   font-size: var(--home-hero-words);
   line-height: var(--lh-heading);
@@ -34,38 +42,71 @@
   white-space: nowrap;
 }
 
-.heroWord {
-  display: inline-block;
-  /* prefers-reduced-motion: reduce・アニメーション非対応環境の既定色。
-     `--color-ink`(通常の見出しと同じ濃さ)にしておくことで、静止表示
-     でも他の見出しと変わらない強さで読める。motionが有効な環境では
-     下の@keyframesがcolorを常時上書きするため、この既定値は実質
-     「アイドル時に薄くなる」演出には使われない(アイドル→濃いの
-     サイクルは@keyframes側の0%〜100%だけで完結する)。 */
-  color: var(--color-ink);
+.heroScene { margin-top: var(--space-3); }
+
+.heroGroundLine {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--color-accent-beige);
+  margin-bottom: var(--space-3);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .heroWord {
-    /* backwards: delay中(自分の番がまだ来ていない語)も、既定色
-       (--color-ink)ではなく@keyframes 0%の値(アイドル状態)を先に
-       適用する。こうしないと、まだ一度も再生されていない語だけ
-       最初の数秒だけ既定色のまま濃く見えてしまい、初回ループの
-       見え方が2周目以降とずれてしまう。 */
-    animation: heroWordPulse 9s ease-in-out infinite backwards;
-  }
-  .heroWord:nth-child(1) { animation-delay: 0s; }
-  .heroWord:nth-child(2) { animation-delay: 1.8s; }
-  .heroWord:nth-child(3) { animation-delay: 3.6s; }
-  .heroWord:nth-child(4) { animation-delay: 5.4s; }
+.heroSceneMobile { display: none; }
+
+.heroSceneDesktop {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+.heroFigureCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-@keyframes heroWordPulse {
-  0%, 100% { color: var(--color-ink-muted); transform: translateY(0); }
-  4% { color: var(--color-ink); transform: translateY(-1.5px); }
-  14% { color: var(--color-ink); transform: translateY(-1.5px); }
-  20% { color: var(--color-ink-muted); transform: translateY(0); }
+.heroWalker {
+  display: block;
+  width: 4.4rem;
+  height: 7.3rem;
+  color: var(--color-accent-blue);
+  pointer-events: none;
 }
+.heroWalker svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.figHair { fill: currentColor; stroke: none; }
+.figHead { fill: none; stroke: currentColor; stroke-width: 1.1; }
+.figFace, .figSkin { fill: none; stroke: currentColor; stroke-width: 0.9; stroke-linecap: round; }
+.figShirt { fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
+.figLimb { fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; }
+.figLeg { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; }
+.figShoe { fill: none; stroke: currentColor; stroke-width: 1; }
+.figHand, .figMark { fill: currentColor; }
+.figProp { fill: none; stroke: currentColor; stroke-width: 0.9; }
+
+/* デスクトップ: 姿勢ごとに固定のインスタンスなので、対応する
+   1姿勢だけを常時表示する(アニメーションなし)。 */
+.poseObserve, .poseLearn, .poseTry { opacity: 0; }
+.heroWalkerObserve .poseObserve { opacity: 1; }
+.heroWalkerLearn .poseLearn { opacity: 1; }
+.heroWalkerTry .poseTry { opacity: 1; }
+/* モバイルの既定(静止)状態は「学ぶ」。アニメーション未適用時は
+   そのままprefers-reduced-motion: reduce/scripting: noneの
+   フォールバックにもなる。 */
+.heroWalkerAnimated .poseLearn { opacity: 1; }
+
+.heroCaption {
+  font-family: var(--font-sans);
+  font-size: var(--home-label-size);
+  letter-spacing: var(--home-tracking);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+/* モバイル専用要素。デスクトップでは常に非表示。 */
+.heroCaptionGroup { display: none; }
+.heroCaptionStatic { display: none; }
 .introAside .textLink { margin-top: var(--space-3); }
 .textLink { display: inline-flex; gap: var(--space-3); align-items: center; font-size: var(--fs-sm); padding-block: var(--space-1); text-decoration: none; border-bottom: 1px solid var(--color-accent-beige); }
 .textLink:hover { border-color: var(--color-ink); }
@@ -156,4 +197,141 @@
  .introAside { margin-top: 0; }
  .featureWithoutImage { padding-bottom: var(--space-3); }
  .featureWithoutImage .textLink { margin-top: 0; }
+}
+
+/*
+ * モバイル(.introが縦積みになる760px以下)専用の構成(2026-09-27、
+ * Decision Log 0195/0196)。デスクトップの「3姿勢を横に並べる」構成を
+ * そのまま縮小すると、人物が小さすぎて人に見えず、3つの注釈が横並び
+ * のタブ/工程表示に見えてしまうため、別構成にしている。
+ *
+ * - `.heroSceneDesktop`(3姿勢の静止表示)を隠し、`.heroSceneMobile`
+ *   (人物ひとりが中央でクロスフェードする構成)を表示する。
+ * - 人物は水平移動せず、中央で観察する→学ぶ→試すの3姿勢を
+ *   その場でクロスフェードするだけにした。
+ * - 3つの注釈は同時に出さず、`.heroCaptionGroup`内でその時点の
+ *   ラベルだけを人物の姿勢と同じタイミングでクロスフェード表示する。
+ */
+@media (max-width: 760px) {
+ .heroSceneDesktop { display: none; }
+ .heroGroundLine { display: none; }
+ .introAside { margin-top: var(--space-3); }
+
+ .heroSceneMobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+ }
+
+ .heroWalker { width: 4.6rem; height: 7.6rem; }
+
+ .heroCaptionGroup {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1.05rem;
+  margin-top: var(--space-2);
+  text-align: center;
+ }
+ .heroCaptionMobile {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  opacity: 0;
+ }
+ .heroCaptionMobile.heroCaptionLearn { opacity: 1; }
+}
+
+/* モバイルでは人物は静止させず、その場で3姿勢をクロスフェードし
+   続ける(歩行・戻り道の表現が不要なため、デスクトップのような
+   フェードアウト→不可視での復帰は行わない)。既定(アニメーション
+   非適用時)は「学ぶ」の姿勢を表示しており、これがそのまま
+   reduced-motion/JS無効時の静止フォールバックにもなる。 */
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+ .heroWalkerAnimated .poseObserve { animation: heroPoseObserveMobile 12s ease-in-out infinite; }
+ .heroWalkerAnimated .poseLearn { animation: heroPoseLearn 12s ease-in-out infinite; }
+ .heroWalkerAnimated .poseTry { animation: heroPoseTryMobile 12s ease-in-out infinite; }
+ .heroCaptionMobile.heroCaptionObserve { animation: heroCaptionMobileObserve 12s ease-in-out infinite; }
+ .heroCaptionMobile.heroCaptionLearn { animation: heroCaptionMobileLearn 12s ease-in-out infinite; }
+ .heroCaptionMobile.heroCaptionTry { animation: heroCaptionMobileTry 12s ease-in-out infinite; }
+}
+
+/* prefers-reduced-motion: reduce、およびJavaScriptを実行しない環境
+   (scripting: none)では、人物を「学ぶ」の自然な静止姿勢で表示し、
+   3つの注釈をタブ状ではない、静かな1行のテキストとして人物の下に
+   まとめて表示する(下線・区切り線・ボタン風の囲みは付けない)。
+   scripting: noneはJavaScriptの実行だけを止めるものでCSS
+   アニメーション自体は止まらないため、姿勢のアニメーションも
+   明示的に無効化して「学ぶ」で静止させる必要がある。 */
+@media (max-width: 760px) and (prefers-reduced-motion: reduce),
+       (max-width: 760px) and (scripting: none) {
+ .heroWalkerAnimated .poseObserve,
+ .heroWalkerAnimated .poseLearn,
+ .heroWalkerAnimated .poseTry { animation: none; }
+ .heroWalkerAnimated .poseObserve, .heroWalkerAnimated .poseTry { opacity: 0; }
+ .heroWalkerAnimated .poseLearn { opacity: 1; }
+
+ .heroCaptionMobile { animation: none; opacity: 0; }
+ .heroCaptionMobile.heroCaptionLearn { opacity: 0; }
+
+ .heroCaptionGroup { display: none; }
+ .heroCaptionStatic {
+  display: block;
+  margin-top: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--home-label-size);
+  letter-spacing: var(--home-tracking);
+  color: var(--color-ink-muted);
+  text-align: center;
+ }
+}
+
+@keyframes heroPoseObserveMobile {
+ 0% { opacity: 1; }
+ 18% { opacity: 1; }
+ 27% { opacity: 0; }
+ 83% { opacity: 0; }
+ 92% { opacity: 1; }
+ 100% { opacity: 1; }
+}
+@keyframes heroPoseLearn {
+ 0% { opacity: 0; }
+ 18% { opacity: 0; }
+ 27% { opacity: 1; }
+ 46% { opacity: 1; }
+ 55% { opacity: 0; }
+ 100% { opacity: 0; }
+}
+@keyframes heroPoseTryMobile {
+ 0% { opacity: 0; }
+ 46% { opacity: 0; }
+ 55% { opacity: 1; }
+ 83% { opacity: 1; }
+ 92% { opacity: 0; }
+ 100% { opacity: 0; }
+}
+@keyframes heroCaptionMobileObserve {
+ 0% { opacity: 1; }
+ 18% { opacity: 1; }
+ 27% { opacity: 0; }
+ 83% { opacity: 0; }
+ 92% { opacity: 1; }
+ 100% { opacity: 1; }
+}
+@keyframes heroCaptionMobileLearn {
+ 0% { opacity: 0; }
+ 18% { opacity: 0; }
+ 27% { opacity: 1; }
+ 46% { opacity: 1; }
+ 55% { opacity: 0; }
+ 100% { opacity: 0; }
+}
+@keyframes heroCaptionMobileTry {
+ 0% { opacity: 0; }
+ 46% { opacity: 0; }
+ 55% { opacity: 1; }
+ 83% { opacity: 1; }
+ 92% { opacity: 0; }
+ 100% { opacity: 0; }
 }
