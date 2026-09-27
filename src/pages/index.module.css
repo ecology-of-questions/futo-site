@@ -78,7 +78,7 @@
 }
 .heroWalker svg { display: block; width: 100%; height: 100%; overflow: visible; }
 
-.walkerHead, .walkerTorso, .walkerProp, .walkerMark { fill: currentColor; }
+.walkerHead, .walkerTorso, .walkerProp, .walkerMark, .walkerNose { fill: currentColor; }
 .walkerLimb, .walkerTorsoLine { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 
 .poseObserve, .poseLearn, .poseTry { opacity: 0; }
@@ -98,6 +98,11 @@
 .heroCaptionObserve { left: 16.67%; }
 .heroCaptionLearn { left: 50%; }
 .heroCaptionTry { left: 83.33%; }
+
+/* モバイルのreduced-motion/scripting:none専用フォールバック
+   (「観察する　学ぶ　試す」を静かな1行テキストで表示)。
+   デスクトップでは常に非表示。 */
+.heroCaptionStatic { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .heroCaptionObserve { color: var(--color-ink); }
@@ -264,16 +269,128 @@
 }
 
 /*
- * モバイル(.introが縦積みになる760px以下)専用の調整(2026-09-27、
- * Decision Log 0196)。`.heroScene`(人物+ラベル)は`.heroStage`に対し
- * 絶対配置で重ねているため、`.intro`のpadding-blockの外へそのまま
- * はみ出すと`.introAside`(「この場所について」)と視覚的に重なる。
- * ここでは`.intro`のpadding-blockを0にして空けた分を、そのまま
- * `.introAside`のmargin-topとして持たせることで、Heroの合計の高さは
- * 変えずに(padding→marginへの付け替えなので±0)、人物・ラベルの
- * ぶんの空間を`.introAside`の手前に確保している。
+ * モバイル(.introが縦積みになる760px以下)専用の構成(2026-09-27、
+ * Decision Log 0197)。デスクトップの「3姿勢を横に並べる」構成を
+ * そのまま縮小すると、人物が小さすぎて人に見えず、3つの注釈が横並び
+ * のタブ/工程表示に見えてしまう、との指摘を受けて別構成にした。
+ *
+ * - `.heroScene`の絶対配置をやめ、通常のドキュメントフローに戻す
+ *   (見出しの下に実際の高さとして積む)。「研究断面を最初の画面内に
+ *   収める」よりも「人物が人として読める大きさであること」を優先し、
+ *   モバイルに限りHeroの高さが数十px増えることを許容している
+ *   (デスクトップはこのブレークポイントの外なので影響しない)。
+ * - 人物は水平移動せず、中央で観察する→学ぶ→試すの3姿勢を
+ *   クロスフェードするだけにした(`.heroWalker`の`left`は動かさない)。
+ * - 3つの注釈は同時に出さず、`.heroCaptionGroup`内でその時点の
+ *   ラベルだけを人物の姿勢と同じタイミングでクロスフェード表示する。
  */
 @media (max-width: 760px) {
- .intro { padding-block: 0; }
- .introAside { margin-top: 3rem; }
+ .intro { padding-block: var(--space-3); }
+ .introAside { margin-top: var(--space-3); }
+
+ .heroScene {
+  position: static;
+  top: auto;
+  left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: var(--space-3);
+ }
+ .heroGroundLine { display: none; }
+
+ .heroWalker {
+  position: static;
+  top: auto;
+  left: auto;
+  width: 3.5rem;
+  height: 5.75rem;
+  transform: none;
+ }
+
+ .heroCaptionGroup {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1.05rem;
+  margin-top: var(--space-2);
+ }
+ .heroCaption { top: 0; }
+ .heroCaptionObserve, .heroCaptionLearn, .heroCaptionTry { left: 50%; opacity: 0; }
+ .heroCaptionObserve { opacity: 1; }
+
+ .heroCaptionStatic { display: none; }
+}
+
+/* モバイルでは人物は静止させず、その場で3姿勢をクロスフェードし
+   続ける(歩行・戻り道の表現が不要なため、デスクトップのような
+   フェードアウト→不可視での復帰は行わない)。 */
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+ .heroWalker { animation: none; }
+ .poseObserve { animation: heroPoseObserveMobile 12s ease-in-out infinite; }
+ .poseTry { animation: heroPoseTryMobile 12s ease-in-out infinite; }
+ .heroCaptionObserve { animation: heroCaptionMobileObserve 12s ease-in-out infinite; }
+ .heroCaptionLearn { animation: heroCaptionMobileLearn 12s ease-in-out infinite; }
+ .heroCaptionTry { animation: heroCaptionMobileTry 12s ease-in-out infinite; }
+}
+
+/* prefers-reduced-motion: reduce、およびJavaScriptを実行しない環境
+   (scripting: none)では、人物を「学ぶ」の自然な静止姿勢で表示し、
+   3つの注釈をタブ状ではない、静かな1行のテキストとして人物の下に
+   まとめて表示する(下線・区切り線・ボタン風の囲みは付けない)。 */
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+ .heroWalker { animation: none; }
+ .poseObserve, .poseTry { opacity: 0; animation: none; }
+ .poseLearn { opacity: 1; animation: none; }
+ .heroCaptionGroup { display: none; }
+ .heroCaptionStatic { display: block; }
+}
+@media (max-width: 760px) and (scripting: none) {
+ .heroWalker { animation: none; }
+ .poseObserve, .poseTry { opacity: 0; animation: none; }
+ .poseLearn { opacity: 1; animation: none; }
+ .heroCaptionGroup { display: none; }
+ .heroCaptionStatic { display: block; }
+}
+
+@keyframes heroPoseObserveMobile {
+ 0% { opacity: 1; }
+ 18% { opacity: 1; }
+ 27% { opacity: 0; }
+ 83% { opacity: 0; }
+ 92% { opacity: 1; }
+ 100% { opacity: 1; }
+}
+@keyframes heroPoseTryMobile {
+ 0% { opacity: 0; }
+ 46% { opacity: 0; }
+ 55% { opacity: 1; }
+ 83% { opacity: 1; }
+ 92% { opacity: 0; }
+ 100% { opacity: 0; }
+}
+@keyframes heroCaptionMobileObserve {
+ 0% { opacity: 1; }
+ 18% { opacity: 1; }
+ 27% { opacity: 0; }
+ 83% { opacity: 0; }
+ 92% { opacity: 1; }
+ 100% { opacity: 1; }
+}
+@keyframes heroCaptionMobileLearn {
+ 0% { opacity: 0; }
+ 18% { opacity: 0; }
+ 27% { opacity: 1; }
+ 46% { opacity: 1; }
+ 55% { opacity: 0; }
+ 100% { opacity: 0; }
+}
+@keyframes heroCaptionMobileTry {
+ 0% { opacity: 0; }
+ 46% { opacity: 0; }
+ 55% { opacity: 1; }
+ 83% { opacity: 1; }
+ 92% { opacity: 0; }
+ 100% { opacity: 0; }
 }

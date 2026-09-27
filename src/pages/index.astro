@@ -31,6 +31,7 @@ const bookshelfPhoto: string | undefined = undefined;
               <g class={styles.poseObserve}>
                 <path class={styles.walkerTorsoLine} d="M11,22 C11.2,19 12.3,16.3 13.8,14.5" />
                 <circle class={styles.walkerHead} cx="15.6" cy="12.2" r="2.7" />
+                <circle class={styles.walkerNose} cx="12.6" cy="12.7" r="0.45" />
                 <path class={styles.walkerLimb} d="M13,15.5 C11.3,17.5 10.2,19.3 9.6,21" />
                 <path class={styles.walkerLimb} d="M11,22 C11.3,25.3 12,28.3 12.4,31" />
                 <path class={styles.walkerLimb} d="M11,22 C10.3,25.3 9.6,28.3 9.4,31" />
@@ -39,26 +40,31 @@ const bookshelfPhoto: string | undefined = undefined;
               <g class={styles.poseLearn}>
                 <ellipse class={styles.walkerTorso} cx="11.2" cy="16" rx="3" ry="6" />
                 <circle class={styles.walkerHead} cx="12" cy="6.6" r="3.4" />
+                <circle class={styles.walkerNose} cx="15.7" cy="6.9" r="0.5" />
                 <path class={styles.walkerLimb} d="M13.5,12.5 C15.5,13.3 16.5,15 16.2,17" />
                 <rect class={styles.walkerProp} x="15.4" y="16.6" width="3" height="2.2" rx="0.3" />
                 <path class={styles.walkerLimb} d="M11,22 C12,25.5 12.8,28.5 13.2,31" />
                 <path class={styles.walkerLimb} d="M11,22 C9.7,25.5 9,28.5 8.7,31" />
               </g>
               <g class={styles.poseTry}>
-                <path class={styles.walkerTorsoLine} d="M11,23 C10.8,20 10.9,17.3 11.6,15" />
-                <circle class={styles.walkerHead} cx="12.2" cy="13" r="2.6" />
-                <path class={styles.walkerLimb} d="M11.2,18 C10,21.5 9,24.5 8.2,27.5" />
-                <path class={styles.walkerLimb} d="M11.2,18 C12.3,21.5 13,24.5 12.8,27.5" />
-                <path class={styles.walkerLimb} d="M11,23 C11.2,26.3 11.8,29 12.1,31.5" />
-                <path class={styles.walkerLimb} d="M11,23 C10.3,26.3 9.6,29 9.3,31.5" />
-                <rect class={styles.walkerProp} x="6.8" y="27" width="2.2" height="1.5" rx="0.2" />
-                <rect class={styles.walkerProp} x="12.4" y="26.6" width="2.2" height="1.5" rx="0.2" />
+                <path class={styles.walkerTorsoLine} d="M11.3,21.5 C11.1,18.7 11.2,16.3 11.7,14.4" />
+                <circle class={styles.walkerHead} cx="12" cy="12" r="2.6" />
+                <circle class={styles.walkerNose} cx="9.1" cy="12.3" r="0.45" />
+                <path class={styles.walkerLimb} d="M11.6,15.3 C9.6,17 8,19.4 7.3,22.5" />
+                <path class={styles.walkerLimb} d="M11.6,15.3 C13.6,17 14.9,19.4 13.9,22.9" />
+                <path class={styles.walkerLimb} d="M11.3,21.5 C9.8,24 8.7,26.6 8.4,29.3" />
+                <path class={styles.walkerLimb} d="M11.3,21.5 C12.6,24 13.3,26.6 12.7,29.3" />
+                <rect class={styles.walkerProp} x="6.2" y="22" width="2.2" height="1.5" rx="0.2" />
+                <rect class={styles.walkerProp} x="13" y="22.4" width="2.2" height="1.5" rx="0.2" />
               </g>
             </svg>
           </span>
-          <span class:list={[styles.heroCaption, styles.heroCaptionObserve]}>観察する</span>
-          <span class:list={[styles.heroCaption, styles.heroCaptionLearn]}>学ぶ</span>
-          <span class:list={[styles.heroCaption, styles.heroCaptionTry]}>試す</span>
+          <span class={styles.heroCaptionGroup}>
+            <span class:list={[styles.heroCaption, styles.heroCaptionObserve]}>観察する</span>
+            <span class:list={[styles.heroCaption, styles.heroCaptionLearn]}>学ぶ</span>
+            <span class:list={[styles.heroCaption, styles.heroCaptionTry]}>試す</span>
+          </span>
+          <span class={styles.heroCaptionStatic}>観察する　学ぶ　試す</span>
         </div>
       </div>
       <div class={styles.introAside}>
