@@ -210,7 +210,7 @@
 .featureVisual > img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
 .collections { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--home-column-gap); padding-bottom: var(--home-section-space); }
 .sectionHead { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
-.sectionHead h2, .newsletter h2 { font-size: var(--home-section-title); letter-spacing: var(--home-heading-tracking); }
+.sectionHead h2 { font-size: var(--home-section-title); letter-spacing: var(--home-heading-tracking); }
 .sectionHead > a { font-family: var(--font-sans); font-size: var(--home-label-size); white-space: nowrap; text-decoration: none; padding-block: var(--space-1); }
 .sectionHead > a:hover { text-decoration: underline; }
 .reviews { margin-top: var(--space-3); }
@@ -232,17 +232,7 @@
 .bookLink:hover .bookTitle, .bookLink:focus-visible .bookTitle { text-decoration: underline; }
 .bookTitle { font-size: var(--fs-base); line-height: var(--lh-body); flex: 1 1 auto; min-width: 0; }
 .bookAuthor { font-family: var(--font-sans); font-size: var(--fs-sm); color: var(--color-ink-muted); flex: 0 0 auto; white-space: nowrap; }
-.newsletter { display: grid; grid-template-columns: 1fr 1.25fr; align-items: center; gap: var(--space-4); background: var(--home-newsletter); padding: var(--space-4); margin-bottom: var(--space-4); }
-.newsletter h2 { margin-top: var(--space-1); }
-.newsletterFields { min-width: 0; }
-.newsletterForm { display: flex; gap: var(--space-1); }
-.newsletterInput { flex: 1; min-width: 0; width: 100%; border: 1px solid var(--color-accent-beige); background: var(--color-surface); border-radius: 0; padding: var(--space-2); font: inherit; font-size: var(--fs-base); color: var(--color-ink); }
-.newsletterSubmit { border: 1px solid var(--color-ink-muted); background: transparent; color: var(--color-ink); padding: var(--space-2); font-size: var(--fs-sm); white-space: nowrap; cursor: pointer; }
-.newsletterSubmit:hover { background: var(--color-surface); }
-.newsletterSubmit:disabled { cursor: wait; opacity: .6; }
-.newsletterStatus { font-family: var(--font-sans); font-size: var(--home-label-size); margin-top: var(--space-1); }
-.newsletterStatus:empty { display: none; }
-.honeypot, .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 760px) {
  .intro { display: block; }
  .introAside { margin-top: var(--space-3); }
@@ -254,10 +244,8 @@
  .featureCopy .textLink { margin-top: var(--space-2); }
  .collections { grid-template-columns: 1fr; gap: var(--space-4); }
  .bookshelf { border-left: 0; padding-left: 0; border-top: 1px solid var(--color-accent-beige); padding-top: var(--space-4); }
- .newsletter { grid-template-columns: 1fr; padding: var(--space-3); gap: var(--space-3); }
  .bookLink { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
 }
-@media (max-width: 360px) { .newsletterForm { flex-direction: column; } }
 /* Switch the two-column layout to a single column before it gets cramped. */
 @media (min-width: 761px) and (max-width: 1000px) {
  .collections { grid-template-columns: 1fr; }
