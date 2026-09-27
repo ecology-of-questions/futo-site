@@ -51,6 +51,14 @@
  * 指示により、現在のトップページHero(ロゴ、「暮らしのなかで、」の
  * 見出し、観察する/学ぶ/試すの人物イラスト、トップページのタグライン)
  * を反映した構成に作り直した。`?v=3`に更新してキャッシュ対策とした。
+ *
+ * 【OGP画像の見出しフォントを実機と一致させる(2026-09-27、Decision
+ * Log 0209)】0208では見出し・タグラインのフォントを画像内で揃える
+ * ためにゴシック体に統一していたが、プロジェクトオーナーから「実機の
+ * 見出しと同じフォントにする」指示を受け、見出し(`h1`)だけ実機と
+ * 同じ`--font-body`相当(Hiragino Mincho ProN/Yu Mincho)の明朝体に
+ * 戻した。タグラインはゴシック体のまま(実機のHero見出しとタグラインも
+ * 元々別の書体)。`?v=4`に更新してキャッシュ対策とした。
  * ------------------------------------------------------------
  */
 import "@styles/global.css";
@@ -77,7 +85,7 @@ const {
   theme = "default",
 } = Astro.props;
 
-const ogImageUrl = new URL("/images/ogp/default.png?v=3", Astro.site);
+const ogImageUrl = new URL("/images/ogp/default.png?v=4", Astro.site);
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 /** URLシェア時に表示される見出し。ページごとの`title`とは切り離し、全ページ共通で固定する。 */
 const sharedTitle = "公開研究室ふ、と";
