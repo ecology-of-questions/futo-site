@@ -197,6 +197,11 @@
 .introAside .textLink { margin-top: var(--space-3); }
 .textLink { display: inline-flex; gap: var(--space-3); align-items: center; font-size: var(--fs-sm); padding-block: var(--space-1); text-decoration: none; border-bottom: 1px solid var(--color-accent-beige); }
 .textLink:hover { border-color: var(--color-ink); }
+/* 「この場所について」を、研究断面/本棚の「すべて読む→」/「本棚へ→」と
+   同じ見た目(.sectionHead > a)に揃える(2026-09-27、Decision Log 0212)。
+   モバイルでの位置は変えず、見た目の強さだけを軽くする。 */
+.introLink { font-family: var(--font-sans); font-size: var(--home-label-size); border-bottom: none; }
+.introLink:hover { text-decoration: underline; }
 .feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.85fr); gap: var(--home-column-gap); align-items: center; padding-block: var(--space-4) var(--home-section-space); border-top: 1px solid var(--color-accent-beige); }
 /* 「実験室」を研究断面/本棚と同じ見出しサイズに、「散歩譜」(個別のノート名)
    はその下位のタイトルとして一段小さく(2026-09-27、Decision Log 0201)。
