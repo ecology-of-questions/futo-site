@@ -267,6 +267,9 @@
 @media (max-width: 760px) {
  .intro { padding-block: var(--space-3); }
  .introAside { margin-top: 0; }
+ /* Heroの直後の「研究断面」までの間隔をもう少し広げる
+    (2026-09-27、Decision Log 0202)。 */
+ .collections { margin-top: var(--space-3); }
  .featureWithoutImage { padding-bottom: var(--space-3); }
  .featureWithoutImage .textLink { margin-top: 0; }
 }
