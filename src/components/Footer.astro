@@ -55,6 +55,15 @@
  * v0.1刷新済みのページでは「公開研究室ふ、と」(かぎ括弧なし)に
  * 統一されている一方、Footerのみ「公開研究室「ふ、と」」(かぎ括弧
  * あり)のままだったため、表記をサイト全体と揃えた。
+ *
+ * 【「実験室」を削除、2項目に(2026-09-27、Decision Log 0203)】
+ * プロジェクトオーナーから「ヘッダーとフッターのナビゲーションが
+ * なぜ違うのか」という指摘を受けた。HeaderとFooterで項目が異なる
+ * のは意図的な役割分担(Decision Log 0111: Headerはサイト内移動の
+ * ナビゲーション、Footerは支援・問い合わせのクロージングCTA)だが、
+ * 実際に見ると分かりにくいとの判断で、Footerから「実験室」(ヘッダーの
+ * サイト内ナビゲーションと重複する項目)を外し、「お問い合わせ」
+ * 「個人情報の取り扱い」の2項目にした。
  * ------------------------------------------------------------
  */
 import styles from "./Footer.module.css";
@@ -65,7 +74,6 @@ import styles from "./Footer.module.css";
     <p class={styles.siteName}>公開研究室ふ、と</p>
 
     <nav class={styles.nav} aria-label="フッターナビゲーション">
-      <a class={styles.link} href="/participate">実験室</a>
       <a class={styles.link} href="/contact">お問い合わせ</a>
       <a class={styles.link} href="/privacy">個人情報の取り扱い</a>
     </nav>
