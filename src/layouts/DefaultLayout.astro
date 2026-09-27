@@ -59,6 +59,17 @@
  * 同じ`--font-body`相当(Hiragino Mincho ProN/Yu Mincho)の明朝体に
  * 戻した。タグラインはゴシック体のまま(実機のHero見出しとタグラインも
  * 元々別の書体)。`?v=4`に更新してキャッシュ対策とした。
+ *
+ * 【OGP画像の見出しを実際に明朝体で焼き込む(2026-09-27、Decision Log
+ * 0210)】0209でCSS上はHiragino Mincho ProN/Yu Minchoを指定したが、
+ * 画像を生成したレンダリング環境に日本語の明朝体フォントが1つも
+ * 無かったため、実際にはゴシック体(WenQuanYi Zen Hei)で代替
+ * 描画されてしまっていた(fc-matchで確認済み)。プロジェクトオーナーの
+ * 指示により、Noto Serif JP(Webフォント、`@fontsource/noto-serif-jp`
+ * パッケージの日本語サブセットをこの画像生成のためだけに一時的に
+ * 取得・埋め込み、リポジトリにはフォントファイル自体はコミットして
+ * いない)を使って、実際に明朝体の字形で焼き込み直した。`?v=5`に
+ * 更新してキャッシュ対策とした。
  * ------------------------------------------------------------
  */
 import "@styles/global.css";
@@ -85,7 +96,7 @@ const {
   theme = "default",
 } = Astro.props;
 
-const ogImageUrl = new URL("/images/ogp/default.png?v=4", Astro.site);
+const ogImageUrl = new URL("/images/ogp/default.png?v=5", Astro.site);
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 /** URLシェア時に表示される見出し。ページごとの`title`とは切り離し、全ページ共通で固定する。 */
 const sharedTitle = "公開研究室ふ、と";
