@@ -137,8 +137,11 @@ body[data-theme="editorial"] {
   --home-heading: clamp(1.5rem, 2.8vw, 2.25rem);
   /* Hero見出し「暮らす　観察　学ぶ　試す」専用(2026-09-26、Decision Log
      0193)。4語+全角スペース3つ(合計12文字相当)が390px幅でも1行に
-     収まるよう、--home-headingより控えめな上限で計算した専用clamp()。 */
-  --home-hero-words: clamp(1.35rem, 0.78rem + 2.9vw, 2.5rem);
+     収まるよう、--home-headingより控えめな上限で計算した専用clamp()。
+     モバイル幅の値は2026-09-27、Decision Log 0201でさらに縮小した
+     (768px以上は`index.module.css`の`@media (min-width: 768px)`で
+     別のclamp()に上書きされるため、この値は実質モバイル専用)。 */
+  --home-hero-words: clamp(1.2rem, 0.68rem + 2.5vw, 2.2rem);
   --home-feature-title: clamp(1.5rem, 2.4vw, 2rem);
   --home-section-title: clamp(1.4rem, 2.4vw, 1.8rem);
   --home-article-title: clamp(1.05rem, 1.5vw, 1.25rem);

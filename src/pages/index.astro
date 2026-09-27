@@ -87,9 +87,9 @@ const bookshelfPhoto: string | undefined = undefined;
 
     {featured && <section class:list={[styles.feature, !featureImage && styles.featureWithoutImage]} aria-labelledby="feature-title">
       <div class={styles.featureCopy}>
-        <a class={styles.eyebrow} href="/participate">実験室</a>
+        <a class:list={[styles.eyebrow, styles.featureEyebrow]} href="/participate">実験室</a>
         <h2 id="feature-title">{featured.title}</h2>
-        <p>誰かの気づきを、音から辿る。</p>
+        <p>散歩中の気づきを動きから辿る。</p>
         <div class={styles.soundMotion}><HomeMotion kind="sound" /></div>
         <a class={styles.textLink} href={`/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
       </div>
