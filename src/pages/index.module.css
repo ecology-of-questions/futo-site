@@ -284,18 +284,21 @@
  .heroCaptionMobile.heroCaptionLearn { opacity: 1; }
 }
 
-/* モバイルでは人物は静止させず、その場で3姿勢をクロスフェードし
-   続ける(歩行・戻り道の表現が不要なため、デスクトップのような
-   フェードアウト→不可視での復帰は行わない)。既定(アニメーション
-   非適用時)は「学ぶ」の姿勢を表示しており、これがそのまま
-   reduced-motion/JS無効時の静止フォールバックにもなる。 */
+/* モバイルの時間の流れをデスクトップ(Decision Log 0197)と揃えた
+   (2026-09-27、Decision Log 0198)。人物は中央に固定したまま、
+   観察する→学ぶ→試すの順に1体ずつ現れて消え、試すが消えたあとだけ
+   短い空白を置いてから観察するに戻る(デスクトップの「3人同時に
+   フェードアウトし、短い空白の後に左から再開する」と同じ、1周期の
+   終わりに1回だけ間を置く構成)。既定(アニメーション非適用時)は
+   「学ぶ」の姿勢を表示しており、これがそのままreduced-motion/JS
+   無効時の静止フォールバックにもなる。 */
 @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
- .heroWalkerAnimated .poseObserve { animation: heroPoseObserveMobile 12s ease-in-out infinite; }
- .heroWalkerAnimated .poseLearn { animation: heroPoseLearn 12s ease-in-out infinite; }
- .heroWalkerAnimated .poseTry { animation: heroPoseTryMobile 12s ease-in-out infinite; }
- .heroCaptionMobile.heroCaptionObserve { animation: heroCaptionMobileObserve 12s ease-in-out infinite; }
- .heroCaptionMobile.heroCaptionLearn { animation: heroCaptionMobileLearn 12s ease-in-out infinite; }
- .heroCaptionMobile.heroCaptionTry { animation: heroCaptionMobileTry 12s ease-in-out infinite; }
+ .heroWalkerAnimated .poseObserve { animation: heroPoseObserveMobile 11s ease-in-out infinite; }
+ .heroWalkerAnimated .poseLearn { animation: heroPoseLearnMobile 11s ease-in-out infinite; }
+ .heroWalkerAnimated .poseTry { animation: heroPoseTryMobile 11s ease-in-out infinite; }
+ .heroCaptionMobile.heroCaptionObserve { animation: heroCaptionMobileObserve 11s ease-in-out infinite; }
+ .heroCaptionMobile.heroCaptionLearn { animation: heroCaptionMobileLearn 11s ease-in-out infinite; }
+ .heroCaptionMobile.heroCaptionTry { animation: heroCaptionMobileTry 11s ease-in-out infinite; }
 }
 
 /* prefers-reduced-motion: reduce、およびJavaScriptを実行しない環境
@@ -329,50 +332,48 @@
 }
 
 @keyframes heroPoseObserveMobile {
- 0% { opacity: 1; }
- 18% { opacity: 1; }
- 27% { opacity: 0; }
- 83% { opacity: 0; }
- 92% { opacity: 1; }
- 100% { opacity: 1; }
-}
-@keyframes heroPoseLearn {
  0% { opacity: 0; }
- 18% { opacity: 0; }
- 27% { opacity: 1; }
- 46% { opacity: 1; }
- 55% { opacity: 0; }
+ 7.3% { opacity: 1; }
+ 29% { opacity: 1; }
+ 36.3% { opacity: 0; }
+ 100% { opacity: 0; }
+}
+@keyframes heroPoseLearnMobile {
+ 0% { opacity: 0; }
+ 29% { opacity: 0; }
+ 36.3% { opacity: 1; }
+ 58% { opacity: 1; }
+ 65.3% { opacity: 0; }
  100% { opacity: 0; }
 }
 @keyframes heroPoseTryMobile {
  0% { opacity: 0; }
- 46% { opacity: 0; }
- 55% { opacity: 1; }
- 83% { opacity: 1; }
- 92% { opacity: 0; }
+ 58% { opacity: 0; }
+ 65.3% { opacity: 1; }
+ 83.6% { opacity: 1; }
+ 90.9% { opacity: 0; }
  100% { opacity: 0; }
 }
 @keyframes heroCaptionMobileObserve {
- 0% { opacity: 1; }
- 18% { opacity: 1; }
- 27% { opacity: 0; }
- 83% { opacity: 0; }
- 92% { opacity: 1; }
- 100% { opacity: 1; }
+ 0% { opacity: 0; }
+ 7.3% { opacity: 1; }
+ 29% { opacity: 1; }
+ 36.3% { opacity: 0; }
+ 100% { opacity: 0; }
 }
 @keyframes heroCaptionMobileLearn {
  0% { opacity: 0; }
- 18% { opacity: 0; }
- 27% { opacity: 1; }
- 46% { opacity: 1; }
- 55% { opacity: 0; }
+ 29% { opacity: 0; }
+ 36.3% { opacity: 1; }
+ 58% { opacity: 1; }
+ 65.3% { opacity: 0; }
  100% { opacity: 0; }
 }
 @keyframes heroCaptionMobileTry {
  0% { opacity: 0; }
- 46% { opacity: 0; }
- 55% { opacity: 1; }
- 83% { opacity: 1; }
- 92% { opacity: 0; }
+ 58% { opacity: 0; }
+ 65.3% { opacity: 1; }
+ 83.6% { opacity: 1; }
+ 90.9% { opacity: 0; }
  100% { opacity: 0; }
 }
