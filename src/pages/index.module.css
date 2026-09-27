@@ -1,7 +1,7 @@
 .home { max-width: var(--home-width); padding-inline: var(--home-gutter); margin-inline: auto; }
 .home a { text-underline-offset: .35em; }
 .home a:focus-visible, .home button:focus-visible, .home input:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 5px; }
-.intro { display: flex; align-items: start; justify-content: space-between; gap: var(--space-4); padding-block: var(--home-intro-space); }
+.intro { padding-block: var(--home-intro-space); }
 .eyebrow { font-family: var(--font-sans); font-size: var(--home-label-size); letter-spacing: var(--home-tracking); color: var(--color-ink-muted); text-decoration: none; }
 .introAside { font-size: var(--fs-sm); line-height: var(--home-leading); padding-bottom: var(--space-1); }
 
@@ -45,7 +45,23 @@
   white-space: nowrap;
 }
 
-.heroScene { margin-top: var(--space-3); }
+/*
+ * 「この場所について」を人物イラストの行の右に配置する(2026-09-27、
+ * Decision Log 0204)。以前は`.intro`の二カラムflexで見出しの右に配置して
+ * おり、実際に動く人物イラスト(モーション)から離れていてクリック場所が
+ * 分かりづらいという指摘を受けた。PC幅(761px以上)では人物イラストの
+ * 行と横並びに、モバイル幅では引き続き人物イラストの下に積む(HTML構造は
+ * 変えず、デスクトップだけflexにする)。
+ */
+.heroSceneWithAside { margin-top: var(--space-3); }
+@media (min-width: 761px) {
+  .heroSceneWithAside {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+}
 
 /*
  * `.heroGroundLine`は`.heroSceneRow`(display: flex)の絶対配置にして
