@@ -26,10 +26,12 @@ const bookshelfPhoto: string | undefined = undefined;
           暮らしのなかで、<span class={styles.srOnly}>観察し、学び、試す。</span>
         </h1>
         <div class={styles.heroScene} aria-hidden="true">
-          {/* デスクトップ: 3姿勢を常に静止表示(2026-09-27、Decision Log
-              0196)。モーションで人物が見えなくなる不具合を構造的に
-              無くすため、姿勢ごとに固定のインスタンスを1つずつ置く。 */}
-          <div class={styles.heroSceneDesktop}>
+          {/* デスクトップ・モバイル共通: 3姿勢を常に横並びで静止表示
+              (2026-09-27、Decision Log 0196/0199)。モーションで人物が
+              見えなくなる不具合を構造的に無くすため、姿勢ごとに固定の
+              インスタンスを1つずつ置く。モバイル専用の「中央の1人が
+              姿勢を切り替える」構成(Decision Log 0195)は撤去した。 */}
+          <div class={styles.heroSceneRow}>
             <span class={styles.heroGroundLine}></span>
             <div class={styles.heroFigureCell}>
               <span class:list={[styles.heroWalker, styles.heroWalkerObserve]}><HeroWalkerFigure /></span>
@@ -43,17 +45,6 @@ const bookshelfPhoto: string | undefined = undefined;
               <span class:list={[styles.heroWalker, styles.heroWalkerTry]}><HeroWalkerFigure /></span>
               <span class={styles.heroCaption}>試す</span>
             </div>
-          </div>
-          {/* モバイル: 人物ひとりが中央で3姿勢をクロスフェード
-              (Decision Log 0195のしくみを流用、イラストのみ刷新)。 */}
-          <div class={styles.heroSceneMobile}>
-            <span class:list={[styles.heroWalker, styles.heroWalkerAnimated]}><HeroWalkerFigure /></span>
-            <span class={styles.heroCaptionGroup}>
-              <span class:list={[styles.heroCaptionMobile, styles.heroCaptionObserve]}>観察する</span>
-              <span class:list={[styles.heroCaptionMobile, styles.heroCaptionLearn]}>学ぶ</span>
-              <span class:list={[styles.heroCaptionMobile, styles.heroCaptionTry]}>試す</span>
-            </span>
-            <span class={styles.heroCaptionStatic}>観察する　学ぶ　試す</span>
           </div>
         </div>
       </div>
