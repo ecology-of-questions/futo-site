@@ -6,27 +6,35 @@
 .introAside { font-size: var(--fs-sm); line-height: var(--home-leading); padding-bottom: var(--space-1); }
 
 /**
- * Heroの見出し「暮らす　観察　学ぶ　試す」(2026-09-26、Decision Log
- * 0193)。旧「日々の気づきから、問いを育てる。」(2行見出し+右側の
- * 点と線の抽象アニメーション`HomeMotion kind="question"`)を置き換えた。
+ * Heroの見出し「暮らしのなかで、」+人物モーション(2026-09-27、
+ * Decision Log 0196)。Decision Log 0193の「暮らす　観察　学ぶ　試す」
+ * 4語見出し(色の変化だけで循環を示す案)を撤去し置き換えた。
  *
- * - `white-space: nowrap`+専用clamp()(`--home-hero-words`)で、
- *   4語+全角スペース3つ(表示上12文字相当)がiPhone幅でも折り返さず
- *   1行に収まるようにしている。`--home-heading-tracking`(既存の
- *   見出し用letter-spacing)はここでは使わない(nowrap行の幅に
- *   余計な広がりを持たせないため)。
- * - 各語の色の変化(`--color-ink-muted`→`--color-ink`)+ごく僅かな
- *   `translateY`だけで「暮らす→観察→学ぶ→試す」の順に息をするように
- *   促す。円環図・矢印・ラベルは使わない。
- * - `prefers-reduced-motion: no-preference`のときだけ`animation`を
- *   適用する。reduced-motion環境・CSSアニメーション非対応環境では、
- *   `.heroWord`の既定スタイル(`--color-ink`固定、transformなし)が
- *   そのまま静止表示になり、JS・専用のフォールバック分岐は不要。
- * - ループ型のアニメーションのため、`HomeMotion`が持っていた「もう一度
- *   再生」ボタンに相当する操作は設けていない(常時ゆっくり繰り返す
- *   ため、単発再生という概念自体が無い)。
+ * - 見出し(`.heroHeading`)は「暮らしのなかで、」だけを表示する。
+ *   「暮らし」はひとつの工程ではなく、人物のすべての行為を包む時間・
+ *   場そのものとして扱うため、見出しからは切り離した。
+ * - h1の読み上げ・SEO用テキストは「暮らしのなかで、観察し、学び、
+ *   試す。」の全文を保つ。「観察し、学び、試す。」は`.srOnly`で
+ *   視覚上は隠し、大見出しを増やさない指示を満たしている。
+ * - `.heroScene`(`aria-hidden`)は、しゃがんで観察する→立って学ぶ→
+ *   しゃがんで試す、という一人の人物の3姿勢を、SVGの`<g>`3つの
+ *   opacityクロスフェードで切り替える(関節を動かす歩行アニメーションは
+ *   実装しない、との指示どおり)。人物の水平移動は`.heroWalker`の
+ *   `left`を14秒周期でゆっくり動かすだけで、歩行ポーズは使わない。
+ * - `.heroScene`は`.heroStage`に対し`position: absolute; top: 100%`
+ *   で置き、見出し自体の行の高さには影響しない。はみ出す高さの分は
+ *   `.intro`のpadding-blockを狭めて相殺し、Hero全体の高さ・研究断面の
+ *   開始位置を変えないようにしている(検証はDecision Log 0196参照)。
+ * - 試すのあと、人物はその場でゆっくり姿勢を消し(フェードアウト)、
+ *   間を置いてから見えないまま観察するの位置へ戻り、再びフェード
+ *   インする。戻り道を示す矢印・円環・ループ線は描いていない。
+ * - `prefers-reduced-motion: reduce`では人物を「観察する」の姿勢・
+ *   位置で静止表示し、3つのラベルはすべて表示したまま「観察する」
+ *   だけ`--color-ink`に固定する。
  */
-.heroWords {
+.heroStage { position: relative; width: min(100%, 26rem); }
+
+.heroHeading {
   margin: 0;
   font-size: var(--home-hero-words);
   line-height: var(--lh-heading);
@@ -34,37 +42,134 @@
   white-space: nowrap;
 }
 
-.heroWord {
-  display: inline-block;
-  /* prefers-reduced-motion: reduce・アニメーション非対応環境の既定色。
-     `--color-ink`(通常の見出しと同じ濃さ)にしておくことで、静止表示
-     でも他の見出しと変わらない強さで読める。motionが有効な環境では
-     下の@keyframesがcolorを常時上書きするため、この既定値は実質
-     「アイドル時に薄くなる」演出には使われない(アイドル→濃いの
-     サイクルは@keyframes側の0%〜100%だけで完結する)。 */
+.heroScene {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+}
+
+/*
+ * 人物・地面線・ラベルのサイズは`--home-hero-words`(見出し用、
+ * 最大2.5remまで拡大する)には連動させず、固定値にしている。
+ * `.intro`のpadding-block(`--home-intro-space`、最大3rem)は見出しの
+ * 大きさに関わらず一定のため、はみ出し分をそのpaddingで相殺できる
+ * 範囲に人物・ラベルの高さを収める必要がある(検証はDecision Log
+ * 0196参照)。
+ */
+.heroGroundLine {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  top: 1rem;
+  height: 1px;
+  background: var(--color-accent-beige);
+}
+
+.heroWalker {
+  position: absolute;
+  top: 0;
+  left: 16.67%;
+  width: 0.6rem;
+  height: 1rem;
+  transform: translateX(-50%);
   color: var(--color-ink);
+  pointer-events: none;
+}
+.heroWalker svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.walkerHead, .walkerTorso, .walkerProp, .walkerMark { fill: currentColor; }
+.walkerLimb, .walkerTorsoLine { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+
+.poseObserve, .poseLearn, .poseTry { opacity: 0; }
+.poseObserve { opacity: 1; }
+
+.heroCaption {
+  position: absolute;
+  top: 1.15rem;
+  transform: translateX(-50%);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: var(--home-tracking);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+.heroCaptionObserve { left: 16.67%; }
+.heroCaptionLearn { left: 50%; }
+.heroCaptionTry { left: 83.33%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .heroCaptionObserve { color: var(--color-ink); }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .heroWord {
-    /* backwards: delay中(自分の番がまだ来ていない語)も、既定色
-       (--color-ink)ではなく@keyframes 0%の値(アイドル状態)を先に
-       適用する。こうしないと、まだ一度も再生されていない語だけ
-       最初の数秒だけ既定色のまま濃く見えてしまい、初回ループの
-       見え方が2周目以降とずれてしまう。 */
-    animation: heroWordPulse 9s ease-in-out infinite backwards;
-  }
-  .heroWord:nth-child(1) { animation-delay: 0s; }
-  .heroWord:nth-child(2) { animation-delay: 1.8s; }
-  .heroWord:nth-child(3) { animation-delay: 3.6s; }
-  .heroWord:nth-child(4) { animation-delay: 5.4s; }
+  .heroWalker { animation: heroWalkerPath 12s ease-in-out infinite; }
+  .poseObserve { animation: heroPoseObserve 12s ease-in-out infinite; }
+  .poseLearn { animation: heroPoseLearn 12s ease-in-out infinite; }
+  .poseTry { animation: heroPoseTry 12s ease-in-out infinite; }
+  .heroCaptionObserve { animation: heroCaptionObserve 12s ease-in-out infinite; }
+  .heroCaptionLearn { animation: heroCaptionLearn 12s ease-in-out infinite; }
+  .heroCaptionTry { animation: heroCaptionTry 12s ease-in-out infinite; }
 }
 
-@keyframes heroWordPulse {
-  0%, 100% { color: var(--color-ink-muted); transform: translateY(0); }
-  4% { color: var(--color-ink); transform: translateY(-1.5px); }
-  14% { color: var(--color-ink); transform: translateY(-1.5px); }
-  20% { color: var(--color-ink-muted); transform: translateY(0); }
+@keyframes heroWalkerPath {
+  0% { left: 16.67%; opacity: 1; }
+  18% { left: 16.67%; opacity: 1; }
+  27% { left: 50%; opacity: 1; }
+  46% { left: 50%; opacity: 1; }
+  55% { left: 83.33%; opacity: 1; }
+  74% { left: 83.33%; opacity: 1; }
+  83% { left: 83.33%; opacity: 0; }
+  84% { left: 16.67%; opacity: 0; }
+  92% { left: 16.67%; opacity: 0; }
+  100% { left: 16.67%; opacity: 1; }
+}
+@keyframes heroPoseObserve {
+  0% { opacity: 1; }
+  18% { opacity: 1; }
+  27% { opacity: 0; }
+  92% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes heroPoseLearn {
+  0% { opacity: 0; }
+  18% { opacity: 0; }
+  27% { opacity: 1; }
+  46% { opacity: 1; }
+  55% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes heroPoseTry {
+  0% { opacity: 0; }
+  46% { opacity: 0; }
+  55% { opacity: 1; }
+  74% { opacity: 1; }
+  83% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes heroCaptionObserve {
+  0% { color: var(--color-ink); }
+  18% { color: var(--color-ink); }
+  27% { color: var(--color-ink-muted); }
+  92% { color: var(--color-ink-muted); }
+  100% { color: var(--color-ink); }
+}
+@keyframes heroCaptionLearn {
+  0% { color: var(--color-ink-muted); }
+  18% { color: var(--color-ink-muted); }
+  27% { color: var(--color-ink); }
+  46% { color: var(--color-ink); }
+  55% { color: var(--color-ink-muted); }
+  100% { color: var(--color-ink-muted); }
+}
+@keyframes heroCaptionTry {
+  0% { color: var(--color-ink-muted); }
+  46% { color: var(--color-ink-muted); }
+  55% { color: var(--color-ink); }
+  74% { color: var(--color-ink); }
+  83% { color: var(--color-ink-muted); }
+  100% { color: var(--color-ink-muted); }
 }
 .introAside .textLink { margin-top: var(--space-3); }
 .textLink { display: inline-flex; gap: var(--space-3); align-items: center; font-size: var(--fs-sm); padding-block: var(--space-1); text-decoration: none; border-bottom: 1px solid var(--color-accent-beige); }
@@ -156,4 +261,19 @@
  .introAside { margin-top: 0; }
  .featureWithoutImage { padding-bottom: var(--space-3); }
  .featureWithoutImage .textLink { margin-top: 0; }
+}
+
+/*
+ * モバイル(.introが縦積みになる760px以下)専用の調整(2026-09-27、
+ * Decision Log 0196)。`.heroScene`(人物+ラベル)は`.heroStage`に対し
+ * 絶対配置で重ねているため、`.intro`のpadding-blockの外へそのまま
+ * はみ出すと`.introAside`(「この場所について」)と視覚的に重なる。
+ * ここでは`.intro`のpadding-blockを0にして空けた分を、そのまま
+ * `.introAside`のmargin-topとして持たせることで、Heroの合計の高さは
+ * 変えずに(padding→marginへの付け替えなので±0)、人物・ラベルの
+ * ぶんの空間を`.introAside`の手前に確保している。
+ */
+@media (max-width: 760px) {
+ .intro { padding-block: 0; }
+ .introAside { margin-top: 3rem; }
 }
