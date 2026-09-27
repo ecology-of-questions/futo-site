@@ -70,6 +70,14 @@
  * 取得・埋め込み、リポジトリにはフォントファイル自体はコミットして
  * いない)を使って、実際に明朝体の字形で焼き込み直した。`?v=5`に
  * 更新してキャッシュ対策とした。
+ *
+ * 【OGP画像のタグラインも明朝体に(2026-09-27、Decision Log 0211)】
+ * 0210では見出しのみをNoto Serif JPで明朝体にし、タグラインはゴシック体
+ * のままだった。プロジェクトオーナーの指示により、タグラインも同じ
+ * Noto Serif JP(weight 400、見出しのweight 500より軽くして強弱を
+ * 付けた)に変更した。人物イラストのキャプション(観察する/学ぶ/試す)
+ * はゴシック体のまま変更していない。`?v=6`に更新してキャッシュ対策と
+ * した。
  * ------------------------------------------------------------
  */
 import "@styles/global.css";
@@ -96,7 +104,7 @@ const {
   theme = "default",
 } = Astro.props;
 
-const ogImageUrl = new URL("/images/ogp/default.png?v=5", Astro.site);
+const ogImageUrl = new URL("/images/ogp/default.png?v=6", Astro.site);
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 /** URLシェア時に表示される見出し。ページごとの`title`とは切り離し、全ページ共通で固定する。 */
 const sharedTitle = "公開研究室ふ、と";
