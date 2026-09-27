@@ -26,8 +26,9 @@
  *   使っていたが、Decision Log 0199でデスクトップと統一した。
  *   人物のサイズは`.heroWalker`の`clamp()`で画面幅に応じて縮小する
  *   (狭い画面で記号的に小さくなりすぎない範囲で調整)。
- * - `.heroScene`は通常のドキュメントフローに置き、Heroの高さは
- *   人物イラストの実際の高さぶん増える。「研究断面を最初の画面内に
+ * - 人物イラストの行(`.heroSceneWithAside`)は通常のドキュメントフローに
+ *   置き、Heroの高さは人物イラストの実際の高さぶん増える。「研究断面を
+ *   最初の画面内に
  *   収める」よりも「人物が人として読める大きさであること」を優先する
  *   指示のため、Hero高さを一切変えないための制約は設けていない
  *   (検証はDecision Log 0196参照)。
@@ -46,21 +47,24 @@
 }
 
 /*
- * 「この場所について」を人物イラストの行の右に配置する(2026-09-27、
- * Decision Log 0204)。以前は`.intro`の二カラムflexで見出しの右に配置して
- * おり、実際に動く人物イラスト(モーション)から離れていてクリック場所が
- * 分かりづらいという指摘を受けた。PC幅(761px以上)では人物イラストの
- * 行と横並びに、モバイル幅では引き続き人物イラストの下に積む(HTML構造は
- * 変えず、デスクトップだけflexにする)。
+ * 「この場所について」を人物イラストの行のすぐ右に配置する(2026-09-27、
+ * Decision Log 0204/0205)。以前は`.intro`の二カラムflexで見出しの右に
+ * 配置しており、実際に動く人物イラスト(モーション)から離れていて
+ * クリック場所が分かりづらいという指摘を受けた(0204)。0204では
+ * PC幅だけflexにして「試す」から離れた右端(justify-content:
+ * space-between)に置いていたが、「もっと『試す』の右横に、モバイルも
+ * 同様に」という指摘を受け、0205で幅を問わずflex-wrapにし、人物イラスト
+ * の行のすぐ右(space-betweenで離すのではなくgapで隣接)に統一した。
+ * 画面が狭く並べる余地が無いときは、自動的に人物イラストの行の下に
+ * 折り返す(モバイルは実質、以前の縦積みと同じ見た目になる)。
  */
-.heroSceneWithAside { margin-top: var(--space-3); }
-@media (min-width: 761px) {
-  .heroSceneWithAside {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
+.heroSceneWithAside {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-4);
+  row-gap: var(--space-3);
 }
 
 /*
@@ -294,11 +298,12 @@
  * 狭い画面(760px以下)では、3人の間隔だけを詰める(2026-09-27、
  * Decision Log 0199)。人物のサイズは`.heroWalker`のclamp()で既に
  * 連続的に縮小しているため、ここでは`gap`だけを調整する。
- * `.introAside`のmargin-topは、この上にある別の`@media (max-width:
- * 760px)`ブロックが0にしているため、Heroの人物・ラベルと詰まって
- * 見えないよう、ここで改めて余白を持たせている。
+ * `.introAside`のmargin-topは、`.heroSceneWithAside`が幅を問わず
+ * flex-wrapになった(2026-09-27、Decision Log 0205)ことで、折り返した
+ * ときの余白は`row-gap`が担うようになったため、ここでは指定しない
+ * (0にして重複した余白を防ぐ)。
  */
 @media (max-width: 760px) {
  .heroSceneRow { gap: clamp(1rem, 6vw, 2.5rem); }
- .introAside { margin-top: var(--space-3); }
+ .introAside { margin-top: 0; }
 }
