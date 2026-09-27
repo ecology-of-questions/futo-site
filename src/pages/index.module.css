@@ -3,7 +3,7 @@
 .home a:focus-visible, .home button:focus-visible, .home input:focus-visible { outline: 2px solid var(--color-ink); outline-offset: 5px; }
 .intro { padding-block: var(--home-intro-space); }
 .eyebrow { font-family: var(--font-sans); font-size: var(--home-label-size); letter-spacing: var(--home-tracking); color: var(--color-ink-muted); text-decoration: none; }
-.introAside { font-size: var(--fs-sm); line-height: var(--home-leading); padding-bottom: var(--space-1); }
+.introAside { font-size: var(--fs-sm); }
 
 /**
  * Heroの見出し「暮らしのなかで、」+人物イラスト(2026-09-27、
@@ -62,7 +62,7 @@
   margin-top: var(--space-3);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   column-gap: var(--space-4);
   row-gap: var(--space-3);
 }
