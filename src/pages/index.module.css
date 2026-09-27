@@ -66,6 +66,47 @@
   gap: var(--space-2);
 }
 
+/*
+ * デスクトップの最小限のモーション(main直接反映、2026-09-27、
+ * Decision Log 0197)。人物イラスト・見出し・配置・色・余白は
+ * 変更していない。既定(このルールを適用しない状態)は3人が常時
+ * 不透明度1のまま静止表示されるため、これがそのまま
+ * prefers-reduced-motion: reduce・JavaScript無効時のフォールバックに
+ * なる。`prefers-reduced-motion: no-preference`のときだけ、観察する→
+ * 学ぶ→試すの順に静かにフェードインし、3人が揃った状態を最も長く
+ * 保ってから3人同時にフェードアウトし、短い間を置いて繰り返す
+ * (`.heroFigureCell`は`.heroGroundLine`の次に並ぶ3つのdivなので、
+ * `:nth-of-type`で歩容の順序どおりに指定している)。
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .heroSceneDesktop .heroFigureCell:nth-of-type(1) { animation: heroFigureCellObserve 11s ease-in-out infinite; }
+  .heroSceneDesktop .heroFigureCell:nth-of-type(2) { animation: heroFigureCellLearn 11s ease-in-out infinite; }
+  .heroSceneDesktop .heroFigureCell:nth-of-type(3) { animation: heroFigureCellTry 11s ease-in-out infinite; }
+}
+@keyframes heroFigureCellObserve {
+  0% { opacity: 0; transform: translateY(6px); }
+  7.3% { opacity: 1; transform: translateY(0); }
+  77.3% { opacity: 1; transform: translateY(0); }
+  83.6% { opacity: 0; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+@keyframes heroFigureCellLearn {
+  0% { opacity: 0; transform: translateY(6px); }
+  13.6% { opacity: 0; transform: translateY(6px); }
+  20.9% { opacity: 1; transform: translateY(0); }
+  77.3% { opacity: 1; transform: translateY(0); }
+  83.6% { opacity: 0; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+@keyframes heroFigureCellTry {
+  0% { opacity: 0; transform: translateY(6px); }
+  27.3% { opacity: 0; transform: translateY(6px); }
+  34.5% { opacity: 1; transform: translateY(0); }
+  77.3% { opacity: 1; transform: translateY(0); }
+  83.6% { opacity: 0; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+
 .heroWalker {
   display: block;
   width: 4.4rem;
