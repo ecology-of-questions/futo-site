@@ -36,6 +36,21 @@
  * (デューイ読書・たどるタブ)がそのまま読める。タブの選択状態は
  * aria-selectedのみで管理し、CSS Modulesのハッシュ化されたクラス名を
  * JS側から付け外ししない(既存コンポーネントの検証で得た教訓)。
+ *
+ * 【個人の記録ではないことの明示・実アプリへの導線を追加(2026-09-20、
+ * Decision Log 0187)】指示書「Fieldnote読書記録と公開本棚の統合 v3」に
+ * 基づき、「個人の記録は表示されません」という明示的な注記と、実際の
+ * 個人用ツール(`/fieldnote/`)への「自分のFieldnoteを開く →」リンクを
+ * 追加した。このデモが表す「たどる/自分のまとめ/育つ」というAI活用の
+ * タブ構成自体(Decision Log 0184でプロジェクトオーナーが持ち込んだ
+ * 将来構想のCanvasモックアップに基づく)は、実アプリの「抜粋・コメント・
+ * つながり」という現在の実装語彙に合わせて全面刷新することはしなかった
+ * ——モックアップ無しでの独自改変は情報設計の決定にあたり、Decision
+ * Log 0184の経緯(プロジェクトオーナー自身が作った構想)を尊重すべき
+ * 範囲外の判断だと判断したため(実行判断、Decision Log 0187参照)。
+ * デモの状態(`data-fieldnote-memo`配下のDOM操作のみ)は、実アプリの
+ * IndexedDB(`futo-fieldnote`)には一切アクセスしておらず、分離は従来
+ * どおり維持されている。
  * ------------------------------------------------------------
  */
 import type { FieldnoteEntry, FieldnoteSession, FieldnoteSessionIcon } from "@/types/fieldnoteMemo";
@@ -93,6 +108,10 @@ const editableEntries = sessions.flatMap((session) => session.entries.filter(isE
     <span class={styles.topLabel}>Fieldnoteの体験デモ</span>
     <span class={styles.topNote}>デモ・架空の記録です</span>
   </div>
+  <p class={styles.demoDisclaimer}>
+    ここに表示されるのはすべて架空の記録です。個人の記録は表示されません。
+    <a class={styles.demoDisclaimerLink} href="/fieldnote/">自分のFieldnoteを開く →</a>
+  </p>
 
   <div class={styles.frame}>
     <div class={styles.screen} data-screen="session">

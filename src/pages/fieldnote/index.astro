@@ -5,9 +5,10 @@
  * Fieldnote Reading 最小プロトタイプ。
  *
  * 検証したいこと: 「読書を中断せず、気になったページを残せるか」。
- * OCR/AI/ログイン/課金/ISBN検索/タグ/引用範囲選択/Apple Watch連携/
- * 集中モードのネイティブ連携は、この検証には不要なため実装しない
- * (2026-09-02, Decision Log 0066)。
+ * ログイン/課金/ISBN検索/タグ/Apple Watch連携/集中モードのネイティブ
+ * 連携は、この検証には不要なため実装しない(2026-09-02, Decision Log
+ * 0066)。OCR(自動文字起こし)は2026-09-20時点でも未実装のまま
+ * (Decision Log 0187、下記参照)。
  *
  * サイト全体のDefaultLayout(Header/Footer)は使わない。カメラ
  * プレビューを画面いっぱいに使う独立したツール画面であり、
@@ -21,19 +22,26 @@
  * 置けない)。
  *
  * 【本棚との紐づけ・過去の記録一覧を追加(2026-09-20、Decision Log
- * 0185)】プロジェクトオーナーの指示書「Fieldnote × 本棚 v1」に
- * 基づき、以下を追加した。
- * - 読書セッション開始時に、本棚のcanonical data(`@/data/bookshelf`)
- *   から本を選べる`<select>`(任意)と、ページ・位置の自由記述欄。
- * - `/fieldnote/?book=<bookId>`で開いた場合、該当の本を選択済みに
- *   する(未知のIDは無視して未選択のまま、エラー画面にはしない)。
- * - 「過去の記録」一覧(新設、`view-history`)。本で絞り込める。
- *   このMVPには元々「終了した1セッションの一覧」しか無く、複数
- *   セッションを横断して見る画面が存在しなかったため新設した
- *   (Decision Log 0066の「将来の変更可能性」で予告されていた
- *   「セッション履歴の閲覧」に相当)。
- * - セッション終了後の一覧画面で、紐づけた本の名前をボタンにし、
- *   押すとその本で絞り込んだ「過去の記録」に移動できるようにした。
+ * 0185)】読書セッション開始時に本棚canonical dataから本を選べる
+ * `<select>`(任意)、`/fieldnote/?book=<bookId>`での事前選択、
+ * 「過去の記録」一覧(本での絞り込み)。
+ *
+ * 【抜粋・コメント・まとめ・公開プレビューを追加(2026-09-20、Decision
+ * Log 0187)】指示書「Fieldnote読書記録と公開本棚の統合 v3」に基づき、
+ * 以下を追加した。
+ * - 写真を使わない「クイックメモ」(短文・URL)。読書セッションと同じ
+ *   仕組み(1セッション1件)で保存する。
+ * - 記録ごとの抜粋・ページの後編集、複数のコメント、他の記録・外部
+ *   記録への手動のつながり。
+ * - 複数の記録を手動でまとめる「まとめ」画面(`view-collections`)。
+ * - 「書き出し/読み込み」(写真を含むJSONバックアップ)。
+ * - 「公開プレビュー」(`view-publish`)。選んだ内容を公開用の形に
+ *   整えてコピーできる。**実際に本棚へ反映する自動公開APIは今回
+ *   実装していない**(本人認証を伴うサーバー側の仕組みが必要なため。
+ *   Decision Log 0187に設計方針を記録し、次回以降の実装とする)。
+ *   コピーした内容は、これまでどおり`src/data/publicReadingNotes.ts`
+ *   に運営が手動で反映する。
+ * - OCR(写真からの自動文字起こし)は未実装のまま。抜粋は手入力。
  * ------------------------------------------------------------
  */
 import "@styles/tokens.css";
@@ -51,7 +59,7 @@ import { books } from "@/data/bookshelf";
     />
     <meta
       name="description"
-      content="Fieldnote Reading: 読書を中断せず、気になったページを残す最小プロトタイプ。"
+      content="Fieldnote Reading: 読んだことを、日々とつなげて残す個人用ツール。"
     />
     <title>Fieldnote Reading ｜ ふ、と</title>
     <link rel="icon" type="image/svg+xml" href="/images/logo/favicon.svg?v=2" />
@@ -96,10 +104,41 @@ import { books } from "@/data/bookshelf";
             />
           </div>
 
-          <button type="submit" class={styles.primaryButton}>読書セッションを開始</button>
+          <button type="submit" class={styles.primaryButton}>写真で読書セッションを開始</button>
         </form>
+
+        <div class={styles.quickEntry}>
+          <p class={styles.quickEntryHeading}>写真を使わずに記録する(任意)</p>
+          <label class={styles.label} for="quick-text-input">短い文章</label>
+          <textarea
+            id="quick-text-input"
+            class={styles.textarea}
+            rows="2"
+            placeholder="気づいたこと、思ったこと"
+          ></textarea>
+          <label class={styles.label} for="quick-url-input">URL</label>
+          <input id="quick-url-input" class={styles.titleInput} type="url" placeholder="https://..." autocomplete="off" />
+          <label class={styles.label} for="quick-url-title-input">URLの見出し(任意)</label>
+          <input id="quick-url-title-input" class={styles.titleInput} type="text" autocomplete="off" />
+          <button type="button" id="quick-save-btn" class={styles.secondaryButton}>この内容を記録する</button>
+        </div>
+
         <p id="setup-error" class={styles.setupError} hidden></p>
-        <button type="button" id="open-history-btn" class={styles.historyLink}>過去の記録を見る →</button>
+
+        <div class={styles.setupLinks}>
+          <button type="button" id="open-history-btn" class={styles.historyLink}>過去の記録を見る →</button>
+          <button type="button" id="open-collections-btn" class={styles.historyLink}>まとめを見る →</button>
+        </div>
+
+        <div class={styles.backupRow}>
+          <button type="button" id="export-btn" class={styles.secondaryButton}>書き出す(バックアップ)</button>
+          <label class={styles.secondaryButton} for="import-file-input">読み込む</label>
+          <input id="import-file-input" type="file" accept="application/json" hidden />
+        </div>
+        <p id="backup-status" class={styles.backupStatus} role="status" aria-live="polite"></p>
+        <p class={styles.publishNote}>
+          端末内のデータは、この端末・このブラウザにのみ保存されます。他の端末とは自動で同期されません。「書き出す」で作ったファイルを、端末を変える前に保管してください。
+        </p>
       </section>
 
       <section id="view-camera" class={styles.cameraView} hidden>
@@ -130,11 +169,14 @@ import { books } from "@/data/bookshelf";
         <h1 id="list-title" class={styles.listHeading}></h1>
         <p id="list-meta" class={styles.listMeta}></p>
         <button type="button" id="list-book-link" class={styles.bookLinkButton} hidden></button>
-        <div id="capture-grid" class={styles.captureGrid}></div>
+        <div id="entry-list" class={styles.entryList}></div>
         <button type="button" id="start-new-session-btn" class={styles.primaryButton}
-          >新しい読書セッションを始める</button
+          >新しい記録を始める</button
         >
-        <button type="button" id="list-open-history-btn" class={styles.historyLink}>過去の記録を見る →</button>
+        <div class={styles.setupLinks}>
+          <button type="button" id="list-open-history-btn" class={styles.historyLink}>過去の記録を見る →</button>
+          <button type="button" id="list-open-collections-btn" class={styles.historyLink}>まとめを見る →</button>
+        </div>
       </section>
 
       <section id="view-history" class={styles.historyView} hidden>
@@ -151,6 +193,57 @@ import { books } from "@/data/bookshelf";
         </div>
         <div id="history-list" class={styles.historyList}></div>
         <button type="button" id="history-back-btn" class={styles.primaryButton}>閉じる</button>
+      </section>
+
+      <section id="view-collections" class={styles.historyView} hidden>
+        <p class={styles.eyebrow}>FIELDNOTE READING</p>
+        <h1 class={styles.listHeading}>まとめ</h1>
+        <div id="collections-list" class={styles.historyList}></div>
+
+        <p class={styles.quickEntryHeading}>新しいまとめを作る</p>
+        <label class={styles.label} for="collection-title-input">タイトル</label>
+        <input id="collection-title-input" class={styles.titleInput} type="text" placeholder="例: 「経験」をめぐって" />
+        <label class={styles.label} for="collection-picker">まとめに入れる記録(複数選択可)</label>
+        <select id="collection-picker" class={styles.collectionPicker} multiple size="6"></select>
+        <button type="button" id="collection-save-btn" class={styles.primaryButton}>まとめを保存する</button>
+        <p id="collection-status" class={styles.backupStatus} role="status" aria-live="polite"></p>
+
+        <button type="button" id="collections-back-btn" class={styles.historyLink}>閉じる</button>
+      </section>
+
+      <section id="view-publish" class={styles.historyView} hidden>
+        <p class={styles.eyebrow}>FIELDNOTE READING</p>
+        <h1 class={styles.listHeading}>公開プレビュー</h1>
+        <p class={styles.publishNote}>
+          選んだ内容だけが公開の対象です。写真そのもの・OCRの生データ・非公開のコメントは含まれません。
+        </p>
+
+        <label class={styles.label} for="publish-reflection">自分の考え(公開されます)</label>
+        <textarea id="publish-reflection" class={styles.textarea} rows="3"></textarea>
+
+        <label class={styles.checkboxRow}>
+          <input type="checkbox" id="publish-quote-toggle" />
+          本文の引用を含める
+        </label>
+        <div id="publish-quote-fields" class={styles.locationField} hidden>
+          <label class={styles.label} for="publish-quote">引用(本文からそのまま)</label>
+          <textarea id="publish-quote" class={styles.textarea} rows="3"></textarea>
+          <p id="publish-citation" class={styles.publishCitation}></p>
+        </div>
+
+        <p class={styles.quickEntryHeading}>関連記録(サイト内のものだけ選べます)</p>
+        <div id="publish-related-list"></div>
+
+        <label class={styles.label} for="publish-output">公開用データ(確認してからコピーしてください)</label>
+        <pre id="publish-output" class={styles.publishOutput}></pre>
+
+        <button type="button" id="publish-copy-btn" class={styles.primaryButton}>この内容をコピーする</button>
+        <p id="publish-copy-status" class={styles.backupStatus} role="status" aria-live="polite"></p>
+        <p class={styles.publishNote}>
+          現時点では、コピーした内容を運営が確認のうえ本棚に反映します(自動では公開されません)。
+        </p>
+
+        <button type="button" id="publish-back-btn" class={styles.historyLink}>閉じる</button>
       </section>
     </div>
 

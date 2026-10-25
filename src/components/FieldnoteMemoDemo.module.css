@@ -35,6 +35,26 @@
   white-space: nowrap;
 }
 
+.demoDisclaimer {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  line-height: var(--lh-body);
+}
+
+.demoDisclaimerLink {
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--color-accent-blue);
+  white-space: nowrap;
+}
+
+.demoDisclaimerLink:hover,
+.demoDisclaimerLink:focus-visible {
+  text-decoration: underline;
+}
+
 .frame {
   position: relative;
   display: flex;
