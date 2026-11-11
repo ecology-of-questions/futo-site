@@ -63,6 +63,16 @@ Released from Parking Lot
   of the top-page redesign. See Decision Log 0111.
 - 研究の本棚 (Bookshelf) — new content type, added 2026-09-10 as part
   of the same top-page redesign. See Decision Log 0111.
+- 頭上の記録 制作ノート (Production notes for a new side-project — a
+  tool that records aircraft/helicopter noise overhead as daily-life
+  observation) — new content type, added 2026-11-11 by explicit
+  Project Owner request (ahead of beta launch). Listing lives at
+  `/zujo/`; the notebook card lives in 実験室 (`detailHref` on
+  `LabNotebook`, since it doesn't use the Google-Slides-based
+  `/participate/[slug]` template). It also replaced 散歩譜 as Home's
+  featured 実験室 notebook (散歩譜 itself was not removed). See
+  Decision Log 0213. No individual notes are published yet
+  (`src/data/productionNotes.ts` is an empty array).
 
 If a task in this list comes up, record the reasoning in Decision Log
 and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
