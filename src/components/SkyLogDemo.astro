@@ -3,32 +3,49 @@
  * SkyLogDemo.astro
  * ------------------------------------------------------------
  * 「きょうの空」制作ノート(/kyou-no-sora/)に埋め込む体験デモ
- * (2026-11-11)。プロジェクトオーナーから「触って動くデモを直接
- * 埋め込みたい」との指示を受け、制作過程の参考資料
- * (reference/zujo-prototype.html、Claude Artifactの試作、
- * リポジトリには取り込んでいない)の語彙(きこえたものの種類・
- * うるささの段階)だけを引き継ぎ、Firestore等の実バックエンドに
- * 依存する部分は持たず、素のHTML/CSS/JSとして作り直したもの。
+ * (2026-11-11、同日中に拡張)。プロジェクトオーナーから「触って動く
+ * デモを直接埋め込みたい」との指示を受け、最初は種類/うるささだけの
+ * 簡易版として実装したが、その後プロジェクトオーナーが共有した、
+ * より作り込まれた試作(claude.ai/artifact/8kp6DFkD9nv7DKC3pDpuf9、
+ * 家族共有・市区町村・地図・ふりかえり画面まで持つプロトタイプ)を踏まえ、
+ * 「種類」「うるささ」「空のようす」「どこで聞いたか」「機数」「メモ」、
+ * 今日の記録を時間帯の帯(スカイリボン)の上に点で示す見た目、簡単な
+ * 「ふりかえり」(時間帯ごとの集計)まで寄せた(Decision Log 0215)。
+ *
+ * 【あえて持ち込んでいない要素】試作にある家族共有・市区町村選択・
+ * 地図表示・CSV書き出しは、claude.aiのdb/user/downloads capabilityという
+ * 実在のバックエンドに依存する機能で、このサイト単体の静的な体験デモに
+ * 持ち込むと「複数人で共有できる」という実際には無い能力を示してしまう
+ * (架空のURLを入れない、壊れたiframeを表示しない、という既存の方針と
+ * 同じ理由)。そのため、この体験デモは「ひとりで今日の記録をつける」
+ * 範囲に留めている。
  *
  * 【実装方式】FieldnoteMemoDemo・WalkingScorePlayerと同じ
- * progressive enhancementの方針を踏襲する。きこえた記録の一覧は
- * ビルド時にすべて描画し、新しい記録は`<template>`をクローンして
- * 追加する(innerHTML組み立てやCSS Modulesのハッシュ化クラス名の
- * 付け外しはしない)。種類・うるささの選択は`aria-pressed`のみで
- * 管理する(タブの選択状態管理と同じ考え方)。JS無効時は、プリセットの
- * 記録一覧と選択肢がそのまま読める静的な状態になる(記録ボタンのみ
- * JSが必要)。
+ * progressive enhancementの方針を踏襲する。きこえた記録の一覧・
+ * きょうのスカイリボン上の記録点は、プリセットの記録分はビルド時に
+ * すべて描画し、新しい記録は`<template>`をクローンして追加する
+ * (innerHTML組み立てやCSS Modulesのハッシュ化クラス名の付け外しは
+ * しない)。タブ(きろく/ふりかえり)・種類/うるささ/天気/場所/機数の
+ * 選択は`aria-selected`/`aria-pressed`のみで管理する。JS無効時は、
+ * プリセットの記録一覧・選択肢がそのまま読める静的な状態になる
+ * (記録ボタン・タブ切り替え・ふりかえり集計のみJSが必要)。
  *
- * 色は空の時刻ごとの色(`skyHourColors`、24色)のみを例外的にデータ
+ * 色は空の時刻ごとの色(`skyHourColors`、24色)のみ例外的にデータ
  * ファイル側で管理する(`src/data/skyLogDemo.ts`のコメント参照)。
- * それ以外の配色・書体はすべて`tokens.css`の既存トークン
- * (--color-ink/--color-ink-muted/--color-accent-blue/
- * --color-accent-beige/--color-paper、--font-sans/--font-body)のみを
- * 使う。架空の記録を本物らしく見せる保存機能は持たず、押しても
- * 何も起きないボタン(写真添付など)は最初から置いていない。
+ * それ以外の配色・書体はすべて`tokens.css`の既存トークンのみを使う。
+ * 架空の記録を本物らしく見せる保存機能は持たず、押しても何も起きない
+ * ボタン(書き出し等)は最初から置いていない。
  * ------------------------------------------------------------
  */
-import { skyHourColors, kindLabels, loudnessLabels, type SkyLogEntry } from "@/data/skyLogDemo";
+import {
+  skyHourColors,
+  kindLabels,
+  loudnessLabels,
+  weatherLabels,
+  placeLabels,
+  countLabels,
+  type SkyLogEntry,
+} from "@/data/skyLogDemo";
 import styles from "./SkyLogDemo.module.css";
 
 interface Props {
@@ -41,9 +58,37 @@ function formatTime(entry: SkyLogEntry): string {
   return `${String(entry.hour).padStart(2, "0")}:${String(entry.minute).padStart(2, "0")}`;
 }
 
-const sortedEntries = [...entries].sort((a, b) => b.hour * 60 + b.minute - (a.hour * 60 + a.minute));
+function minutesOfDay(entry: SkyLogEntry): number {
+  return entry.hour * 60 + entry.minute;
+}
+
+function skyLeftPercent(entry: SkyLogEntry): string {
+  return `${(minutesOfDay(entry) / (24 * 60)) * 100}%`;
+}
+
+function metaLine(entry: SkyLogEntry): string {
+  const parts = [
+    entry.weather ? weatherLabels[entry.weather] : null,
+    entry.place ? placeLabels[entry.place] : null,
+    entry.count ? countLabels[entry.count] : null,
+  ].filter((part): part is string => Boolean(part));
+  return parts.join("・");
+}
+
+const sortedEntries = [...entries].sort((a, b) => minutesOfDay(b) - minutesOfDay(a));
 const kindEntries = Object.entries(kindLabels) as [keyof typeof kindLabels, string][];
 const loudnessEntries = Object.entries(loudnessLabels) as [keyof typeof loudnessLabels, string][];
+const weatherEntries = Object.entries(weatherLabels) as [keyof typeof weatherLabels, string][];
+const placeEntries = Object.entries(placeLabels) as [keyof typeof placeLabels, string][];
+const countEntries = Object.entries(countLabels) as [string, string][];
+
+/** 初期表示用の記録を、クライアント側の集計(ふりかえりタブ)でも使えるようラベル済みの素のデータとして埋め込む */
+const entriesForClient = sortedEntries.map((entry) => ({
+  hour: entry.hour,
+  minute: entry.minute,
+  kindLabel: kindLabels[entry.kind],
+  loudnessLabel: loudnessLabels[entry.loudness],
+}));
 ---
 
 <div class={styles.wrapper} data-sky-log-demo>
@@ -52,50 +97,110 @@ const loudnessEntries = Object.entries(loudnessLabels) as [keyof typeof loudness
     <span class={styles.topNote}>デモ・架空の記録です</span>
   </div>
 
-  <div class={styles.skyStrip} aria-hidden="true">
-    {skyHourColors.map((color, hour) => <span class={styles.hourSegment} style={`background-color: ${color}`} data-hour={hour} />)}
-  </div>
-  <p class={styles.skyCaption}>いまは<span data-current-hour-label>—</span>の空です。</p>
-
-  <div class={styles.logger}>
-    <p class={styles.loggerLabel}>なにがきこえた?</p>
-    <div class={styles.chipRow} role="group" aria-label="きこえたものの種類">
-      {kindEntries.map(([key, label], index) => (
-        <button type="button" class={styles.chip} data-kind-choice={key} aria-pressed={index === 0 ? "true" : "false"}>
-          {label}
-        </button>
-      ))}
-    </div>
-    <div class={styles.chipRow} role="group" aria-label="うるささ">
-      {loudnessEntries.map(([key, label], index) => (
-        <button type="button" class={styles.chip} data-loudness-choice={key} aria-pressed={index === 0 ? "true" : "false"}>
-          {label}
-        </button>
-      ))}
-    </div>
-    <button type="button" class={styles.logButton} data-log-button>いまの空に記録する</button>
+  <div class={styles.tabs} role="tablist">
+    <button type="button" role="tab" data-view-tab="log" class={styles.tab} aria-selected="true">きろく</button>
+    <button type="button" role="tab" data-view-tab="trend" class={styles.tab} aria-selected="false">ふりかえり</button>
   </div>
 
-  <ul class={styles.entryList} data-entry-list hidden={sortedEntries.length === 0}>
-    {sortedEntries.map((entry) => (
+  <div data-view-panel="log" class={styles.panel}>
+    <div class={styles.skyStrip}>
+      <div class={styles.skySegments} aria-hidden="true">
+        {skyHourColors.map((color, hour) => <span class={styles.hourSegment} style={`background-color: ${color}`} data-hour={hour} />)}
+      </div>
+      <div class={styles.skyMarkers} data-sky-markers aria-hidden="true">
+        {sortedEntries.map((entry) => (
+          <span class={styles.skyMarker} data-loudness={entry.loudness} style={`left: ${skyLeftPercent(entry)}`} />
+        ))}
+        <span class={styles.skyNowMarker} data-sky-now-marker hidden />
+      </div>
+    </div>
+    <p class={styles.skyCaption}>いまは<span data-current-hour-label>—</span>の空です。</p>
+
+    <div class={styles.logger}>
+      <p class={styles.loggerLabel}>なにがきこえた?</p>
+      <div class={styles.chipRow} role="group" aria-label="きこえたものの種類">
+        {kindEntries.map(([key, label], index) => (
+          <button type="button" class={styles.chip} data-kind-choice={key} aria-pressed={index === 0 ? "true" : "false"}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="うるささ">
+        {loudnessEntries.map(([key, label], index) => (
+          <button type="button" class={styles.chip} data-loudness-choice={key} aria-pressed={index === 0 ? "true" : "false"}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <p class={styles.loggerSubLabel}>くわしく(わかる範囲で)</p>
+      <div class={styles.chipRow} role="group" aria-label="空のようす">
+        {weatherEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-weather-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="どこで聞いたか">
+        {placeEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-place-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="機数">
+        {countEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-count-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <textarea class={styles.noteInput} data-note-input placeholder="メモ(任意・保存されません)" rows={2}></textarea>
+
+      <button type="button" class={styles.logButton} data-log-button>いまの空に記録する</button>
+    </div>
+
+    <ul class={styles.entryList} data-entry-list hidden={sortedEntries.length === 0}>
+      {sortedEntries.map((entry) => (
+        <li class={styles.entryRow}>
+          <span class={styles.entryTime}>{formatTime(entry)}</span>
+          <span class={styles.entryBody}>
+            <span class={styles.entryMain}>
+              {kindLabels[entry.kind]}・{loudnessLabels[entry.loudness]}
+            </span>
+            {metaLine(entry) && <span class={styles.entryMeta}>{metaLine(entry)}</span>}
+            {entry.note && <span class={styles.entryNote}>{entry.note}</span>}
+          </span>
+        </li>
+      ))}
+    </ul>
+    <p class={styles.empty} data-entry-empty hidden={sortedEntries.length > 0}>
+      まだ記録がありません。
+    </p>
+
+    <template data-entry-template>
       <li class={styles.entryRow}>
-        <span class={styles.entryTime}>{formatTime(entry)}</span>
-        <span class={styles.entryKind}>{kindLabels[entry.kind]}</span>
-        <span class={styles.entryLoudness}>{loudnessLabels[entry.loudness]}</span>
+        <span class={styles.entryTime} data-entry-time></span>
+        <span class={styles.entryBody}>
+          <span class={styles.entryMain} data-entry-main></span>
+          <span class={styles.entryMeta} data-entry-meta hidden></span>
+          <span class={styles.entryNote} data-entry-note hidden></span>
+        </span>
       </li>
-    ))}
-  </ul>
-  <p class={styles.empty} data-entry-empty hidden={sortedEntries.length > 0}>
-    まだ記録がありません。
-  </p>
+    </template>
 
-  <template data-entry-template>
-    <li class={styles.entryRow}>
-      <span class={styles.entryTime} data-entry-time></span>
-      <span class={styles.entryKind} data-entry-kind></span>
-      <span class={styles.entryLoudness} data-entry-loudness></span>
-    </li>
-  </template>
+    <template data-sky-marker-template>
+      <span class={styles.skyMarker} data-loudness=""></span>
+    </template>
+  </div>
+
+  <div data-view-panel="trend" class={styles.panel} hidden>
+    <p class={styles.trendLead} data-trend-lead></p>
+    <div class={styles.trendChart} data-trend-chart aria-hidden="true"></div>
+    <p class={styles.trendCaption}>プリセットの記録と、ここまでにあなたが記録したものを合わせた、時間帯ごとの件数です。</p>
+  </div>
+
+  <script is:inline type="application/json" data-sky-log-initial-entries set:html={JSON.stringify(entriesForClient)} />
 
   <p class={styles.caption}>
     「きょうの空」でできることのイメージを、架空の記録で再現した体験デモです。ここでの記録はこのページを離れると保存されません。
@@ -103,35 +208,139 @@ const loudnessEntries = Object.entries(loudnessLabels) as [keyof typeof loudness
 </div>
 
 <script>
+  interface ClientEntry {
+    hour: number;
+    minute: number;
+    kindLabel: string;
+    loudnessLabel: string;
+  }
+
   document.querySelectorAll<HTMLElement>("[data-sky-log-demo]").forEach((root) => {
     const currentHourLabel = root.querySelector<HTMLElement>("[data-current-hour-label]");
     const hourSegments = root.querySelectorAll<HTMLElement>("[data-hour]");
+    const skyMarkers = root.querySelector<HTMLElement>("[data-sky-markers]");
+    const nowMarker = root.querySelector<HTMLElement>("[data-sky-now-marker]");
     const entryList = root.querySelector<HTMLElement>("[data-entry-list]");
     const entryTemplate = root.querySelector<HTMLTemplateElement>("[data-entry-template]");
+    const markerTemplate = root.querySelector<HTMLTemplateElement>("[data-sky-marker-template]");
     const emptyMessage = root.querySelector<HTMLElement>("[data-entry-empty]");
     const logButton = root.querySelector<HTMLButtonElement>("[data-log-button]");
-    if (!entryList || !entryTemplate || !logButton) return;
+    const noteInput = root.querySelector<HTMLTextAreaElement>("[data-note-input]");
+    const initialEntriesEl = root.querySelector<HTMLScriptElement>("[data-sky-log-initial-entries]");
+    if (!entryList || !entryTemplate || !markerTemplate || !logButton) return;
+
+    let entries: ClientEntry[] = [];
+    try {
+      entries = initialEntriesEl ? (JSON.parse(initialEntriesEl.textContent ?? "[]") as ClientEntry[]) : [];
+    } catch {
+      entries = [];
+    }
 
     const currentHour = new Date().getHours();
     hourSegments.forEach((segment) => {
       segment.toggleAttribute("data-is-current", Number(segment.dataset.hour) === currentHour);
     });
     if (currentHourLabel) currentHourLabel.textContent = `${currentHour}時`;
+    if (nowMarker) {
+      const now = new Date();
+      const leftPercent = ((now.getHours() * 60 + now.getMinutes()) / (24 * 60)) * 100;
+      nowMarker.style.left = `${leftPercent}%`;
+      nowMarker.hidden = false;
+    }
 
-    let selectedKindLabel = root.querySelector<HTMLElement>('[data-kind-choice][aria-pressed="true"]')?.textContent?.trim() ?? "";
-    let selectedLoudnessLabel = root.querySelector<HTMLElement>('[data-loudness-choice][aria-pressed="true"]')?.textContent?.trim() ?? "";
-
-    root.querySelectorAll<HTMLElement>("[data-kind-choice]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        selectedKindLabel = btn.textContent?.trim() ?? selectedKindLabel;
-        root.querySelectorAll<HTMLElement>("[data-kind-choice]").forEach((b) => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+    /** 単一選択のチップ群。選択中のラベル文字列とdata属性の値の両方を保持する(表示用/集計用)。 */
+    function exclusiveChipGroup(selector: string, datasetKey: string) {
+      const buttons = root.querySelectorAll<HTMLElement>(selector);
+      let selected: { label: string; value: string } | null = null;
+      buttons.forEach((btn) => {
+        if (btn.getAttribute("aria-pressed") === "true") {
+          selected = { label: btn.textContent?.trim() ?? "", value: btn.dataset[datasetKey] ?? "" };
+        }
+        btn.addEventListener("click", () => {
+          const wasSelected = btn.getAttribute("aria-pressed") === "true";
+          buttons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+          if (!wasSelected) {
+            btn.setAttribute("aria-pressed", "true");
+            selected = { label: btn.textContent?.trim() ?? "", value: btn.dataset[datasetKey] ?? "" };
+          } else {
+            selected = null;
+          }
+        });
       });
-    });
+      return { get: () => selected };
+    }
 
-    root.querySelectorAll<HTMLElement>("[data-loudness-choice]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        selectedLoudnessLabel = btn.textContent?.trim() ?? selectedLoudnessLabel;
-        root.querySelectorAll<HTMLElement>("[data-loudness-choice]").forEach((b) => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+    const kindGroup = exclusiveChipGroup("[data-kind-choice]", "kindChoice");
+    const loudnessGroup = exclusiveChipGroup("[data-loudness-choice]", "loudnessChoice");
+    const weatherGroup = exclusiveChipGroup("[data-weather-choice]", "weatherChoice");
+    const placeGroup = exclusiveChipGroup("[data-place-choice]", "placeChoice");
+    const countGroup = exclusiveChipGroup("[data-count-choice]", "countChoice");
+
+    function addSkyMarker(hour: number, minute: number, loudnessKey: string) {
+      if (!skyMarkers || !markerTemplate) return;
+      const clone = markerTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+      if (!clone) return;
+      clone.dataset.loudness = loudnessKey;
+      clone.style.left = `${((hour * 60 + minute) / (24 * 60)) * 100}%`;
+      skyMarkers.insertBefore(clone, nowMarker);
+    }
+
+    function renderTrend() {
+      const lead = root.querySelector<HTMLElement>("[data-trend-lead]");
+      const chart = root.querySelector<HTMLElement>("[data-trend-chart]");
+      if (!lead || !chart) return;
+      const hours = Array(24).fill(0);
+      for (const e of entries) hours[e.hour]++;
+      const peak = Math.max(...hours);
+      chart.innerHTML = "";
+      if (peak === 0) {
+        lead.textContent = "まだ記録がありません。";
+        return;
+      }
+      const peakHours = hours.map((v, h) => (v === peak ? h : -1)).filter((h) => h >= 0);
+      lead.textContent = `いちばん多く聞こえたのは ${peakHours.map((h) => `${h}時台`).join("と")}(${peak}回)。`;
+      const svgNS = "http://www.w3.org/2000/svg";
+      const width = 520;
+      const height = 120;
+      const barWidth = width / 24;
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("role", "img");
+      const title = document.createElementNS(svgNS, "title");
+      title.textContent = "時間帯ごとの記録回数";
+      svg.appendChild(title);
+      hours.forEach((count, hour) => {
+        if (count === 0) return;
+        const barHeight = Math.max(4, (height - 24) * (count / peak));
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", String(hour * barWidth + 1));
+        rect.setAttribute("y", String(height - 20 - barHeight));
+        rect.setAttribute("width", String(barWidth - 2));
+        rect.setAttribute("height", String(barHeight));
+        rect.setAttribute("rx", "3");
+        rect.setAttribute("fill", "var(--color-accent-blue)");
+        svg.appendChild(rect);
+      });
+      [0, 6, 12, 18].forEach((hour) => {
+        const text = document.createElementNS(svgNS, "text");
+        text.setAttribute("x", String(hour * barWidth + 2));
+        text.setAttribute("y", String(height - 4));
+        text.setAttribute("font-size", "11");
+        text.setAttribute("fill", "var(--color-ink-muted)");
+        text.textContent = `${hour}時`;
+        svg.appendChild(text);
+      });
+      chart.appendChild(svg);
+    }
+
+    root.querySelectorAll<HTMLElement>("[data-view-tab]").forEach((tabButton) => {
+      tabButton.addEventListener("click", () => {
+        const view = tabButton.dataset.viewTab;
+        root.querySelectorAll<HTMLElement>("[data-view-tab]").forEach((b) => b.setAttribute("aria-selected", b === tabButton ? "true" : "false"));
+        root.querySelectorAll<HTMLElement>("[data-view-panel]").forEach((panel) => {
+          panel.hidden = panel.dataset.viewPanel !== view;
+        });
+        if (view === "trend") renderTrend();
       });
     });
 
@@ -139,15 +348,47 @@ const loudnessEntries = Object.entries(loudnessLabels) as [keyof typeof loudness
       const clone = entryTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
       if (!clone) return;
       const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      const kind = kindGroup.get();
+      const loudness = loudnessGroup.get();
+      const weather = weatherGroup.get();
+      const place = placeGroup.get();
+      const count = countGroup.get();
+      const noteText = noteInput?.value.trim() ?? "";
+      const kindLabel = kind?.label ?? "わからない";
+      const loudnessLabel = loudness?.label ?? "きこえた";
+
       const timeEl = clone.querySelector<HTMLElement>("[data-entry-time]");
-      const kindEl = clone.querySelector<HTMLElement>("[data-entry-kind]");
-      const loudnessEl = clone.querySelector<HTMLElement>("[data-entry-loudness]");
-      if (timeEl) timeEl.textContent = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-      if (kindEl) kindEl.textContent = selectedKindLabel;
-      if (loudnessEl) loudnessEl.textContent = selectedLoudnessLabel;
+      const mainEl = clone.querySelector<HTMLElement>("[data-entry-main]");
+      const metaEl = clone.querySelector<HTMLElement>("[data-entry-meta]");
+      const noteEl = clone.querySelector<HTMLElement>("[data-entry-note]");
+      if (timeEl) timeEl.textContent = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+      if (mainEl) mainEl.textContent = `${kindLabel}・${loudnessLabel}`;
+      const metaParts = [weather?.label, place?.label, count?.label].filter((v): v is string => Boolean(v));
+      if (metaEl) {
+        if (metaParts.length) {
+          metaEl.textContent = metaParts.join("・");
+          metaEl.hidden = false;
+        } else {
+          metaEl.hidden = true;
+        }
+      }
+      if (noteEl) {
+        if (noteText) {
+          noteEl.textContent = noteText;
+          noteEl.hidden = false;
+        } else {
+          noteEl.hidden = true;
+        }
+      }
+
       entryList.prepend(clone);
       entryList.hidden = false;
       emptyMessage?.setAttribute("hidden", "");
+      addSkyMarker(hour, minute, loudness?.value || "heard");
+      entries.push({ hour, minute, kindLabel, loudnessLabel });
+      if (noteInput) noteInput.value = "";
     });
   });
 </script>

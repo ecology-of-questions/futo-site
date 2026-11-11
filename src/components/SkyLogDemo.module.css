@@ -1,7 +1,7 @@
 /**
  * SkyLogDemo.module.css
  * ------------------------------------------------------------
- * 「きょうの空」体験デモのスタイル(2026-11-11)。空の色帯
+ * 「きょうの空」体験デモのスタイル(2026-11-11、同日中に拡張)。空の色帯
  * (`.hourSegment`のinline style、skyHourColors由来)のみ例外的に
  * データ由来の色を使い、それ以外の配色・書体はFieldnoteMemoDemo等と
  * 同様、tokens.cssの既存トークンのみを使う。
@@ -33,9 +33,37 @@
   white-space: nowrap;
 }
 
-.skyStrip {
+.tabs {
   display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.tab {
+  border: 0;
+  background: transparent;
+  padding: 0.4em 1em;
+  border-radius: 999px;
+  color: var(--color-ink-muted);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab[aria-selected="true"] {
+  background: var(--color-accent-blue);
+  color: var(--color-paper);
+}
+
+.skyStrip {
+  position: relative;
   height: 40px;
+}
+
+.skySegments {
+  display: flex;
+  height: 100%;
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--color-accent-beige);
@@ -51,6 +79,42 @@
   outline: 2px solid var(--color-accent-blue);
   outline-offset: -2px;
   z-index: 1;
+}
+
+.skyMarkers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skyMarker {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  border: 1.5px solid var(--color-paper);
+  transform: translate(-50%, -50%);
+}
+
+.skyMarker[data-loudness="loud"] {
+  width: 10px;
+  height: 10px;
+}
+
+.skyMarker[data-loudness="very-loud"] {
+  width: 13px;
+  height: 13px;
+}
+
+.skyNowMarker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  background: var(--color-accent-blue);
+  transform: translateX(-50%);
 }
 
 .skyCaption {
@@ -71,6 +135,14 @@
   font-family: var(--font-body);
   font-size: var(--fs-base);
   font-weight: 700;
+}
+
+.loggerSubLabel {
+  margin: var(--space-2) 0 var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-2);
 }
 
 .chipRow {
@@ -98,6 +170,19 @@
   background: var(--color-paper);
 }
 
+.noteInput {
+  width: 100%;
+  margin-bottom: var(--space-2);
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  resize: vertical;
+}
+
 .logButton {
   display: block;
   width: 100%;
@@ -123,7 +208,7 @@
 .entryRow {
   display: flex;
   gap: var(--space-2);
-  padding: var(--space-1) 0;
+  padding: var(--space-2) 0;
   border-bottom: 1px solid var(--color-accent-beige);
   font-size: var(--fs-sm);
 }
@@ -134,16 +219,52 @@
   flex-shrink: 0;
 }
 
-.entryKind {
-  flex-shrink: 0;
+.entryBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.entryLoudness {
+.entryMain {
+  color: var(--color-ink);
+}
+
+.entryMeta {
   color: var(--color-ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.entryNote {
+  color: var(--color-ink-muted);
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
 }
 
 .empty {
   margin: var(--space-3) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.trendLead {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+.trendChart {
+  margin-bottom: var(--space-2);
+}
+
+.trendChart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.trendCaption {
+  margin: 0;
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
 }
