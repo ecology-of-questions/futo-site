@@ -46,6 +46,18 @@
  * (`LabNotebookList.astro`)はこの判定結果に応じてリンクの有無を
  * 切り替え、`[slug].astro`の`getStaticPaths`もこれでフィルタする
  * (中身の無いノートのページ自体を生成しない)。
+ *
+ * 【「頭上の記録」を追加、トップページの注目ノートに(2026-11-11)】
+ * プロジェクトオーナーの指示により、4冊目のノート「頭上の記録」
+ * (slug: zujo-no-kiroku)を追加した。自宅上空を飛ぶ飛行機・ヘリの音を
+ * 暮らしの観察として記録する道具の制作記録で、その制作過程を綴る
+ * 「制作ノート」連載を`/zujo/`に置く(まだ未実装、別タスクで追加)。
+ * 他の3冊と異なりGoogleスライドを使わないため、`slidesEmbedUrl`は
+ * 設定せず、代わりに`detailHref: "/zujo/"`で遷移先を明示している。
+ * Homeの注目セクション(`src/pages/index.astro`の`featured`)も、
+ * これまでの散歩譜(oto-no-michi)からこのノートに差し替えた。散歩譜
+ * 自体はこの一覧に残り、`/participate/oto-no-michi`からも引き続き
+ * 見られる(Homeで取り上げる1冊を変えただけで、削除ではない)。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
@@ -54,6 +66,15 @@ export const commonNotebookDescription =
   "このノートでは、つくっている途中の考えや試したことをひらいています。";
 
 export const labNotebooks: LabNotebook[] = [
+  {
+    slug: "zujo-no-kiroku",
+    category: "アプリ",
+    title: "頭上の記録",
+    description: "頭上を飛ぶ飛行機やヘリの音を、暮らしの観察として記録する道具をつくっています。",
+    tone: "sky",
+    entries: [],
+    detailHref: "/zujo/",
+  },
   {
     slug: "oto-no-michi",
     category: "実験",

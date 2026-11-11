@@ -82,4 +82,14 @@ export interface LabNotebook {
    * URLでは、コメント可能な共有URLを兼ねられないため)。
    */
   slidesCommentUrl?: string;
+  /**
+   * このノートの「詳しく見る」導線の遷移先を、既定の
+   * `/participate/${slug}`から差し替える(2026-11-11追加)。
+   * `/participate/[slug]`はGoogleスライド埋め込み(`slidesEmbedUrl`)
+   * を前提にしたテンプレートのため、スライドを使わず別の場所に本体の
+   * コンテンツを持つノート(例: 制作ノートの連載を`/zujo/`に置く
+   * 「頭上の記録」)はここに外部パスを指定する。指定が無い場合は
+   * 従来どおり`hasDetailPage()`(slidesEmbedUrlの有無)で判定する。
+   */
+  detailHref?: string;
 }

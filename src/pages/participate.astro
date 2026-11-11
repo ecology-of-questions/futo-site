@@ -72,6 +72,12 @@
  * `/participate/[slug]`が共有、二重管理しない)。Miro board等の外部
  * 資産はrepository内に存在しないため(2026-09-16確認、Decision Log
  * 0155)、「音の道」専用の埋め込み・探究マップ体験は実装していない。
+ *
+ * 【「頭上の記録」を追加(2026-11-11)】4冊目のノートを追加したことに
+ * 伴い、ランディング専用の説明文を1件追加した。このノートは
+ * `detailHref`で`/zujo/`へ直接遷移するため(Googleスライドを使わない)、
+ * `liveExperimentSlugs`・`getStaticPaths`まわりのロジックは変更して
+ * いない。
  * ------------------------------------------------------------
  */
 import PageHeading from "@components/PageHeading.astro";
@@ -90,6 +96,8 @@ import { labNotebooks } from "@/data/labNotebooks";
  * いない。`labNotebooks.ts`自体は変更していない。
  */
 const landingDescriptions: Record<string, string> = {
+  "zujo-no-kiroku":
+    "頭上を飛ぶ飛行機やヘリの音を、暮らしの観察として記録する方法を考えています。",
   "oto-no-michi":
     "散歩しながら、どこで立ち止まり、何に気付いたのか。その人の注意の道筋を音符のように辿れる方法を考えています。",
   fieldnote:
