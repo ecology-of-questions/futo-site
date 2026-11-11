@@ -11,13 +11,14 @@ const reviews = [...publishedReviews].reverse().slice(0, 2);
 const reading = books.filter((book) => book.status === "reading").slice(0, 3);
 /**
  * Homeの実験室セクションが取り上げる1冊(2026-11-11、散歩譜から
- * 「頭上の記録」に差し替え)。散歩譜自体は`labNotebooks`配列に残って
+ * 「きょうの空」(当初は「頭上の記録」として追加、同日改称)に差し替え)。
+ * 散歩譜自体は`labNotebooks`配列に残って
  * おり、`/participate`一覧・`/participate/oto-no-michi`からは引き続き
  * 見られる(Homeで取り上げる1冊を変えただけで、削除ではない)。
  * タグライン・HomeMotionの種類(question)も、新しく取り上げる
  * ノートの内容に合わせて変更した(src/data/labNotebooks.ts参照)。
  */
-const featured = labNotebooks.find((notebook) => notebook.slug === "zujo-no-kiroku");
+const featured = labNotebooks.find((notebook) => notebook.slug === "kyou-no-sora");
 // Replace only this asset URL when the owner selects the main visual.
 const featureImage: string | undefined = undefined;
 // Owner-provided photo of the actual book spines; leave unset until supplied.

@@ -1,7 +1,7 @@
 /**
  * productionNote.ts
  * ------------------------------------------------------------
- * 「頭上の記録 制作ノート」(/zujo/)の型。研究断面
+ * 「きょうの空 制作ノート」(/kyou-no-sora/、旧名「頭上の記録」)の型。研究断面
  * (src/types/researchReview.ts)のブロック型をそのまま再利用し、
  * 本文を「見出し→本文→箇条書き→図版」のブロックで表現する
  * (車輪の再発明をしない)。
@@ -19,13 +19,13 @@ import type { ReviewSection } from "./researchReview";
 export interface ProductionNoteEntry {
   /** 例: "01" */
   number: string;
-  /** 例: "頭上の記録をつくり始めた" */
+  /** 例: "きょうの空をつくり始めた" */
   title: string;
   /** 一覧に表示する一行の要約 */
   summary: string;
   /** 例: "2026.11.11" */
   publishedLabel: string;
-  /** /zujo/01 等 */
+  /** /kyou-no-sora/01 等 */
   href: string;
   /** 本文 */
   sections: ReviewSection[];

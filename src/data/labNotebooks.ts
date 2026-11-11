@@ -58,6 +58,15 @@
  * これまでの散歩譜(oto-no-michi)からこのノートに差し替えた。散歩譜
  * 自体はこの一覧に残り、`/participate/oto-no-michi`からも引き続き
  * 見られる(Homeで取り上げる1冊を変えただけで、削除ではない)。
+ *
+ * 【「頭上の記録」→「きょうの空」に改称、URLも変更(2026-11-11、
+ * まだmainにマージ前のため同日2件目)】プロジェクトオーナーの指示に
+ * より、表示名を「きょうの空」に変更した。このノートはまだ未公開
+ * (本PRでの新規追加、過去のURL・被リンクが存在しない)ため、散歩譜の
+ * 改称時(Decision Log 0182、slugは据え置き)とは異なり、今回は
+ * slug・URLも`zujo-no-kiroku`/`/zujo/`から`kyou-no-sora`/
+ * `/kyou-no-sora/`に合わせて変更した。制作ノート一覧も
+ * `src/pages/zujo/`から`src/pages/kyou-no-sora/`に移動している。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
@@ -67,13 +76,13 @@ export const commonNotebookDescription =
 
 export const labNotebooks: LabNotebook[] = [
   {
-    slug: "zujo-no-kiroku",
+    slug: "kyou-no-sora",
     category: "アプリ",
-    title: "頭上の記録",
+    title: "きょうの空",
     description: "頭上を飛ぶ飛行機やヘリの音を、暮らしの観察として記録する道具をつくっています。",
     tone: "sky",
     entries: [],
-    detailHref: "/zujo/",
+    detailHref: "/kyou-no-sora/",
   },
   {
     slug: "oto-no-michi",
@@ -116,4 +125,24 @@ export const labNotebooks: LabNotebook[] = [
  */
 export function hasDetailPage(notebook: LabNotebook): boolean {
   return Boolean(notebook.slidesEmbedUrl);
+}
+
+/**
+ * Googleスライドの埋め込み用URL(「ウェブに公開」で取得したもの)に、
+ * 自動再生・ループを明示的に無効化するクエリを付加する。URLとして
+ * 解釈できない値は、壊れたiframeを作らないようnullを返す(呼び出し側で
+ * 区画自体を表示しない)。[slug].astro(散歩譜)・きょうの空の制作ノート
+ * ページ(/kyou-no-sora/)の両方から参照するため、ここに置いている
+ * (2026-09-17導入、2026-11-11にきょうの空用の2箇所目の呼び出し元が
+ * できたためlabNotebooks.tsに切り出した)。
+ */
+export function buildSlidesEmbedSrc(rawUrl: string): string | null {
+  try {
+    const url = new URL(rawUrl);
+    url.searchParams.set("start", "false");
+    url.searchParams.set("loop", "false");
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
