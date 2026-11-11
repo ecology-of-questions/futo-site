@@ -1,0 +1,45 @@
+---
+/**
+ * ProductionNoteList.astro
+ * ------------------------------------------------------------
+ * 役割: 「頭上の記録 制作ノート」(/zujo/)の一覧を表示する。
+ * 研究断面の一覧(ResearchReviewList.astro)と同じ見た目・同じ
+ * トークンを再利用している(別の視覚言語を増やさない)。
+ *
+ * 2026-11-11時点ではentriesが空(まだ公開した回が無い)ため、
+ * その旨を伝える一文を表示する。研究断面には無かった分岐だが、
+ * 制作ノートは0件から始まるため、空の一覧をそのまま見せない。
+ * ------------------------------------------------------------
+ */
+import styles from "./ProductionNoteList.module.css";
+import type { ProductionNoteEntry } from "@/types/productionNote";
+
+interface Props {
+  entries: ProductionNoteEntry[];
+}
+
+const { entries } = Astro.props;
+---
+
+{
+  entries.length > 0 ? (
+    <div class={styles.list}>
+      {entries.map((entry) => (
+        <a class={styles.entry} href={entry.href}>
+          <span class={styles.entryNumber} aria-hidden="true">{entry.number}</span>
+          <div class={styles.entryCopy}>
+            <span class={styles.entryMeta}>制作ノート {entry.number}　{entry.publishedLabel}</span>
+            <h2 class={styles.entryTitle}>{entry.title}</h2>
+            <p class={styles.entryDescription}>{entry.summary}</p>
+            <span class={styles.entryReadMore}>
+              読む
+              <span aria-hidden="true" class={styles.arrow}>→</span>
+            </span>
+          </div>
+        </a>
+      ))}
+    </div>
+  ) : (
+    <p class={styles.empty}>まだ公開している回はありません。</p>
+  )
+}
