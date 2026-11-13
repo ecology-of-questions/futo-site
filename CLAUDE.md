@@ -63,20 +63,30 @@ Released from Parking Lot
   of the top-page redesign. See Decision Log 0111.
 - 研究の本棚 (Bookshelf) — new content type, added 2026-09-10 as part
   of the same top-page redesign. See Decision Log 0111.
-- きょうの空 制作ノート (originally added 2026-11-11 as 頭上の記録,
-  renamed the same day before merging — Production notes for a new
-  side-project, a tool that records aircraft/helicopter noise overhead
-  as daily-life observation) — new content type, added by explicit
-  Project Owner request (ahead of beta launch). Listing lives at
-  `/kyou-no-sora/`; the notebook card lives in 実験室 (`detailHref` on
-  `LabNotebook`, since it doesn't use the Google-Slides-based
-  `/participate/[slug]` template). It also replaced 散歩譜 as Home's
-  featured 実験室 notebook (散歩譜 itself was not removed). The page
-  also embeds a touchable demo (`SkyLogDemo`) and, once a Google
-  Slides URL is supplied, a 制作メモ (production-memo) slides section.
-  See Decision Log 0213 (original 頭上の記録 addition) and 0214
-  (rename to きょうの空 + demo/slides). No individual notes are
-  published yet (`src/data/productionNotes.ts` is an empty array).
+- そらのようす 制作ノート (originally added 2026-11-11 as 頭上の記録,
+  renamed きょうの空 the same day, then renamed again to そらのようす
+  on 2026-11-13 to match the actual app's name in its own
+  terms-of-service/privacy draft — a side-project tool that records
+  aircraft/helicopter noise overhead as daily-life observation, and
+  publishes the aggregate as a public record usable for research,
+  journalism, administrative petitions, or litigation) — new content
+  type, added by explicit Project Owner request (ahead of beta
+  launch). Listing lives at `/sora-no-yousu/`; the notebook card lives
+  in 実験室 (`detailHref` on `LabNotebook`, since it doesn't use the
+  Google-Slides-based `/participate/[slug]` template). It also
+  replaced 散歩譜 as Home's featured 実験室 notebook (散歩譜 itself
+  was not removed). The page embeds a real (not demo) recording tool
+  (`SkyLog`) backed by a new Cloudflare D1 table + Worker API
+  (`/api/sora-log/entries`) — a second, explicitly-logged extension of
+  the scoped Cloudflare-dependency exception (see Architecture
+  section) — and, once a Google Slides URL is supplied, a 制作メモ
+  (production-memo) slides section. `/privacy` carries an added
+  section for what this tool actually collects; a full 利用規約 is
+  still pending final review (interim usage notes only, on-page). See
+  Decision Log 0213 (original 頭上の記録 addition), 0214 (rename to
+  きょうの空 + demo/slides), and 0216 (rename to そらのようす + demo
+  → production). No individual production notes are published yet
+  (`src/data/productionNotes.ts` is an empty array).
 
 If a task in this list comes up, record the reasoning in Decision Log
 and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
@@ -111,6 +121,10 @@ human reference — keep both in sync when it changes.)
   `output: "static"`; every other page remains a portable static
   build served as static assets. Do not extend this Cloudflare
   dependency to other features without a new Decision Log entry.
+  **Second use of this exception (2026-11-13, Decision Log 0216):**
+  そらのようす's public noise-log records (`/api/sora-log/entries`,
+  same `worker/index.ts` + `migrations/`) reuse the same Worker + D1,
+  rather than introducing a second backend stack.
 
 ---
 
