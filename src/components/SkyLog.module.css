@@ -1,10 +1,10 @@
 /**
- * SkyLogDemo.module.css
+ * SkyLog.module.css
  * ------------------------------------------------------------
- * 「きょうの空」体験デモのスタイル(2026-11-11、同日中に拡張)。空の色帯
- * (`.hourSegment`のinline style、skyHourColors由来)のみ例外的に
- * データ由来の色を使い、それ以外の配色・書体はFieldnoteMemoDemo等と
- * 同様、tokens.cssの既存トークンのみを使う。
+ * 「そらのようす」記録ツールのスタイル(2026-11-13、Decision Log 0216で
+ * `SkyLogDemo.module.css`から改名・本番化)。空の色帯(`.hourSegment`の
+ * inline style、skyHourColors由来)のみ例外的にデータ由来の色を使い、
+ * それ以外の配色・書体はtokens.cssの既存トークンのみを使う。
  * ------------------------------------------------------------
  */
 
@@ -15,22 +15,14 @@
   color: var(--color-ink);
 }
 
-.top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-2);
+.noscript {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 8px;
+  background: var(--color-surface);
   font-size: var(--fs-sm);
-  margin-bottom: var(--space-2);
-}
-
-.topLabel {
-  color: var(--color-ink);
-}
-
-.topNote {
   color: var(--color-ink-muted);
-  white-space: nowrap;
 }
 
 .tabs {
@@ -198,6 +190,24 @@
   cursor: pointer;
 }
 
+.logButton:disabled {
+  background: var(--color-accent-beige);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+.loggerStatus {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.loadingNotice {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
 .entryList {
   list-style: none;
   margin: var(--space-3) 0 0;
@@ -263,14 +273,12 @@
   height: auto;
 }
 
-.trendCaption {
-  margin: 0;
-  font-size: var(--fs-sm);
-  color: var(--color-ink-muted);
-}
-
 .caption {
   margin-top: var(--space-3);
   font-size: var(--fs-sm);
   color: var(--color-ink-muted);
+}
+
+.caption a {
+  color: var(--color-accent-blue);
 }

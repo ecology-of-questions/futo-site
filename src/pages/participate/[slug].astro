@@ -72,14 +72,15 @@
  * 到達不能になったため削除した。`/participate`一覧側の対応
  * (リンクを外す)は`LabNotebookList.astro`参照。
  *
- * 【きょうの空(detailHref持ち)をgetStaticPathsから除外(2026-11-11)】
- * きょうの空は`detailHref`で`/kyou-no-sora/`に本体(体験デモ+
- * Googleスライド+制作ノート)を持つ。将来`slidesEmbedUrl`を設定すると
- * `hasDetailPage()`がtrueになるため、`detailHref`を持つノートは明示的に
- * 除外し、`/participate/kyou-no-sora`という中身の薄い重複ページが
- * 生成されないようにした。`buildSlidesEmbedSrc`は同じ理由で
- * `/kyou-no-sora/`からも呼べるよう`src/data/labNotebooks.ts`に移した
- * (このファイルのローカル関数ではなくなった)。
+ * 【きょうの空→そらのようす(detailHref持ち)をgetStaticPathsから除外
+ * (2026-11-11、2026-11-13に名称追記)】そらのようすは`detailHref`で
+ * `/sora-no-yousu/`に本体(記録ツール+Googleスライド+制作ノート)を
+ * 持つ。将来`slidesEmbedUrl`を設定すると`hasDetailPage()`がtrueに
+ * なるため、`detailHref`を持つノートは明示的に除外し、
+ * `/participate/sora-no-yousu`という中身の薄い重複ページが生成され
+ * ないようにした。`buildSlidesEmbedSrc`は同じ理由で`/sora-no-yousu/`
+ * からも呼べるよう`src/data/labNotebooks.ts`に移した(このファイルの
+ * ローカル関数ではなくなった)。
  * ------------------------------------------------------------
  */
 import DefaultLayout from "@layouts/DefaultLayout.astro";
@@ -94,9 +95,9 @@ import type { LabNotebook } from "@/types/labNotebook";
 
 /**
  * 【detailHrefを持つノートはこのテンプレートから除外(2026-11-11)】
- * きょうの空は`detailHref`で`/kyou-no-sora/`に本体を持つため、将来
+ * そらのようすは`detailHref`で`/sora-no-yousu/`に本体を持つため、将来
  * `slidesEmbedUrl`を設定しても、ここで孤立した重複ページ
- * (/participate/kyou-no-sora)を生成しないようにする。
+ * (/participate/sora-no-yousu)を生成しないようにする。
  */
 export function getStaticPaths() {
   return labNotebooks

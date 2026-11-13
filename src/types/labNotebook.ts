@@ -87,8 +87,9 @@ export interface LabNotebook {
    * `/participate/${slug}`から差し替える(2026-11-11追加)。
    * `/participate/[slug]`はGoogleスライド埋め込み(`slidesEmbedUrl`)
    * を前提にしたテンプレートのため、スライドを使わず別の場所に本体の
-   * コンテンツを持つノート(例: 制作ノートの連載を`/kyou-no-sora/`に
-   * 置く「きょうの空」)はここに外部パスを指定する。指定が無い場合は
+   * コンテンツを持つノート(例: 記録ツール・制作ノートの連載を
+   * `/sora-no-yousu/`に置く「そらのようす」)はここに外部パスを指定
+   * する。指定が無い場合は
    * 従来どおり`hasDetailPage()`(slidesEmbedUrlの有無)で判定する。
    */
   detailHref?: string;

@@ -1,0 +1,405 @@
+---
+/**
+ * SkyLog.astro
+ * ------------------------------------------------------------
+ * 「そらのようす」(/sora-no-yousu/)の記録ツール本体(2026-11-13、
+ * Decision Log 0216)。2026-11-11に体験デモ(`SkyLogDemo.astro`、架空
+ * データ・保存されない)として実装したものを、プロジェクトオーナーの
+ * 指示により本番(実際の記録として保存・公開される)に切り替えた。
+ *
+ * 【本番化にあたっての設計】
+ * - 記録は`src/pages/sora-no-yousu/index.astro`が静的ビルド時に埋め込む
+ *   ことはできない(このリポジトリはAstro `output: "static"`で、実際の
+ *   記録はビルド後も増え続けるため)。そのため、このコンポーネントは
+ *   マウント時に`GET /api/sora-log/entries`(worker/index.ts、
+ *   Cloudflare D1の`sora_log_entries`テーブル)から実際の記録を取得し、
+ *   JSで描画する。ビルド時に渡すpropsは持たない。
+ * - 記録時刻はサーバー側(`created_at`)だけを信頼する。クライアントから
+ *   時刻を送らない・時刻の修正機能を持たせない(「あとから時刻を
+ *   書き換えていない」という記録の確からしさを保つための単純化。
+ *   `migrations/0002_sora_log_entries.sql`参照)。
+ * - 「種類」「うるささ」は必須(未選択のままでは送信ボタンを有効化
+ *   しない)。「天気」「場所」「機数」「メモ」は任意。
+ * - JavaScriptが無い場合、公開記録の取得・送信そのものができないため
+ *   (サーバー側の実データに依存するため、ビルド時描画でごまかさない)、
+ *   `<noscript>`で明示する。
+ * - 配色は空の時刻ごとの色(`skyHourColors`)のみ例外的にデータファイル
+ *   側で管理し、それ以外はすべて`tokens.css`の既存トークンを使う
+ *   (`SkyLog.module.css`参照)。
+ * ------------------------------------------------------------
+ */
+import { skyHourColors, kindLabels, loudnessLabels, weatherLabels, placeLabels, countLabels } from "@/data/skyLog";
+import styles from "./SkyLog.module.css";
+
+const kindEntries = Object.entries(kindLabels) as [keyof typeof kindLabels, string][];
+const loudnessEntries = Object.entries(loudnessLabels) as [keyof typeof loudnessLabels, string][];
+const weatherEntries = Object.entries(weatherLabels) as [keyof typeof weatherLabels, string][];
+const placeEntries = Object.entries(placeLabels) as [keyof typeof placeLabels, string][];
+const countEntries = Object.entries(countLabels) as [string, string][];
+---
+
+<div class={styles.wrapper} data-sky-log>
+  <noscript>
+    <p class={styles.noscript}>この記録ツールの利用にはJavaScriptが必要です。</p>
+  </noscript>
+
+  <div class={styles.tabs} role="tablist">
+    <button type="button" role="tab" data-view-tab="log" class={styles.tab} aria-selected="true">きろく</button>
+    <button type="button" role="tab" data-view-tab="trend" class={styles.tab} aria-selected="false">ふりかえり</button>
+  </div>
+
+  <div data-view-panel="log" class={styles.panel}>
+    <div class={styles.skyStrip}>
+      <div class={styles.skySegments} aria-hidden="true">
+        {skyHourColors.map((color, hour) => <span class={styles.hourSegment} style={`background-color: ${color}`} data-hour={hour} />)}
+      </div>
+      <div class={styles.skyMarkers} data-sky-markers aria-hidden="true">
+        <span class={styles.skyNowMarker} data-sky-now-marker hidden />
+      </div>
+    </div>
+    <p class={styles.skyCaption}>いまは<span data-current-hour-label>—</span>の空です。</p>
+
+    <div class={styles.logger}>
+      <p class={styles.loggerLabel}>なにがきこえた?</p>
+      <div class={styles.chipRow} role="group" aria-label="きこえたものの種類">
+        {kindEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-kind-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="うるささ">
+        {loudnessEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-loudness-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <p class={styles.loggerSubLabel}>くわしく(わかる範囲で・任意)</p>
+      <div class={styles.chipRow} role="group" aria-label="空のようす">
+        {weatherEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-weather-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="どこで聞いたか">
+        {placeEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-place-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="機数">
+        {countEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-count-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <textarea class={styles.noteInput} data-note-input placeholder="メモ(任意)" rows={2}></textarea>
+
+      <button type="button" class={styles.logButton} data-log-button disabled>記録する</button>
+      <p class={styles.loggerStatus} data-logger-status role="status" aria-live="polite" hidden></p>
+    </div>
+
+    <p class={styles.loadingNotice} data-entries-loading>記録を読み込んでいます…</p>
+    <ul class={styles.entryList} data-entry-list hidden></ul>
+    <p class={styles.empty} data-entry-empty hidden>まだ記録がありません。</p>
+
+    <template data-entry-template>
+      <li class={styles.entryRow}>
+        <span class={styles.entryTime} data-entry-time></span>
+        <span class={styles.entryBody}>
+          <span class={styles.entryMain} data-entry-main></span>
+          <span class={styles.entryMeta} data-entry-meta hidden></span>
+          <span class={styles.entryNote} data-entry-note hidden></span>
+        </span>
+      </li>
+    </template>
+
+    <template data-sky-marker-template>
+      <span class={styles.skyMarker} data-loudness=""></span>
+    </template>
+  </div>
+
+  <div data-view-panel="trend" class={styles.panel} hidden>
+    <p class={styles.trendLead} data-trend-lead>記録を読み込んでいます…</p>
+    <div class={styles.trendChart} data-trend-chart aria-hidden="true"></div>
+  </div>
+
+  <p class={styles.caption}>
+    ここで記録した内容は、「そらのようす」の公開記録として保存され、サイト上で公開されます。名前やメールアドレスなどの個人を特定できる情報は送信されません。詳しくは<a href="/privacy">個人情報の取り扱い</a>をご覧ください。
+  </p>
+</div>
+
+<script>
+  interface ApiEntry {
+    id: string;
+    kind: string;
+    loudness: string;
+    weather?: string;
+    place?: string;
+    count?: number;
+    note?: string;
+    createdAt: string;
+  }
+
+  const KIND_LABELS: Record<string, string> = { plane: "ひこうき", heli: "ヘリコプター", unknown: "わからない" };
+  const LOUDNESS_LABELS: Record<string, string> = { heard: "きこえた", loud: "うるさい", "very-loud": "とてもうるさい" };
+  const WEATHER_LABELS: Record<string, string> = { sun: "はれ", cloud: "くもり", rain: "あめ" };
+  const PLACE_LABELS: Record<string, string> = { indoor: "いえのなか", outdoor: "そと" };
+  const COUNT_LABELS: Record<string, string> = { "1": "1機", "2": "2機", "3": "3機以上" };
+
+  function formatTime(iso: string): string {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-sky-log]").forEach((root) => {
+    const currentHourLabel = root.querySelector<HTMLElement>("[data-current-hour-label]");
+    const hourSegments = root.querySelectorAll<HTMLElement>("[data-hour]");
+    const skyMarkers = root.querySelector<HTMLElement>("[data-sky-markers]");
+    const nowMarker = root.querySelector<HTMLElement>("[data-sky-now-marker]");
+    const entryList = root.querySelector<HTMLElement>("[data-entry-list]");
+    const entryTemplate = root.querySelector<HTMLTemplateElement>("[data-entry-template]");
+    const markerTemplate = root.querySelector<HTMLTemplateElement>("[data-sky-marker-template]");
+    const loadingNotice = root.querySelector<HTMLElement>("[data-entries-loading]");
+    const emptyMessage = root.querySelector<HTMLElement>("[data-entry-empty]");
+    const logButton = root.querySelector<HTMLButtonElement>("[data-log-button]");
+    const loggerStatus = root.querySelector<HTMLElement>("[data-logger-status]");
+    const noteInput = root.querySelector<HTMLTextAreaElement>("[data-note-input]");
+    if (!entryList || !entryTemplate || !markerTemplate || !logButton || !loadingNotice) return;
+
+    let entries: ApiEntry[] = [];
+
+    const currentHour = new Date().getHours();
+    hourSegments.forEach((segment) => {
+      segment.toggleAttribute("data-is-current", Number(segment.dataset.hour) === currentHour);
+    });
+    if (currentHourLabel) currentHourLabel.textContent = `${currentHour}時`;
+    if (nowMarker) {
+      const now = new Date();
+      nowMarker.style.left = `${((now.getHours() * 60 + now.getMinutes()) / (24 * 60)) * 100}%`;
+      nowMarker.hidden = false;
+    }
+
+    /** 単一選択のチップ群。選択中の値(data属性)とラベルの両方を保持する。 */
+    function exclusiveChipGroup(selector: string, datasetKey: string, onChange?: () => void) {
+      const buttons = root.querySelectorAll<HTMLElement>(selector);
+      let selected: { label: string; value: string } | null = null;
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const wasSelected = btn.getAttribute("aria-pressed") === "true";
+          buttons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+          if (!wasSelected) {
+            btn.setAttribute("aria-pressed", "true");
+            selected = { label: btn.textContent?.trim() ?? "", value: btn.dataset[datasetKey] ?? "" };
+          } else {
+            selected = null;
+          }
+          onChange?.();
+        });
+      });
+      return { get: () => selected };
+    }
+
+    function updateLogButtonState() {
+      logButton!.disabled = !kindGroup.get() || !loudnessGroup.get();
+    }
+
+    const kindGroup = exclusiveChipGroup("[data-kind-choice]", "kindChoice", updateLogButtonState);
+    const loudnessGroup = exclusiveChipGroup("[data-loudness-choice]", "loudnessChoice", updateLogButtonState);
+    const weatherGroup = exclusiveChipGroup("[data-weather-choice]", "weatherChoice");
+    const placeGroup = exclusiveChipGroup("[data-place-choice]", "placeChoice");
+    const countGroup = exclusiveChipGroup("[data-count-choice]", "countChoice");
+
+    function addSkyMarker(createdAt: string, loudness: string) {
+      if (!skyMarkers || !markerTemplate) return;
+      const clone = markerTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+      if (!clone) return;
+      const d = new Date(createdAt);
+      clone.dataset.loudness = loudness;
+      clone.style.left = `${((d.getHours() * 60 + d.getMinutes()) / (24 * 60)) * 100}%`;
+      skyMarkers.insertBefore(clone, nowMarker);
+    }
+
+    function metaLine(entry: ApiEntry): string {
+      const parts = [
+        entry.weather ? WEATHER_LABELS[entry.weather] : null,
+        entry.place ? PLACE_LABELS[entry.place] : null,
+        entry.count ? COUNT_LABELS[String(entry.count)] : null,
+      ].filter((v): v is string => Boolean(v));
+      return parts.join("・");
+    }
+
+    function renderEntryRow(entry: ApiEntry, prepend: boolean) {
+      if (!entryTemplate || !entryList) return;
+      const clone = entryTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+      if (!clone) return;
+      const timeEl = clone.querySelector<HTMLElement>("[data-entry-time]");
+      const mainEl = clone.querySelector<HTMLElement>("[data-entry-main]");
+      const metaEl = clone.querySelector<HTMLElement>("[data-entry-meta]");
+      const noteEl = clone.querySelector<HTMLElement>("[data-entry-note]");
+      if (timeEl) timeEl.textContent = formatTime(entry.createdAt);
+      if (mainEl) mainEl.textContent = `${KIND_LABELS[entry.kind] ?? entry.kind}・${LOUDNESS_LABELS[entry.loudness] ?? entry.loudness}`;
+      const meta = metaLine(entry);
+      if (metaEl) {
+        if (meta) {
+          metaEl.textContent = meta;
+          metaEl.hidden = false;
+        } else {
+          metaEl.hidden = true;
+        }
+      }
+      if (noteEl) {
+        if (entry.note) {
+          noteEl.textContent = entry.note;
+          noteEl.hidden = false;
+        } else {
+          noteEl.hidden = true;
+        }
+      }
+      if (prepend) entryList.prepend(clone);
+      else entryList.appendChild(clone);
+    }
+
+    function renderTrend() {
+      const lead = root.querySelector<HTMLElement>("[data-trend-lead]");
+      const chart = root.querySelector<HTMLElement>("[data-trend-chart]");
+      if (!lead || !chart) return;
+      if (entries.length === 0) {
+        lead.textContent = "まだ記録がありません。";
+        chart.innerHTML = "";
+        return;
+      }
+      const hours = Array(24).fill(0);
+      for (const e of entries) hours[new Date(e.createdAt).getHours()]++;
+      const peak = Math.max(...hours);
+      const peakHours = hours.map((v, h) => (v === peak ? h : -1)).filter((h) => h >= 0);
+      lead.textContent = `いちばん多く聞こえたのは ${peakHours.map((h) => `${h}時台`).join("と")}(${peak}回)。記録の合計は ${entries.length}件です。`;
+
+      chart.innerHTML = "";
+      const svgNS = "http://www.w3.org/2000/svg";
+      const width = 520;
+      const height = 120;
+      const barWidth = width / 24;
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("role", "img");
+      const title = document.createElementNS(svgNS, "title");
+      title.textContent = "時間帯ごとの記録回数";
+      svg.appendChild(title);
+      hours.forEach((count, hour) => {
+        if (count === 0) return;
+        const barHeight = Math.max(4, (height - 24) * (count / peak));
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", String(hour * barWidth + 1));
+        rect.setAttribute("y", String(height - 20 - barHeight));
+        rect.setAttribute("width", String(barWidth - 2));
+        rect.setAttribute("height", String(barHeight));
+        rect.setAttribute("rx", "3");
+        rect.setAttribute("fill", "var(--color-accent-blue)");
+        svg.appendChild(rect);
+      });
+      [0, 6, 12, 18].forEach((hour) => {
+        const text = document.createElementNS(svgNS, "text");
+        text.setAttribute("x", String(hour * barWidth + 2));
+        text.setAttribute("y", String(height - 4));
+        text.setAttribute("font-size", "11");
+        text.setAttribute("fill", "var(--color-ink-muted)");
+        text.textContent = `${hour}時`;
+        svg.appendChild(text);
+      });
+      chart.appendChild(svg);
+    }
+
+    root.querySelectorAll<HTMLElement>("[data-view-tab]").forEach((tabButton) => {
+      tabButton.addEventListener("click", () => {
+        const view = tabButton.dataset.viewTab;
+        root.querySelectorAll<HTMLElement>("[data-view-tab]").forEach((b) => b.setAttribute("aria-selected", b === tabButton ? "true" : "false"));
+        root.querySelectorAll<HTMLElement>("[data-view-panel]").forEach((panel) => {
+          panel.hidden = panel.dataset.viewPanel !== view;
+        });
+        if (view === "trend") renderTrend();
+      });
+    });
+
+    function showStatus(message: string) {
+      if (!loggerStatus) return;
+      loggerStatus.textContent = message;
+      loggerStatus.hidden = false;
+    }
+
+    async function loadEntries() {
+      if (!loadingNotice) return;
+      try {
+        const response = await fetch("/api/sora-log/entries");
+        if (!response.ok) throw new Error(`status ${response.status}`);
+        const data = (await response.json()) as { entries: ApiEntry[] };
+        entries = data.entries;
+        loadingNotice.hidden = true;
+        if (entries.length === 0) {
+          emptyMessage?.removeAttribute("hidden");
+        } else {
+          entryList!.hidden = false;
+          for (const entry of entries) {
+            renderEntryRow(entry, false);
+            addSkyMarker(entry.createdAt, entry.loudness);
+          }
+        }
+      } catch {
+        loadingNotice.textContent = "記録を読み込めませんでした。時間をおいて再度開いてみてください。";
+      }
+    }
+
+    logButton.addEventListener("click", async () => {
+      const kind = kindGroup.get();
+      const loudness = loudnessGroup.get();
+      if (!kind || !loudness) return;
+      const weather = weatherGroup.get();
+      const place = placeGroup.get();
+      const count = countGroup.get();
+      const note = noteInput?.value.trim() || undefined;
+
+      logButton.disabled = true;
+      showStatus("記録しています…");
+
+      try {
+        const response = await fetch("/api/sora-log/entries", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            kind: kind.value,
+            loudness: loudness.value,
+            ...(weather ? { weather: weather.value } : {}),
+            ...(place ? { place: place.value } : {}),
+            ...(count ? { count: Number(count.value) } : {}),
+            ...(note ? { note } : {}),
+          }),
+        });
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as { error?: string } | null;
+          if (response.status === 429) showStatus("少し時間をおいてから、もう一度お試しください。");
+          else showStatus(body?.error ? `記録できませんでした(${body.error})` : "記録できませんでした。");
+          return;
+        }
+        const data = (await response.json()) as { entry: ApiEntry };
+        entries.unshift(data.entry);
+        emptyMessage?.setAttribute("hidden", "");
+        entryList!.hidden = false;
+        renderEntryRow(data.entry, true);
+        addSkyMarker(data.entry.createdAt, data.entry.loudness);
+        if (noteInput) noteInput.value = "";
+        showStatus("記録しました。");
+      } catch {
+        showStatus("通信に失敗しました。もう一度お試しください。");
+      } finally {
+        updateLogButtonState();
+      }
+    });
+
+    loadEntries();
+  });
+</script>

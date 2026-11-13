@@ -9,7 +9,11 @@
  * Worker + Workers Static Assets + D1構成へ変更した)。
  *
  * ルーティング:
- * - `/api/notebooks/:slug/entries` (GET/POST) … このWorkerが処理する。
+ * - `/api/notebooks/:slug/entries` (GET/POST) … 交換ノート(実験室の
+ *   ノートへの書き足し)。このWorkerが処理する。
+ * - `/api/sora-log/entries` (GET/POST) … 「そらのようす」の記録
+ *   (2026-11-13、Decision Log 0216。Cloudflare依存を同じWorker/D1に
+ *   収めるため、上記と同じWorkerに追加した)。このWorkerが処理する。
  * - それ以外 … `env.ASSETS`(Workers Static Assets、Astroの`dist/`)へ
  *   フォールバックする。`wrangler.toml`の`assets.run_worker_first`を
  *   `["/api/*"]`に限定しているため、実際には`/api/*`以外のリクエストは
@@ -274,13 +278,171 @@ async function handlePostEntries(slug: string, request: Request, env: Env): Prom
   );
 }
 
+// --- そらのようすの記録(/api/sora-log/entries) ------------------------
+// 2026-11-13、Decision Log 0216。公開研究室「ふ、と」実験室のノート
+// 「そらのようす」の記録を保存・公開するAPI。上の交換ノートAPIとは
+// 別テーブル(`sora_log_entries`、migrations/0002参照)を使う。
+//
+// 時刻は一切クライアントから受け取らない。サーバーが受信した瞬間の
+// 時刻(`created_at`)だけを記録する。記録の確からしさ(あとから時刻を
+// 書き換えていないこと)を保つための、意図的な単純化。
+
+const SORA_LOG_KINDS = new Set(["plane", "heli", "unknown"]);
+const SORA_LOG_LOUDNESS = new Set(["heard", "loud", "very-loud"]);
+const SORA_LOG_WEATHER = new Set(["sun", "cloud", "rain"]);
+const SORA_LOG_PLACE = new Set(["indoor", "outdoor"]);
+const SORA_LOG_COUNT = new Set([1, 2, 3]);
+const MAX_NOTE_LENGTH = 300;
+
+// 複数回の観測を立て続けに記録することがある用途のため、交換ノートの
+// 連投制限(60秒・1日20件)よりゆるい値にしている。
+const SORA_LOG_RATE_LIMIT_WINDOW_SECONDS = 15;
+const SORA_LOG_RATE_LIMIT_DAILY_MAX = 100;
+
+interface SoraLogRow {
+  id: string;
+  kind: string;
+  loudness: string;
+  weather: string | null;
+  place: string | null;
+  count: number | null;
+  note: string | null;
+  created_at: string;
+}
+
+interface PublicSoraLogEntry {
+  id: string;
+  kind: string;
+  loudness: string;
+  weather?: string;
+  place?: string;
+  count?: number;
+  note?: string;
+  createdAt: string;
+}
+
+function toPublicSoraLogEntry(row: SoraLogRow): PublicSoraLogEntry {
+  return {
+    id: row.id,
+    kind: row.kind,
+    loudness: row.loudness,
+    ...(row.weather ? { weather: row.weather } : {}),
+    ...(row.place ? { place: row.place } : {}),
+    ...(row.count ? { count: row.count } : {}),
+    ...(row.note ? { note: row.note } : {}),
+    createdAt: row.created_at,
+  };
+}
+
+async function handleGetSoraLogEntries(env: Env): Promise<Response> {
+  const { results } = await env.DB.prepare(
+    "SELECT id, kind, loudness, weather, place, count, note, created_at FROM sora_log_entries WHERE status = 'visible' ORDER BY created_at DESC LIMIT 500",
+  ).all<SoraLogRow>();
+
+  return json({ entries: results.map(toPublicSoraLogEntry) });
+}
+
+async function handlePostSoraLogEntries(request: Request, env: Env): Promise<Response> {
+  let payload: Record<string, unknown>;
+  try {
+    payload = await request.json();
+  } catch {
+    return json({ error: "invalid request body" }, 400);
+  }
+
+  // honeypot(交換ノートAPIと同じ方式)。
+  if (typeof payload._gotcha === "string" && payload._gotcha.trim() !== "") {
+    return json(
+      { entry: { id: crypto.randomUUID(), kind: "unknown", loudness: "heard", createdAt: new Date().toISOString() } },
+      201,
+    );
+  }
+
+  const kind = typeof payload.kind === "string" ? payload.kind : "";
+  if (!SORA_LOG_KINDS.has(kind)) {
+    return json({ error: "kind must be one of plane, heli, unknown" }, 400);
+  }
+  const loudness = typeof payload.loudness === "string" ? payload.loudness : "";
+  if (!SORA_LOG_LOUDNESS.has(loudness)) {
+    return json({ error: "loudness must be one of heard, loud, very-loud" }, 400);
+  }
+
+  let weather: string | null = null;
+  if (typeof payload.weather === "string" && payload.weather !== "") {
+    if (!SORA_LOG_WEATHER.has(payload.weather)) return json({ error: "invalid weather" }, 400);
+    weather = payload.weather;
+  }
+
+  let place: string | null = null;
+  if (typeof payload.place === "string" && payload.place !== "") {
+    if (!SORA_LOG_PLACE.has(payload.place)) return json({ error: "invalid place" }, 400);
+    place = payload.place;
+  }
+
+  let count: number | null = null;
+  if (payload.count !== undefined && payload.count !== null) {
+    const parsed = Number(payload.count);
+    if (!SORA_LOG_COUNT.has(parsed)) return json({ error: "count must be 1, 2, or 3" }, 400);
+    count = parsed;
+  }
+
+  let note: string | null = null;
+  if (typeof payload.note === "string" && payload.note.trim() !== "") {
+    const trimmed = payload.note.trim();
+    if (trimmed.length > MAX_NOTE_LENGTH) {
+      return json({ error: `note must be ${MAX_NOTE_LENGTH} characters or fewer` }, 400);
+    }
+    note = trimmed;
+  }
+
+  const ipHashSecret = env.IP_HASH_SECRET;
+  if (!ipHashSecret) {
+    return json({ error: "server misconfigured" }, 500);
+  }
+
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+  const ipHash = await hashIp(ip, ipHashSecret);
+
+  const recentPost = await env.DB.prepare(
+    `SELECT id FROM sora_log_entries WHERE ip_hash = ?1 AND unixepoch(created_at) > unixepoch('now') - ?2 LIMIT 1`,
+  )
+    .bind(ipHash, SORA_LOG_RATE_LIMIT_WINDOW_SECONDS)
+    .first();
+  if (recentPost) {
+    return json({ error: "please wait a moment before posting again" }, 429);
+  }
+
+  const dailyCount = await env.DB.prepare(
+    `SELECT COUNT(*) as count FROM sora_log_entries WHERE ip_hash = ?1 AND unixepoch(created_at) > unixepoch('now') - ?2`,
+  )
+    .bind(ipHash, RATE_LIMIT_DAILY_WINDOW_SECONDS)
+    .first<{ count: number }>();
+  if ((dailyCount?.count ?? 0) >= SORA_LOG_RATE_LIMIT_DAILY_MAX) {
+    return json({ error: "daily post limit reached" }, 429);
+  }
+
+  const id = crypto.randomUUID();
+  const createdAt = new Date().toISOString();
+
+  await env.DB.prepare(
+    "INSERT INTO sora_log_entries (id, kind, loudness, weather, place, count, note, created_at, status, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'visible', ?9)",
+  )
+    .bind(id, kind, loudness, weather, place, count, note, createdAt, ipHash)
+    .run();
+
+  return json(
+    { entry: toPublicSoraLogEntry({ id, kind, loudness, weather, place, count, note, created_at: createdAt }) },
+    201,
+  );
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    const match = url.pathname.match(/^\/api\/notebooks\/([^/]+)\/entries\/?$/);
+    const notebookMatch = url.pathname.match(/^\/api\/notebooks\/([^/]+)\/entries\/?$/);
 
-    if (match) {
-      const slug = match[1];
+    if (notebookMatch) {
+      const slug = notebookMatch[1];
       let response: Response;
       if (request.method === "GET") response = await handleGetEntries(slug, env);
       else if (request.method === "POST") response = await handlePostEntries(slug, request, env);
@@ -288,6 +450,16 @@ export default {
 
       // どのwrangler環境が実際に使われたかを外部から確認できるように
       // する診断用ヘッダ(secretではない)。Decision Log 0145参照。
+      response.headers.set("X-Notebook-Env", env.NOTEBOOK_ENV ?? "unset");
+      return response;
+    }
+
+    if (url.pathname.replace(/\/$/, "") === "/api/sora-log/entries") {
+      let response: Response;
+      if (request.method === "GET") response = await handleGetSoraLogEntries(env);
+      else if (request.method === "POST") response = await handlePostSoraLogEntries(request, env);
+      else response = json({ error: "method not allowed" }, 405);
+
       response.headers.set("X-Notebook-Env", env.NOTEBOOK_ENV ?? "unset");
       return response;
     }

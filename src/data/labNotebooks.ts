@@ -67,6 +67,16 @@
  * slug・URLも`zujo-no-kiroku`/`/zujo/`から`kyou-no-sora`/
  * `/kyou-no-sora/`に合わせて変更した。制作ノート一覧も
  * `src/pages/zujo/`から`src/pages/kyou-no-sora/`に移動している。
+ *
+ * 【「きょうの空」→「そらのようす」に改称、本番公開(2026-11-13)】
+ * プロジェクトオーナーが別途ドラフトした利用規約・プライバシーポリシー
+ * (そのものはfuto-siteの外、別プロジェクトの文書)がこのアプリを
+ * 「そらのようす」と呼んでいたため、futo-site側の表記をそちらに
+ * 合わせて統一した。あわせて、体験デモ(架空データ・保存されない)から
+ * 本番(Cloudflare Worker + D1に実際の記録を保存・公開)に切り替えた。
+ * slug・URLは今回もまだ未公開のため`kyou-no-sora`/`/kyou-no-sora/`から
+ * `sora-no-yousu`/`/sora-no-yousu/`に変更した。詳細はDecision Log 0216
+ * 参照。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
@@ -76,13 +86,13 @@ export const commonNotebookDescription =
 
 export const labNotebooks: LabNotebook[] = [
   {
-    slug: "kyou-no-sora",
+    slug: "sora-no-yousu",
     category: "アプリ",
-    title: "きょうの空",
-    description: "頭上を飛ぶ飛行機やヘリの音を、暮らしの観察として記録する道具をつくっています。",
+    title: "そらのようす",
+    description: "頭上を飛ぶ飛行機やヘリの音を、暮らしの観察として記録する道具です。",
     tone: "sky",
     entries: [],
-    detailHref: "/kyou-no-sora/",
+    detailHref: "/sora-no-yousu/",
   },
   {
     slug: "oto-no-michi",
@@ -131,10 +141,10 @@ export function hasDetailPage(notebook: LabNotebook): boolean {
  * Googleスライドの埋め込み用URL(「ウェブに公開」で取得したもの)に、
  * 自動再生・ループを明示的に無効化するクエリを付加する。URLとして
  * 解釈できない値は、壊れたiframeを作らないようnullを返す(呼び出し側で
- * 区画自体を表示しない)。[slug].astro(散歩譜)・きょうの空の制作ノート
- * ページ(/kyou-no-sora/)の両方から参照するため、ここに置いている
- * (2026-09-17導入、2026-11-11にきょうの空用の2箇所目の呼び出し元が
- * できたためlabNotebooks.tsに切り出した)。
+ * 区画自体を表示しない)。[slug].astro(散歩譜)・そらのようすのページ
+ * (/sora-no-yousu/)の両方から参照するため、ここに置いている
+ * (2026-09-17導入、2026-11-11に2箇所目の呼び出し元ができたため
+ * labNotebooks.tsに切り出した)。
  */
 export function buildSlidesEmbedSrc(rawUrl: string): string | null {
   try {
