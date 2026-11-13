@@ -80,13 +80,20 @@ Released from Parking Lot
   (`/api/sora-log/entries`) — a second, explicitly-logged extension of
   the scoped Cloudflare-dependency exception (see Architecture
   section) — and, once a Google Slides URL is supplied, a 制作メモ
-  (production-memo) slides section. `/privacy` carries an added
-  section for what this tool actually collects; a full 利用規約 is
-  still pending final review (interim usage notes only, on-page). See
+  (production-memo) slides section. Entries carry an optional
+  prefecture (shown as a simple dot-position diagram, not a real
+  coastline map, on the 記録を見る tab) and an optional municipality
+  (selection-only, validated server-side against
+  `public/municipalities.json` — Geolonia's open address dataset,
+  CC BY 4.0 — never free text). `/privacy` carries an added section
+  for what this tool actually collects; a full 利用規約 is still
+  pending final review (interim usage notes only, on-page). See
   Decision Log 0213 (original 頭上の記録 addition), 0214 (rename to
-  きょうの空 + demo/slides), and 0216 (rename to そらのようす + demo
-  → production). No individual production notes are published yet
-  (`src/data/productionNotes.ts` is an empty array).
+  きょうの空 + demo/slides), 0216 (rename to そらのようす + demo →
+  production), 0217–0219 (UI iteration on the two entry points), and
+  0220 (prefecture + selection-only municipality + map). No individual
+  production notes are published yet (`src/data/productionNotes.ts`
+  is an empty array).
 
 If a task in this list comes up, record the reasoning in Decision Log
 and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
