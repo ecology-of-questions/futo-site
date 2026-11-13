@@ -18,14 +18,31 @@
  *   時刻を送らない・時刻の修正機能を持たせない(「あとから時刻を
  *   書き換えていない」という記録の確からしさを保つための単純化。
  *   `migrations/0002_sora_log_entries.sql`参照)。
- * - 「種類」「うるささ」は必須(未選択のままでは送信ボタンを有効化
- *   しない)。「天気」「場所」「機数」「メモ」は任意。
+ * - 「天気」「場所」「機数」「メモ」は任意。
  * - JavaScriptが無い場合、公開記録の取得・送信そのものができないため
  *   (サーバー側の実データに依存するため、ビルド時描画でごまかさない)、
  *   `<noscript>`で明示する。
  * - 配色は空の時刻ごとの色(`skyHourColors`)のみ例外的にデータファイル
  *   側で管理し、それ以外はすべて`tokens.css`の既存トークンを使う
  *   (`SkyLog.module.css`参照)。
+ *
+ * 【2つの入り口+常時表示の一覧(2026-11-13)】プロジェクトオーナーから
+ * 「記録する」「記録したものをみる」の2つの入り口をすぐ分かるようにし、
+ * 一覧は常に見える状態にしたい、記録はすぐできるようにしたい、との
+ * 指示を受けて構成を見直した。
+ * - 「きろく」「ふりかえり」のJSタブ切り替え(クリックするまで一覧が
+ *   見えない)をやめ、記録一覧は常にDOM上に表示したままにした。
+ *   「ふりかえり」(時間帯の集計)は`<details>`(ブラウザ標準の開閉、
+ *   JS不要)に変え、優先度の低い付加情報として折りたたんでいる。
+ * - ページ上部に「記録する」「記録したものをみる」の2つのアンカー
+ *   リンク(`#sora-log-record`/`#sora-log-entries`への素のhref、JS
+ *   不要)を置き、長くなった一覧の中でもすぐ目的の場所へ移動できる
+ *   ようにした。
+ * - 「種類」「うるささ」を選ばなくても記録ボタンを押せるようにした
+ *   (未選択の場合はクライアント側で「わからない」「きこえた」を既定値
+ *   にしてから送信する。APIの必須パラメータ自体は変更していない)。
+ *   「すぐに記録できる」ことを優先し、チップは選べば記録が詳しくなる
+ *   任意の補足という位置づけに変えた。
  * ------------------------------------------------------------
  */
 import { skyHourColors, kindLabels, loudnessLabels, weatherLabels, placeLabels, countLabels } from "@/data/skyLog";
@@ -43,91 +60,92 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     <p class={styles.noscript}>この記録ツールの利用にはJavaScriptが必要です。</p>
   </noscript>
 
-  <div class={styles.tabs} role="tablist">
-    <button type="button" role="tab" data-view-tab="log" class={styles.tab} aria-selected="true">きろく</button>
-    <button type="button" role="tab" data-view-tab="trend" class={styles.tab} aria-selected="false">ふりかえり</button>
+  <div class={styles.entryPoints}>
+    <a href="#sora-log-record" class={styles.entryPointButton}>記録する</a>
+    <a href="#sora-log-entries" class={`${styles.entryPointButton} ${styles.entryPointButtonSecondary}`}>記録したものをみる</a>
   </div>
 
-  <div data-view-panel="log" class={styles.panel}>
-    <div class={styles.skyStrip}>
-      <div class={styles.skySegments} aria-hidden="true">
-        {skyHourColors.map((color, hour) => <span class={styles.hourSegment} style={`background-color: ${color}`} data-hour={hour} />)}
-      </div>
-      <div class={styles.skyMarkers} data-sky-markers aria-hidden="true">
-        <span class={styles.skyNowMarker} data-sky-now-marker hidden />
-      </div>
+  <div class={styles.skyStrip}>
+    <div class={styles.skySegments} aria-hidden="true">
+      {skyHourColors.map((color, hour) => <span class={styles.hourSegment} style={`background-color: ${color}`} data-hour={hour} />)}
     </div>
-    <p class={styles.skyCaption}>いまは<span data-current-hour-label>—</span>の空です。</p>
+    <div class={styles.skyMarkers} data-sky-markers aria-hidden="true">
+      <span class={styles.skyNowMarker} data-sky-now-marker hidden />
+    </div>
+  </div>
+  <p class={styles.skyCaption}>いまは<span data-current-hour-label>—</span>の空です。</p>
 
-    <div class={styles.logger}>
-      <p class={styles.loggerLabel}>なにがきこえた?</p>
-      <div class={styles.chipRow} role="group" aria-label="きこえたものの種類">
-        {kindEntries.map(([key, label]) => (
-          <button type="button" class={styles.chip} data-kind-choice={key} aria-pressed="false">
-            {label}
-          </button>
-        ))}
-      </div>
-      <div class={styles.chipRow} role="group" aria-label="うるささ">
-        {loudnessEntries.map(([key, label]) => (
-          <button type="button" class={styles.chip} data-loudness-choice={key} aria-pressed="false">
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <p class={styles.loggerSubLabel}>くわしく(わかる範囲で・任意)</p>
-      <div class={styles.chipRow} role="group" aria-label="空のようす">
-        {weatherEntries.map(([key, label]) => (
-          <button type="button" class={styles.chip} data-weather-choice={key} aria-pressed="false">
-            {label}
-          </button>
-        ))}
-      </div>
-      <div class={styles.chipRow} role="group" aria-label="どこで聞いたか">
-        {placeEntries.map(([key, label]) => (
-          <button type="button" class={styles.chip} data-place-choice={key} aria-pressed="false">
-            {label}
-          </button>
-        ))}
-      </div>
-      <div class={styles.chipRow} role="group" aria-label="機数">
-        {countEntries.map(([key, label]) => (
-          <button type="button" class={styles.chip} data-count-choice={key} aria-pressed="false">
-            {label}
-          </button>
-        ))}
-      </div>
-      <textarea class={styles.noteInput} data-note-input placeholder="メモ(任意)" rows={2}></textarea>
-
-      <button type="button" class={styles.logButton} data-log-button disabled>記録する</button>
-      <p class={styles.loggerStatus} data-logger-status role="status" aria-live="polite" hidden></p>
+  <div id="sora-log-record" class={styles.logger}>
+    <p class={styles.loggerLabel}>なにがきこえた?(選ばなくても記録できます)</p>
+    <div class={styles.chipRow} role="group" aria-label="きこえたものの種類">
+      {kindEntries.map(([key, label]) => (
+        <button type="button" class={styles.chip} data-kind-choice={key} aria-pressed="false">
+          {label}
+        </button>
+      ))}
+    </div>
+    <div class={styles.chipRow} role="group" aria-label="うるささ">
+      {loudnessEntries.map(([key, label]) => (
+        <button type="button" class={styles.chip} data-loudness-choice={key} aria-pressed="false">
+          {label}
+        </button>
+      ))}
     </div>
 
+    <p class={styles.loggerSubLabel}>くわしく(わかる範囲で・任意)</p>
+    <div class={styles.chipRow} role="group" aria-label="空のようす">
+      {weatherEntries.map(([key, label]) => (
+        <button type="button" class={styles.chip} data-weather-choice={key} aria-pressed="false">
+          {label}
+        </button>
+      ))}
+    </div>
+    <div class={styles.chipRow} role="group" aria-label="どこで聞いたか">
+      {placeEntries.map(([key, label]) => (
+        <button type="button" class={styles.chip} data-place-choice={key} aria-pressed="false">
+          {label}
+        </button>
+      ))}
+    </div>
+    <div class={styles.chipRow} role="group" aria-label="機数">
+      {countEntries.map(([key, label]) => (
+        <button type="button" class={styles.chip} data-count-choice={key} aria-pressed="false">
+          {label}
+        </button>
+      ))}
+    </div>
+    <textarea class={styles.noteInput} data-note-input placeholder="メモ(任意)" rows={2}></textarea>
+
+    <button type="button" class={styles.logButton} data-log-button>記録する</button>
+    <p class={styles.loggerStatus} data-logger-status role="status" aria-live="polite" hidden></p>
+  </div>
+
+  <div id="sora-log-entries" class={styles.entriesSection}>
     <p class={styles.loadingNotice} data-entries-loading>記録を読み込んでいます…</p>
     <ul class={styles.entryList} data-entry-list hidden></ul>
     <p class={styles.empty} data-entry-empty hidden>まだ記録がありません。</p>
-
-    <template data-entry-template>
-      <li class={styles.entryRow}>
-        <span class={styles.entryTime} data-entry-time></span>
-        <span class={styles.entryBody}>
-          <span class={styles.entryMain} data-entry-main></span>
-          <span class={styles.entryMeta} data-entry-meta hidden></span>
-          <span class={styles.entryNote} data-entry-note hidden></span>
-        </span>
-      </li>
-    </template>
-
-    <template data-sky-marker-template>
-      <span class={styles.skyMarker} data-loudness=""></span>
-    </template>
   </div>
 
-  <div data-view-panel="trend" class={styles.panel} hidden>
+  <template data-entry-template>
+    <li class={styles.entryRow}>
+      <span class={styles.entryTime} data-entry-time></span>
+      <span class={styles.entryBody}>
+        <span class={styles.entryMain} data-entry-main></span>
+        <span class={styles.entryMeta} data-entry-meta hidden></span>
+        <span class={styles.entryNote} data-entry-note hidden></span>
+      </span>
+    </li>
+  </template>
+
+  <template data-sky-marker-template>
+    <span class={styles.skyMarker} data-loudness=""></span>
+  </template>
+
+  <details class={styles.trendDetails} data-trend-details>
+    <summary class={styles.trendSummary}>ふりかえり(時間帯の集計)を見る</summary>
     <p class={styles.trendLead} data-trend-lead>記録を読み込んでいます…</p>
     <div class={styles.trendChart} data-trend-chart aria-hidden="true"></div>
-  </div>
+  </details>
 
   <p class={styles.caption}>
     ここで記録した内容は、「そらのようす」の公開記録として保存され、サイト上で公開されます。名前やメールアドレスなどの個人を特定できる情報は送信されません。詳しくは<a href="/privacy">個人情報の取り扱い</a>をご覧ください。
@@ -205,12 +223,8 @@ const countEntries = Object.entries(countLabels) as [string, string][];
       return { get: () => selected };
     }
 
-    function updateLogButtonState() {
-      logButton!.disabled = !kindGroup.get() || !loudnessGroup.get();
-    }
-
-    const kindGroup = exclusiveChipGroup("[data-kind-choice]", "kindChoice", updateLogButtonState);
-    const loudnessGroup = exclusiveChipGroup("[data-loudness-choice]", "loudnessChoice", updateLogButtonState);
+    const kindGroup = exclusiveChipGroup("[data-kind-choice]", "kindChoice");
+    const loudnessGroup = exclusiveChipGroup("[data-loudness-choice]", "loudnessChoice");
     const weatherGroup = exclusiveChipGroup("[data-weather-choice]", "weatherChoice");
     const placeGroup = exclusiveChipGroup("[data-place-choice]", "placeChoice");
     const countGroup = exclusiveChipGroup("[data-count-choice]", "countChoice");
@@ -315,15 +329,9 @@ const countEntries = Object.entries(countLabels) as [string, string][];
       chart.appendChild(svg);
     }
 
-    root.querySelectorAll<HTMLElement>("[data-view-tab]").forEach((tabButton) => {
-      tabButton.addEventListener("click", () => {
-        const view = tabButton.dataset.viewTab;
-        root.querySelectorAll<HTMLElement>("[data-view-tab]").forEach((b) => b.setAttribute("aria-selected", b === tabButton ? "true" : "false"));
-        root.querySelectorAll<HTMLElement>("[data-view-panel]").forEach((panel) => {
-          panel.hidden = panel.dataset.viewPanel !== view;
-        });
-        if (view === "trend") renderTrend();
-      });
+    const trendDetails = root.querySelector<HTMLDetailsElement>("[data-trend-details]");
+    trendDetails?.addEventListener("toggle", () => {
+      if (trendDetails.open) renderTrend();
     });
 
     function showStatus(message: string) {
@@ -355,9 +363,9 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     }
 
     logButton.addEventListener("click", async () => {
-      const kind = kindGroup.get();
-      const loudness = loudnessGroup.get();
-      if (!kind || !loudness) return;
+      // 種類・うるささは任意: 選ばれていなければ既定値を使い、すぐ記録できるようにする。
+      const kind = kindGroup.get()?.value ?? "unknown";
+      const loudness = loudnessGroup.get()?.value ?? "heard";
       const weather = weatherGroup.get();
       const place = placeGroup.get();
       const count = countGroup.get();
@@ -371,8 +379,8 @@ const countEntries = Object.entries(countLabels) as [string, string][];
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            kind: kind.value,
-            loudness: loudness.value,
+            kind,
+            loudness,
             ...(weather ? { weather: weather.value } : {}),
             ...(place ? { place: place.value } : {}),
             ...(count ? { count: Number(count.value) } : {}),
@@ -396,7 +404,7 @@ const countEntries = Object.entries(countLabels) as [string, string][];
       } catch {
         showStatus("通信に失敗しました。もう一度お試しください。");
       } finally {
-        updateLogButtonState();
+        logButton.disabled = false;
       }
     });
 
