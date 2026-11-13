@@ -45,6 +45,15 @@
  * を単純な等間隔図法でSVG上に点として配置しただけの、正確な地図では
  * ない簡易な図であることをキャプションで明示している(市区町村・GPS
  * 等の詳細な位置情報は引き続き収集しない)。
+ *
+ * 【「みはりモード」タブを追加(2026-11-13、Decision Log 0221)】
+ * プロジェクトオーナー自身がClaude Artifactで試作した自動検知機能を、
+ * 3番目のタブ(`SkyWatch.astro`)として追加した。タブの切り替えロジック
+ * 自体は`[data-view-tab]`/`[data-view-panel]`を総称的に扱っているため、
+ * 変更不要だった。`SkyWatch`が自動検知した記録を、このコンポーネントの
+ * 「記録を見る」タブ(一覧・空の帯・地図)にも反映できるよう、
+ * `document`に対する`sora-log:entry-created`というカスタムイベントで
+ * 疎結合に連携している(新しい状態管理ライブラリは導入しない)。
  * ------------------------------------------------------------
  */
 import {
@@ -56,6 +65,7 @@ import {
   countLabels,
   prefectures,
 } from "@/data/skyLog";
+import SkyWatch from "./SkyWatch.astro";
 import styles from "./SkyLog.module.css";
 
 const kindEntries = Object.entries(kindLabels) as [keyof typeof kindLabels, string][];
@@ -73,6 +83,7 @@ const countEntries = Object.entries(countLabels) as [string, string][];
   <div class={styles.tabs} role="tablist">
     <button type="button" role="tab" data-view-tab="record" class={styles.tab} aria-selected="true">記録する</button>
     <button type="button" role="tab" data-view-tab="view" class={styles.tab} aria-selected="false">記録を見る</button>
+    <button type="button" role="tab" data-view-tab="watch" class={styles.tab} aria-selected="false">みはりモード</button>
   </div>
 
   <div data-view-panel="record" class={styles.panel}>
@@ -177,6 +188,10 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     </details>
   </div>
 
+  <div data-view-panel="watch" class={styles.panel} hidden>
+    <SkyWatch />
+  </div>
+
   <template data-entry-template>
     <li class={styles.entryRow}>
       <span class={styles.entryTime} data-entry-time></span>
@@ -208,6 +223,9 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     note?: string;
     prefecture?: string;
     municipality?: string;
+    source?: string;
+    durationSeconds?: number;
+    maxLevelDb?: number;
     createdAt: string;
   }
 
@@ -423,7 +441,12 @@ const countEntries = Object.entries(countLabels) as [string, string][];
       const metaEl = clone.querySelector<HTMLElement>("[data-entry-meta]");
       const noteEl = clone.querySelector<HTMLElement>("[data-entry-note]");
       if (timeEl) timeEl.textContent = formatTime(entry.createdAt);
-      if (mainEl) mainEl.textContent = `${KIND_LABELS[entry.kind] ?? entry.kind}・${LOUDNESS_LABELS[entry.loudness] ?? entry.loudness}`;
+      if (mainEl) {
+        mainEl.textContent =
+          entry.source === "watch"
+            ? `自動検知(みはりモード)・最大${entry.maxLevelDb ?? "?"}dB相当・${entry.durationSeconds ?? "?"}秒`
+            : `${KIND_LABELS[entry.kind] ?? entry.kind}・${LOUDNESS_LABELS[entry.loudness] ?? entry.loudness}`;
+      }
       const meta = metaLine(entry);
       if (metaEl) {
         if (meta) {
@@ -666,6 +689,20 @@ const countEntries = Object.entries(countLabels) as [string, string][];
       } finally {
         logButton.disabled = false;
       }
+    });
+
+    // みはりモード(SkyWatch.astro)が自動検知した記録を、このコンポーネントの
+    // 一覧・空の帯・地図にも反映する(Decision Log 0221)。別コンポーネント間の
+    // 連携をイベント経由に留め、状態管理ライブラリ等は導入しない。
+    document.addEventListener("sora-log:entry-created", (event) => {
+      const entry = (event as CustomEvent<ApiEntry>).detail;
+      if (!entry) return;
+      entries.unshift(entry);
+      emptyMessage?.setAttribute("hidden", "");
+      entryList!.hidden = false;
+      renderEntryRow(entry, true);
+      addSkyMarker(entry.createdAt, entry.loudness);
+      if (mapRendered) renderMap();
     });
 
     loadEntries();

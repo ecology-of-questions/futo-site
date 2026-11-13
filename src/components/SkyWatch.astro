@@ -1,0 +1,460 @@
+---
+/**
+ * SkyWatch.astro
+ * ------------------------------------------------------------
+ * 「みはりモード」(自動検知、2026-11-13、Decision Log 0221)。
+ *
+ * プロジェクトオーナーから「記録する」ボタンを押し忘れることがあるので
+ * 自動化したいとの相談を受けた。背景(バックグラウンド)での音声取得は
+ * 技術的・プライバシー上の理由で不可能だと説明し(ブラウザはタブが
+ * 隠れている間マイクを継続して提供しない・周囲の会話まで拾ってしまう
+ * 懸念がある等)、合意のうえで、プロジェクトオーナー自身がClaude
+ * Artifactで試作した「フォアグラウンドで画面を開いている間だけ、
+ * マイクの音の大きさを端末内で数値化し、しきい値を超えて一定時間続いた
+ * ときだけ自動で1件記録する」という設計(みはりモード)を、本番の
+ * そらのようすに反映したもの。
+ *
+ * 【音声は録音・送信しない】マイクの入力はこの端末内でのみ、音の大きさ
+ * (dB相当の数値)に変換するために使われる。音声そのものを録音・保存・
+ * 送信する機能はない。サーバーに送るのは、検知した時刻(サーバー側で
+ * 付与)・継続秒数(`durationSeconds`)・そのときの最大の大きさの数値
+ * (`maxLevelDb`)だけ(`migrations/0005_sora_log_watch_mode.sql`)。
+ *
+ * 【フォアグラウンド限定】タブが非表示になった(他のタブに切り替えた・
+ * 画面をロックした等)時点でマイクを解放し、みはりモードを停止する。
+ * 「常時・バックグラウンドで動作する」という誤解を避けるための、意図
+ * 的な実装(`navigator.wakeLock`はベストエフォートの補助に過ぎず、
+ * これに依存して「裏で動き続ける」設計にはしていない)。
+ *
+ * 【値のA特性(A-weighting)近似】プロジェクトオーナーの試作そのままの
+ * 6段BiquadFilterNode連結(highpass×4+lowpass×2、各Q=0.7071)で、人の
+ * 耳の感度に近い周波数特性に近似してから音の大きさを計算する。あくまで
+ * 簡易な近似であり、計測器としての精度は保証しない(キャリブレーション
+ * 欄で、実測の騒音計の値に手動で合わせられるようにしている)。
+ *
+ * 【うるささ(loudness)の決定】既存のスキーマは`loudness`が必須の
+ * 3段階enumだが、試作は自動検知時に「きこえた」相当の値を持たない
+ * (しきい値を超えた時点で既に「きこえた」以上であるため)。そのため、
+ * 自動検知の記録は常に'loud'または'very-loud'のいずれかとし、
+ * 'heard'は使わない(しきい値+15dB相当以上なら'very-loud')。
+ *
+ * 【場所(place)の固定】試作・プロジェクトオーナーの想定どおり、みはり
+ * モードは「置いて使う」用途のため、`place`は'indoor'(いえのなか)に
+ * 固定して送信する(都道府県・市区町村はこの記録では送らない、
+ * スコープ外の単純化)。
+ * ------------------------------------------------------------
+ */
+import styles from "./SkyWatch.module.css";
+---
+
+<div class={styles.wrapper} data-sky-watch>
+  <p class={styles.intro}>
+    端末を置いたまま、このページを開いておくと、マイクで測った音の大きさが、下で決めた大きさ以上に、決めた秒数より長く続いたときだけ、自動で1件記録します。音声そのものは録音・送信しません。送られるのは、記録した時刻・続いた秒数・そのときの最大の大きさの数値だけです。画面を閉じる・他のタブに切り替えると、みはりモードは止まります。
+  </p>
+
+  <div class={styles.meter}>
+    <div class={styles.levelBar}>
+      <div class={styles.levelBarFill} data-level-bar-fill></div>
+      <div class={styles.levelThresholdMark} data-level-threshold-mark></div>
+    </div>
+    <p class={styles.levelReadout} data-level-readout>まだ計測していません。</p>
+  </div>
+
+  <div class={styles.settings}>
+    <div>
+      <label class={styles.settingLabel} for="sora-watch-threshold">しきい値(dB相当)</label>
+      <input
+        type="number"
+        id="sora-watch-threshold"
+        class={styles.settingInput}
+        data-threshold-input
+        min="40"
+        max="120"
+        step="1"
+        value="70"
+      />
+    </div>
+    <div>
+      <label class={styles.settingLabel} for="sora-watch-duration">続く秒数</label>
+      <input
+        type="number"
+        id="sora-watch-duration"
+        class={styles.settingInput}
+        data-duration-input
+        min="1"
+        max="120"
+        step="1"
+        value="5"
+      />
+    </div>
+  </div>
+
+  <button type="button" class={styles.toggleButton} data-watch-toggle>みはりモードを開始</button>
+  <p class={styles.watchStatus} data-watch-status role="status" aria-live="polite"></p>
+
+  <details class={styles.calibration}>
+    <summary class={styles.calibrationSummary}>数値を調整する(任意)</summary>
+    <p class={styles.calibrationNote}>
+      この数値は端末のマイクやブラウザによって、実際の大きさとずれることがあります。騒音計(アプリ等)の実測値がわかる場合、下に入力して「この数値に合わせる」を押すと、以後の表示・記録にずれを補正します(「開始」を押してから行ってください)。
+    </p>
+    <label class={styles.settingLabel} for="sora-watch-reference">いまの実測値(dB)</label>
+    <input type="number" id="sora-watch-reference" class={styles.settingInput} data-reference-input min="30" max="130" step="1" />
+    <button type="button" class={styles.calibrationButton} data-calibration-apply>この数値に合わせる</button>
+    <button type="button" class={styles.calibrationButton} data-calibration-reset>補正をリセット</button>
+    <p class={styles.calibrationStatus} data-calibration-status></p>
+  </details>
+
+  <section class={styles.recordsSection}>
+    <h3 class={styles.recordsTitle}>このページを開いている間に自動記録したもの</h3>
+    <ul class={styles.recordsList} data-watch-records hidden></ul>
+    <p class={styles.recordsEmpty} data-watch-records-empty>まだありません。</p>
+  </section>
+
+  <ul class={styles.cautionList}>
+    <li>このページを開いて画面を点けている間だけ動作します。タブを切り替える・画面をロックすると自動的に止まります。</li>
+    <li>マイクの使用許可が必要です。音声そのものを録音・保存・送信することはありません。</li>
+    <li>つけたままにすると、電池の消耗や端末の発熱が増えることがあります。</li>
+    <li>室内の生活音(テレビ・会話・物音など)も、しきい値を超えれば記録されてしまう場合があります。</li>
+  </ul>
+
+  <template data-watch-record-template>
+    <li class={styles.recordRow}>
+      <span class={styles.recordTime} data-record-time></span>
+      <span data-record-main></span>
+    </li>
+  </template>
+</div>
+
+<script>
+  interface WatchEntry {
+    id: string;
+    createdAt: string;
+    maxLevelDb?: number;
+    durationSeconds?: number;
+  }
+
+  const CALIBRATION_STORAGE_KEY = "sora-watch-calibration-offset";
+  const BIQUAD_STAGES: Array<[BiquadFilterType, number]> = [
+    ["highpass", 20.6],
+    ["highpass", 20.6],
+    ["highpass", 107.7],
+    ["highpass", 737.9],
+    ["lowpass", 12194],
+    ["lowpass", 12194],
+  ];
+  const SAMPLE_INTERVAL_MS = 125;
+  const METER_MIN_DB = 30;
+  const METER_MAX_DB = 110;
+  const EVENT_CLOSE_GRACE_SECONDS = 2;
+
+  function formatTime(iso: string): string {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-sky-watch]").forEach((root) => {
+    const levelBarFill = root.querySelector<HTMLElement>("[data-level-bar-fill]");
+    const levelThresholdMark = root.querySelector<HTMLElement>("[data-level-threshold-mark]");
+    const levelReadout = root.querySelector<HTMLElement>("[data-level-readout]");
+    const thresholdInput = root.querySelector<HTMLInputElement>("[data-threshold-input]");
+    const durationInput = root.querySelector<HTMLInputElement>("[data-duration-input]");
+    const toggleButton = root.querySelector<HTMLButtonElement>("[data-watch-toggle]");
+    const watchStatus = root.querySelector<HTMLElement>("[data-watch-status]");
+    const referenceInput = root.querySelector<HTMLInputElement>("[data-reference-input]");
+    const calibrationApply = root.querySelector<HTMLButtonElement>("[data-calibration-apply]");
+    const calibrationReset = root.querySelector<HTMLButtonElement>("[data-calibration-reset]");
+    const calibrationStatus = root.querySelector<HTMLElement>("[data-calibration-status]");
+    const recordsList = root.querySelector<HTMLElement>("[data-watch-records]");
+    const recordsEmpty = root.querySelector<HTMLElement>("[data-watch-records-empty]");
+    const recordTemplate = root.querySelector<HTMLTemplateElement>("[data-watch-record-template]");
+    if (!toggleButton || !watchStatus || !recordsList || !recordTemplate) return;
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toggleButton.disabled = true;
+      watchStatus.textContent = "お使いのブラウザはマイクの利用に対応していません。";
+      return;
+    }
+
+    let calibrationOffset = 0;
+    try {
+      const saved = localStorage.getItem(CALIBRATION_STORAGE_KEY);
+      if (saved !== null) {
+        const parsed = Number(saved);
+        if (Number.isFinite(parsed)) calibrationOffset = parsed;
+      }
+    } catch {
+      // プライベートブラウジング等で読めない場合は補正無しで続ける。
+    }
+
+    let monitoring = false;
+    let mediaStream: MediaStream | null = null;
+    let audioContext: AudioContext | null = null;
+    let analyser: AnalyserNode | null = null;
+    let timeBuf: Float32Array<ArrayBuffer> | null = null;
+    let tickHandle: number | null = null;
+    let wakeLock: { release: () => Promise<void> } | null = null;
+
+    let sampleBuffer: number[] = [];
+    let lastFlushAt = 0;
+    let lastRawDb = 0;
+    let eventActive = false;
+    let eventMaxDb = -Infinity;
+    let eventSustainedSeconds = 0;
+    let belowThresholdCount = 0;
+
+    function getThreshold(): number {
+      const parsed = Number(thresholdInput?.value);
+      return Number.isFinite(parsed) ? parsed : 70;
+    }
+
+    function getDurationThreshold(): number {
+      const parsed = Number(durationInput?.value);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 5;
+    }
+
+    function updateThresholdMark() {
+      if (!levelThresholdMark) return;
+      const ratio = (getThreshold() - METER_MIN_DB) / (METER_MAX_DB - METER_MIN_DB);
+      levelThresholdMark.style.left = `${Math.min(100, Math.max(0, ratio * 100))}%`;
+    }
+    thresholdInput?.addEventListener("input", updateThresholdMark);
+    updateThresholdMark();
+
+    function updateMeter(db: number) {
+      if (!levelBarFill || !levelReadout) return;
+      const ratio = (db - METER_MIN_DB) / (METER_MAX_DB - METER_MIN_DB);
+      levelBarFill.style.width = `${Math.min(100, Math.max(0, ratio * 100))}%`;
+      levelBarFill.toggleAttribute("data-over", db >= getThreshold());
+      levelReadout.textContent = `${Math.round(db)} dB相当`;
+    }
+
+    function resetMeter() {
+      if (!levelBarFill || !levelReadout) return;
+      levelBarFill.style.width = "0%";
+      levelBarFill.removeAttribute("data-over");
+      levelReadout.textContent = "まだ計測していません。";
+    }
+
+    function showStatus(message: string) {
+      if (!watchStatus) return;
+      watchStatus.textContent = message;
+    }
+
+    function showCalibrationStatus(message: string) {
+      if (calibrationStatus) calibrationStatus.textContent = message;
+    }
+
+    function addWatchRecordRow(entry: WatchEntry) {
+      if (!recordTemplate || !recordsList) return;
+      const clone = recordTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+      if (!clone) return;
+      const timeEl = clone.querySelector<HTMLElement>("[data-record-time]");
+      const mainEl = clone.querySelector<HTMLElement>("[data-record-main]");
+      if (timeEl) timeEl.textContent = formatTime(entry.createdAt);
+      if (mainEl) mainEl.textContent = `最大${entry.maxLevelDb ?? "?"}dB相当・${entry.durationSeconds ?? "?"}秒`;
+      recordsList.prepend(clone);
+      recordsList.hidden = false;
+      recordsEmpty?.setAttribute("hidden", "");
+    }
+
+    async function submitWatchEntry(durationSeconds: number, maxLevelDb: number) {
+      const threshold = getThreshold();
+      const loudness = maxLevelDb >= threshold + 15 ? "very-loud" : "loud";
+      try {
+        const response = await fetch("/api/sora-log/entries", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            kind: "unknown",
+            loudness,
+            place: "indoor",
+            source: "watch",
+            durationSeconds: Math.round(durationSeconds),
+            maxLevelDb: Math.round(maxLevelDb),
+          }),
+        });
+        if (!response.ok) {
+          showStatus("自動記録に失敗しました(次の検知を待ちます)。");
+          return;
+        }
+        const data = (await response.json()) as { entry: WatchEntry };
+        addWatchRecordRow(data.entry);
+        document.dispatchEvent(new CustomEvent("sora-log:entry-created", { detail: data.entry }));
+        showStatus(`自動で記録しました(最大${Math.round(maxLevelDb)}dB相当・${Math.round(durationSeconds)}秒)。みはりモードは続けています。`);
+      } catch {
+        showStatus("通信に失敗しました(次の検知を待ちます)。");
+      }
+    }
+
+    function handleLeq(leq: number) {
+      const threshold = getThreshold();
+      if (leq >= threshold) {
+        belowThresholdCount = 0;
+        if (!eventActive) {
+          eventActive = true;
+          eventSustainedSeconds = 0;
+          eventMaxDb = leq;
+        } else {
+          eventSustainedSeconds += 1;
+          eventMaxDb = Math.max(eventMaxDb, leq);
+        }
+        return;
+      }
+      if (!eventActive) return;
+      belowThresholdCount += 1;
+      if (belowThresholdCount < EVENT_CLOSE_GRACE_SECONDS) return;
+      const durationThreshold = getDurationThreshold();
+      if (eventSustainedSeconds >= durationThreshold) {
+        void submitWatchEntry(eventSustainedSeconds, eventMaxDb);
+      }
+      eventActive = false;
+      eventSustainedSeconds = 0;
+      eventMaxDb = -Infinity;
+      belowThresholdCount = 0;
+    }
+
+    function flushSecond() {
+      if (sampleBuffer.length === 0) return;
+      const sumPower = sampleBuffer.reduce((acc, db) => acc + Math.pow(10, db / 10), 0);
+      const leq = 10 * Math.log10(sumPower / sampleBuffer.length);
+      sampleBuffer = [];
+      handleLeq(leq);
+    }
+
+    function sampleTick() {
+      if (!analyser || !timeBuf) return;
+      analyser.getFloatTimeDomainData(timeBuf);
+      let sumSquares = 0;
+      for (let i = 0; i < timeBuf.length; i++) sumSquares += timeBuf[i] * timeBuf[i];
+      const meanSquare = sumSquares / timeBuf.length;
+      lastRawDb = 10 * Math.log10(meanSquare + 1e-12) + 94;
+      const db = lastRawDb + calibrationOffset;
+      sampleBuffer.push(db);
+      updateMeter(db);
+      const now = performance.now();
+      if (now - lastFlushAt >= 1000) {
+        lastFlushAt = now;
+        flushSecond();
+      }
+    }
+
+    async function acquireWakeLock() {
+      try {
+        const nav = navigator as Navigator & { wakeLock?: { request(type: "screen"): Promise<{ release: () => Promise<void> }> } };
+        wakeLock = (await nav.wakeLock?.request("screen")) ?? null;
+      } catch {
+        // 取得できなくても、みはりモード自体は続行する(あくまで補助)。
+        wakeLock = null;
+      }
+    }
+
+    async function startWatch() {
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+        });
+      } catch {
+        showStatus("マイクの使用が許可されませんでした。");
+        return;
+      }
+
+      mediaStream = stream;
+      const ctx = new AudioContext();
+      audioContext = ctx;
+      let node: AudioNode = ctx.createMediaStreamSource(stream);
+      for (const [type, frequency] of BIQUAD_STAGES) {
+        const filter = ctx.createBiquadFilter();
+        filter.type = type;
+        filter.frequency.value = frequency;
+        filter.Q.value = 0.7071;
+        node.connect(filter);
+        node = filter;
+      }
+      const analyserNode = ctx.createAnalyser();
+      analyserNode.fftSize = 2048;
+      node.connect(analyserNode);
+      analyser = analyserNode;
+      timeBuf = new Float32Array(analyserNode.fftSize);
+
+      sampleBuffer = [];
+      lastFlushAt = performance.now();
+      eventActive = false;
+      eventMaxDb = -Infinity;
+      eventSustainedSeconds = 0;
+      belowThresholdCount = 0;
+
+      monitoring = true;
+      tickHandle = window.setInterval(sampleTick, SAMPLE_INTERVAL_MS);
+      void acquireWakeLock();
+      if (toggleButton) toggleButton.textContent = "みはりモードを停止";
+      showStatus("みはりモード、動作中です。");
+    }
+
+    function stopWatch(statusMessage?: string) {
+      if (!toggleButton) return;
+      monitoring = false;
+      if (tickHandle !== null) {
+        clearInterval(tickHandle);
+        tickHandle = null;
+      }
+      mediaStream?.getTracks().forEach((track) => track.stop());
+      mediaStream = null;
+      void audioContext?.close();
+      audioContext = null;
+      analyser = null;
+      timeBuf = null;
+      if (wakeLock) {
+        void wakeLock.release().catch(() => {});
+        wakeLock = null;
+      }
+      eventActive = false;
+      eventMaxDb = -Infinity;
+      eventSustainedSeconds = 0;
+      belowThresholdCount = 0;
+      toggleButton.textContent = "みはりモードを開始";
+      showStatus(statusMessage ?? "みはりモードを停止しました。");
+      resetMeter();
+    }
+
+    toggleButton.addEventListener("click", () => {
+      if (monitoring) stopWatch();
+      else void startWatch();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && monitoring) {
+        stopWatch("画面を離れたため、みはりモードを停止しました。再開するには「開始」を押してください。");
+      }
+    });
+
+    calibrationApply?.addEventListener("click", () => {
+      if (!monitoring) {
+        showCalibrationStatus("「開始」を押してから調整してください。");
+        return;
+      }
+      const referenceValue = Number(referenceInput?.value);
+      if (!Number.isFinite(referenceValue)) {
+        showCalibrationStatus("実測値を入力してください。");
+        return;
+      }
+      calibrationOffset = referenceValue - lastRawDb;
+      try {
+        localStorage.setItem(CALIBRATION_STORAGE_KEY, String(calibrationOffset));
+      } catch {
+        // 保存できなくても、このページを開いている間の補正自体は有効。
+      }
+      showCalibrationStatus(`補正を保存しました(${calibrationOffset >= 0 ? "+" : ""}${calibrationOffset.toFixed(1)}dB)。この端末のブラウザに記憶されます。`);
+    });
+
+    calibrationReset?.addEventListener("click", () => {
+      calibrationOffset = 0;
+      try {
+        localStorage.removeItem(CALIBRATION_STORAGE_KEY);
+      } catch {
+        // 読めない場合も、今回の表示上はリセット済みとして扱う。
+      }
+      showCalibrationStatus("補正をリセットしました。");
+    });
+  });
+</script>

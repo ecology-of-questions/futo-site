@@ -20,6 +20,14 @@
  * ようにした。`prefectureCoords`(都道府県庁所在地のおおよその緯度経度)
  * は、簡易な位置図(SVGにドットを打つだけで、海岸線などの地図の形は
  * 描かない)を作るための近似値。正確な行政区画の形状データではない。
+ *
+ * 【みはりモード(自動検知、2026-11-13、Decision Log 0221)を追加】
+ * プロジェクトオーナー自身が試作したClaude Artifactの「みはりモード」
+ * (マイクで測った音の大きさが、設定した大きさ以上に設定した秒数以上
+ * 続いたときだけ自動で1件記録する機能)を本番に反映した。`source`で
+ * 手動記録('manual')と区別する。音声そのものは録音・送信しない。
+ * 送信されるのは継続秒数(`durationSeconds`)・最大の大きさ
+ * (`maxLevelDb`、dB相当の数値)のみ。
  * ------------------------------------------------------------
  */
 
@@ -37,6 +45,14 @@ export type SkyLogWeather = "sun" | "cloud" | "rain";
 export type SkyLogPlace = "indoor" | "outdoor";
 export type SkyLogCount = 1 | 2 | 3;
 
+/** 記録の種別。'manual'は手動記録、'watch'はみはりモードによる自動検知。 */
+export type SkyLogSource = "manual" | "watch";
+
+export const sourceLabels: Record<SkyLogSource, string> = {
+  manual: "手動",
+  watch: "みはりモード",
+};
+
 /** サーバー(worker/index.ts)に保存されている公開記録。時刻はサーバーの
     受信時刻(`createdAt`)のみで、投稿者が指定・修正することはできない。 */
 export interface SkyLogEntry {
@@ -49,6 +65,9 @@ export interface SkyLogEntry {
   note?: string;
   prefecture?: string;
   municipality?: string;
+  source?: SkyLogSource;
+  durationSeconds?: number;
+  maxLevelDb?: number;
   createdAt: string;
 }
 

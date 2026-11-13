@@ -317,6 +317,16 @@ const MAX_NOTE_LENGTH = 300;
 const SORA_LOG_RATE_LIMIT_WINDOW_SECONDS = 15;
 const SORA_LOG_RATE_LIMIT_DAILY_MAX = 100;
 
+// 「みはりモード」(自動検知、source='watch'、2026-11-13、Decision
+// Log 0221)専用の制限。実際の航空機の通過が数秒〜数十秒おきに連続する
+// ことがあるため、手動記録と同じ15秒クールダウンは課さない。その代わり、
+// 誤作動・暴走時に記録が無限に積み上がらないよう、手動記録とは別枠の
+// 1日上限(ip_hash × source='watch'で数える)のみを設ける。
+const SORA_LOG_WATCH_DAILY_MAX = 200;
+const SORA_LOG_SOURCES = new Set(["manual", "watch"]);
+const MAX_DURATION_SECONDS = 600;
+const MAX_LEVEL_DB = 140;
+
 interface SoraLogRow {
   id: string;
   kind: string;
@@ -327,6 +337,9 @@ interface SoraLogRow {
   note: string | null;
   prefecture: string | null;
   municipality: string | null;
+  source: string;
+  duration_seconds: number | null;
+  max_level_db: number | null;
   created_at: string;
 }
 
@@ -340,6 +353,9 @@ interface PublicSoraLogEntry {
   note?: string;
   prefecture?: string;
   municipality?: string;
+  source: string;
+  durationSeconds?: number;
+  maxLevelDb?: number;
   createdAt: string;
 }
 
@@ -354,13 +370,16 @@ function toPublicSoraLogEntry(row: SoraLogRow): PublicSoraLogEntry {
     ...(row.note ? { note: row.note } : {}),
     ...(row.prefecture ? { prefecture: row.prefecture } : {}),
     ...(row.municipality ? { municipality: row.municipality } : {}),
+    source: row.source,
+    ...(row.duration_seconds !== null ? { durationSeconds: row.duration_seconds } : {}),
+    ...(row.max_level_db !== null ? { maxLevelDb: row.max_level_db } : {}),
     createdAt: row.created_at,
   };
 }
 
 async function handleGetSoraLogEntries(env: Env): Promise<Response> {
   const { results } = await env.DB.prepare(
-    "SELECT id, kind, loudness, weather, place, count, note, prefecture, municipality, created_at FROM sora_log_entries WHERE status = 'visible' ORDER BY created_at DESC LIMIT 500",
+    "SELECT id, kind, loudness, weather, place, count, note, prefecture, municipality, source, duration_seconds, max_level_db, created_at FROM sora_log_entries WHERE status = 'visible' ORDER BY created_at DESC LIMIT 500",
   ).all<SoraLogRow>();
 
   return json({ entries: results.map(toPublicSoraLogEntry) });
@@ -436,6 +455,31 @@ async function handlePostSoraLogEntries(request: Request, env: Env): Promise<Res
     municipality = payload.municipality;
   }
 
+  // みはりモード(自動検知)用の項目(2026-11-13、Decision Log 0221)。
+  // `source`省略時は既存どおり'manual'(手動記録)として扱う。
+  const source = typeof payload.source === "string" && payload.source !== "" ? payload.source : "manual";
+  if (!SORA_LOG_SOURCES.has(source)) {
+    return json({ error: "source must be one of manual, watch" }, 400);
+  }
+
+  let durationSeconds: number | null = null;
+  if (payload.durationSeconds !== undefined && payload.durationSeconds !== null) {
+    const parsed = Number(payload.durationSeconds);
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_DURATION_SECONDS) {
+      return json({ error: "invalid durationSeconds" }, 400);
+    }
+    durationSeconds = parsed;
+  }
+
+  let maxLevelDb: number | null = null;
+  if (payload.maxLevelDb !== undefined && payload.maxLevelDb !== null) {
+    const parsed = Number(payload.maxLevelDb);
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > MAX_LEVEL_DB) {
+      return json({ error: "invalid maxLevelDb" }, 400);
+    }
+    maxLevelDb = parsed;
+  }
+
   const ipHashSecret = env.IP_HASH_SECRET;
   if (!ipHashSecret) {
     return json({ error: "server misconfigured" }, 500);
@@ -444,35 +488,65 @@ async function handlePostSoraLogEntries(request: Request, env: Env): Promise<Res
   const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
   const ipHash = await hashIp(ip, ipHashSecret);
 
-  const recentPost = await env.DB.prepare(
-    `SELECT id FROM sora_log_entries WHERE ip_hash = ?1 AND unixepoch(created_at) > unixepoch('now') - ?2 LIMIT 1`,
-  )
-    .bind(ipHash, SORA_LOG_RATE_LIMIT_WINDOW_SECONDS)
-    .first();
-  if (recentPost) {
-    return json({ error: "please wait a moment before posting again" }, 429);
-  }
+  // 手動記録とみはりモード記録は、別枠の連投制限を課す(Decision Log
+  // 0221)。みはりモードは航空機の通過が短い間隔で連続することがある
+  // ため、クールダウンは課さず1日あたりの上限のみで暴走を防ぐ。
+  if (source === "manual") {
+    const recentPost = await env.DB.prepare(
+      `SELECT id FROM sora_log_entries WHERE ip_hash = ?1 AND source = 'manual' AND unixepoch(created_at) > unixepoch('now') - ?2 LIMIT 1`,
+    )
+      .bind(ipHash, SORA_LOG_RATE_LIMIT_WINDOW_SECONDS)
+      .first();
+    if (recentPost) {
+      return json({ error: "please wait a moment before posting again" }, 429);
+    }
 
-  const dailyCount = await env.DB.prepare(
-    `SELECT COUNT(*) as count FROM sora_log_entries WHERE ip_hash = ?1 AND unixepoch(created_at) > unixepoch('now') - ?2`,
-  )
-    .bind(ipHash, RATE_LIMIT_DAILY_WINDOW_SECONDS)
-    .first<{ count: number }>();
-  if ((dailyCount?.count ?? 0) >= SORA_LOG_RATE_LIMIT_DAILY_MAX) {
-    return json({ error: "daily post limit reached" }, 429);
+    const dailyCount = await env.DB.prepare(
+      `SELECT COUNT(*) as count FROM sora_log_entries WHERE ip_hash = ?1 AND source = 'manual' AND unixepoch(created_at) > unixepoch('now') - ?2`,
+    )
+      .bind(ipHash, RATE_LIMIT_DAILY_WINDOW_SECONDS)
+      .first<{ count: number }>();
+    if ((dailyCount?.count ?? 0) >= SORA_LOG_RATE_LIMIT_DAILY_MAX) {
+      return json({ error: "daily post limit reached" }, 429);
+    }
+  } else {
+    const dailyWatchCount = await env.DB.prepare(
+      `SELECT COUNT(*) as count FROM sora_log_entries WHERE ip_hash = ?1 AND source = 'watch' AND unixepoch(created_at) > unixepoch('now') - ?2`,
+    )
+      .bind(ipHash, RATE_LIMIT_DAILY_WINDOW_SECONDS)
+      .first<{ count: number }>();
+    if ((dailyWatchCount?.count ?? 0) >= SORA_LOG_WATCH_DAILY_MAX) {
+      return json({ error: "daily watch-mode post limit reached" }, 429);
+    }
   }
 
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString();
 
   await env.DB.prepare(
-    "INSERT INTO sora_log_entries (id, kind, loudness, weather, place, count, note, prefecture, municipality, created_at, status, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'visible', ?11)",
+    "INSERT INTO sora_log_entries (id, kind, loudness, weather, place, count, note, prefecture, municipality, source, duration_seconds, max_level_db, created_at, status, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, 'visible', ?14)",
   )
-    .bind(id, kind, loudness, weather, place, count, note, prefecture, municipality, createdAt, ipHash)
+    .bind(id, kind, loudness, weather, place, count, note, prefecture, municipality, source, durationSeconds, maxLevelDb, createdAt, ipHash)
     .run();
 
   return json(
-    { entry: toPublicSoraLogEntry({ id, kind, loudness, weather, place, count, note, prefecture, municipality, created_at: createdAt }) },
+    {
+      entry: toPublicSoraLogEntry({
+        id,
+        kind,
+        loudness,
+        weather,
+        place,
+        count,
+        note,
+        prefecture,
+        municipality,
+        source,
+        duration_seconds: durationSeconds,
+        max_level_db: maxLevelDb,
+        created_at: createdAt,
+      }),
+    },
     201,
   );
 }
