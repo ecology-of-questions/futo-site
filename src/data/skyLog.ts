@@ -48,6 +48,7 @@ export interface SkyLogEntry {
   count?: SkyLogCount;
   note?: string;
   prefecture?: string;
+  municipality?: string;
   createdAt: string;
 }
 

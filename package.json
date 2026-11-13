@@ -18,7 +18,10 @@
     "d1:migrate:production:0002": "wrangler d1 execute futo-lab-notebooks-production --remote --file=./migrations/0002_sora_log_entries.sql",
     "d1:migrate:local:0003": "wrangler d1 execute futo-lab-notebooks-production --local --file=./migrations/0003_sora_log_prefecture.sql",
     "d1:migrate:preview:0003": "wrangler d1 execute futo-lab-notebooks-preview --env preview --remote --file=./migrations/0003_sora_log_prefecture.sql",
-    "d1:migrate:production:0003": "wrangler d1 execute futo-lab-notebooks-production --remote --file=./migrations/0003_sora_log_prefecture.sql"
+    "d1:migrate:production:0003": "wrangler d1 execute futo-lab-notebooks-production --remote --file=./migrations/0003_sora_log_prefecture.sql",
+    "d1:migrate:local:0004": "wrangler d1 execute futo-lab-notebooks-production --local --file=./migrations/0004_sora_log_municipality.sql",
+    "d1:migrate:preview:0004": "wrangler d1 execute futo-lab-notebooks-preview --env preview --remote --file=./migrations/0004_sora_log_municipality.sql",
+    "d1:migrate:production:0004": "wrangler d1 execute futo-lab-notebooks-production --remote --file=./migrations/0004_sora_log_municipality.sql"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

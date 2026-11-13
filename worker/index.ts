@@ -34,8 +34,17 @@
  * 鍵にしたHMAC-SHA256でハッシュ化してから保存する。`IP_HASH_SECRET`が
  * 設定されていない場合は、弱いハッシュにフォールバックせず500を返す
  * (fail closed)。
+ *
+ * 【市区町村の検証用データ(2026-11-13、Decision Log 0220)】
+ * `../public/municipalities.json`(Geolonia住所データ、国土交通省
+ * 「位置参照情報」ベース、CC BY 4.0、`public/`にも同じファイルを置き
+ * クライアント側のUIからも参照する、二重管理を避けるため同一ファイルを
+ * 両方から参照している)を、都道府県ごとの市区町村名の正規リストとして
+ * importし、そらのようすの記録APIが受け付けてよい市区町村名かどうかの
+ * 検証に使う(自由入力を許さず、実在する市区町村名のみを受け付ける)。
  * ------------------------------------------------------------
  */
+import municipalitiesByPrefecture from "../public/municipalities.json";
 
 // --- Cloudflare Workers / D1 の最小限の型宣言 -------------------------
 interface D1Result<T = unknown> {
@@ -317,6 +326,7 @@ interface SoraLogRow {
   count: number | null;
   note: string | null;
   prefecture: string | null;
+  municipality: string | null;
   created_at: string;
 }
 
@@ -329,6 +339,7 @@ interface PublicSoraLogEntry {
   count?: number;
   note?: string;
   prefecture?: string;
+  municipality?: string;
   createdAt: string;
 }
 
@@ -342,13 +353,14 @@ function toPublicSoraLogEntry(row: SoraLogRow): PublicSoraLogEntry {
     ...(row.count ? { count: row.count } : {}),
     ...(row.note ? { note: row.note } : {}),
     ...(row.prefecture ? { prefecture: row.prefecture } : {}),
+    ...(row.municipality ? { municipality: row.municipality } : {}),
     createdAt: row.created_at,
   };
 }
 
 async function handleGetSoraLogEntries(env: Env): Promise<Response> {
   const { results } = await env.DB.prepare(
-    "SELECT id, kind, loudness, weather, place, count, note, prefecture, created_at FROM sora_log_entries WHERE status = 'visible' ORDER BY created_at DESC LIMIT 500",
+    "SELECT id, kind, loudness, weather, place, count, note, prefecture, municipality, created_at FROM sora_log_entries WHERE status = 'visible' ORDER BY created_at DESC LIMIT 500",
   ).all<SoraLogRow>();
 
   return json({ entries: results.map(toPublicSoraLogEntry) });
@@ -413,6 +425,17 @@ async function handlePostSoraLogEntries(request: Request, env: Env): Promise<Res
     prefecture = payload.prefecture;
   }
 
+  // 市区町村は、選ばれた都道府県の中に実在する名称のときのみ受け付ける
+  // (自由入力を許さない、Decision Log 0219・0220)。都道府県が未選択の
+  // まま市区町村だけを送ることは認めない。
+  let municipality: string | null = null;
+  if (typeof payload.municipality === "string" && payload.municipality !== "") {
+    const candidates = prefecture ? (municipalitiesByPrefecture as Record<string, { name: string }[]>)[prefecture] : undefined;
+    const valid = candidates?.some((m) => m.name === payload.municipality) ?? false;
+    if (!valid) return json({ error: "invalid municipality" }, 400);
+    municipality = payload.municipality;
+  }
+
   const ipHashSecret = env.IP_HASH_SECRET;
   if (!ipHashSecret) {
     return json({ error: "server misconfigured" }, 500);
@@ -443,13 +466,13 @@ async function handlePostSoraLogEntries(request: Request, env: Env): Promise<Res
   const createdAt = new Date().toISOString();
 
   await env.DB.prepare(
-    "INSERT INTO sora_log_entries (id, kind, loudness, weather, place, count, note, prefecture, created_at, status, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'visible', ?10)",
+    "INSERT INTO sora_log_entries (id, kind, loudness, weather, place, count, note, prefecture, municipality, created_at, status, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, 'visible', ?11)",
   )
-    .bind(id, kind, loudness, weather, place, count, note, prefecture, createdAt, ipHash)
+    .bind(id, kind, loudness, weather, place, count, note, prefecture, municipality, createdAt, ipHash)
     .run();
 
   return json(
-    { entry: toPublicSoraLogEntry({ id, kind, loudness, weather, place, count, note, prefecture, created_at: createdAt }) },
+    { entry: toPublicSoraLogEntry({ id, kind, loudness, weather, place, count, note, prefecture, municipality, created_at: createdAt }) },
     201,
   );
 }

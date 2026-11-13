@@ -190,6 +190,68 @@
   font-size: var(--fs-sm);
 }
 
+.combobox {
+  position: relative;
+  margin-bottom: var(--space-2);
+}
+
+.municipalityInput {
+  display: block;
+  width: 100%;
+  padding: 0.5em 0.6em;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+}
+
+.municipalityInput:disabled {
+  background: var(--color-accent-beige);
+  color: var(--color-ink-muted);
+}
+
+.municipalityOptions {
+  /* 絶対配置で下の項目に重ねない(重なると、候補を閉じる前のクリックが
+     候補側に奪われてしまう)。通常のフローに置き、表示時は下の項目を
+     押し下げる。 */
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+
+.municipalityOptions li {
+  border-bottom: 1px solid var(--color-accent-beige);
+}
+
+.municipalityOptions li:last-child {
+  border-bottom: 0;
+}
+
+.municipalityOptions button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5em 0.7em;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.municipalityOptions button:hover,
+.municipalityOptions button:focus-visible {
+  background: var(--color-paper);
+}
+
 .noteInput {
   width: 100%;
   margin-bottom: var(--space-2);

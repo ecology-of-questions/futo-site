@@ -132,6 +132,20 @@ const countEntries = Object.entries(countLabels) as [string, string][];
           <option value={pref}>{pref}</option>
         ))}
       </select>
+
+      <label class={styles.selectLabel} for="sora-log-municipality">市区町村(都道府県を選ぶと入力できます)</label>
+      <div class={styles.combobox}>
+        <input
+          type="text"
+          id="sora-log-municipality"
+          class={styles.municipalityInput}
+          data-municipality-input
+          placeholder="ひらがなや漢字で探す"
+          autocomplete="off"
+          disabled
+        />
+        <ul class={styles.municipalityOptions} data-municipality-options hidden></ul>
+      </div>
       <textarea class={styles.noteInput} data-note-input placeholder="メモ(任意)" rows={2}></textarea>
 
       <button type="button" class={styles.logButton} data-log-button>記録する</button>
@@ -193,6 +207,7 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     count?: number;
     note?: string;
     prefecture?: string;
+    municipality?: string;
     createdAt: string;
   }
 
@@ -241,6 +256,8 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     const loggerStatus = root.querySelector<HTMLElement>("[data-logger-status]");
     const noteInput = root.querySelector<HTMLTextAreaElement>("[data-note-input]");
     const prefectureSelect = root.querySelector<HTMLSelectElement>("[data-prefecture-select]");
+    const municipalityInput = root.querySelector<HTMLInputElement>("[data-municipality-input]");
+    const municipalityOptions = root.querySelector<HTMLElement>("[data-municipality-options]");
     const mapLoading = root.querySelector<HTMLElement>("[data-map-loading]");
     const mapChart = root.querySelector<HTMLElement>("[data-map-chart]");
     const mapCaption = root.querySelector<HTMLElement>("[data-map-caption]");
@@ -286,6 +303,96 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     const placeGroup = exclusiveChipGroup("[data-place-choice]", "placeChoice");
     const countGroup = exclusiveChipGroup("[data-count-choice]", "countChoice");
 
+    // --- 市区町村: 選択式のコンボボックス(自由入力を認めない、Decision Log 0219・0220) ---
+    interface MunicipalityOption {
+      name: string;
+      kana: string;
+    }
+    let municipalitiesByPrefecture: Record<string, MunicipalityOption[]> | null = null;
+    let committedMunicipality: string | null = null;
+
+    function kataToHira(value: string): string {
+      return value.replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+    }
+
+    function hideMunicipalityOptions() {
+      if (!municipalityOptions) return;
+      municipalityOptions.hidden = true;
+      municipalityOptions.innerHTML = "";
+    }
+
+    function renderMunicipalityOptions(matches: MunicipalityOption[]) {
+      if (!municipalityOptions) return;
+      municipalityOptions.innerHTML = "";
+      if (matches.length === 0) {
+        municipalityOptions.hidden = true;
+        return;
+      }
+      matches.slice(0, 20).forEach((m) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = m.name;
+        btn.addEventListener("mousedown", (event) => {
+          // blurより先にclickが走るよう、pointerdown相当のmousedownでpreventDefaultする
+          event.preventDefault();
+        });
+        btn.addEventListener("click", () => {
+          if (municipalityInput) municipalityInput.value = m.name;
+          committedMunicipality = m.name;
+          hideMunicipalityOptions();
+        });
+        li.appendChild(btn);
+        municipalityOptions.appendChild(li);
+      });
+      municipalityOptions.hidden = false;
+    }
+
+    function updateMunicipalityAvailability() {
+      if (!municipalityInput || !prefectureSelect) return;
+      municipalityInput.disabled = !prefectureSelect.value || !municipalitiesByPrefecture;
+    }
+
+    async function loadMunicipalities() {
+      try {
+        const response = await fetch("/municipalities.json");
+        if (!response.ok) return;
+        municipalitiesByPrefecture = (await response.json()) as Record<string, MunicipalityOption[]>;
+      } catch {
+        // 読み込めなくても都道府県の記録自体は妨げない(市区町村欄が使えないだけ)
+      } finally {
+        updateMunicipalityAvailability();
+      }
+    }
+
+    prefectureSelect?.addEventListener("change", () => {
+      committedMunicipality = null;
+      if (municipalityInput) municipalityInput.value = "";
+      hideMunicipalityOptions();
+      updateMunicipalityAvailability();
+    });
+
+    municipalityInput?.addEventListener("input", () => {
+      committedMunicipality = null;
+      const rawQuery = municipalityInput.value.trim();
+      if (!rawQuery || !prefectureSelect?.value || !municipalitiesByPrefecture) {
+        hideMunicipalityOptions();
+        return;
+      }
+      const list = municipalitiesByPrefecture[prefectureSelect.value] ?? [];
+      const hiraQuery = kataToHira(rawQuery);
+      const matches = list.filter((m) => m.name.includes(rawQuery) || m.kana.includes(hiraQuery));
+      renderMunicipalityOptions(matches);
+    });
+
+    municipalityInput?.addEventListener("blur", () => {
+      // 候補ボタンのmousedownでpreventDefaultしているため、候補クリック時は
+      // blurが発生しない。ここに来るのは候補以外をクリック/フォーカス移動
+      // したときだけなので、遅延せずすぐ閉じてよい。
+      hideMunicipalityOptions();
+      if (!committedMunicipality && municipalityInput) municipalityInput.value = "";
+    });
+
     function addSkyMarker(createdAt: string, loudness: string) {
       if (!skyMarkers || !markerTemplate) return;
       const clone = markerTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
@@ -297,11 +404,12 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     }
 
     function metaLine(entry: ApiEntry): string {
+      const area = [entry.prefecture, entry.municipality].filter(Boolean).join("");
       const parts = [
         entry.weather ? WEATHER_LABELS[entry.weather] : null,
         entry.place ? PLACE_LABELS[entry.place] : null,
         entry.count ? COUNT_LABELS[String(entry.count)] : null,
-        entry.prefecture ?? null,
+        area || null,
       ].filter((v): v is string => Boolean(v));
       return parts.join("・");
     }
@@ -534,6 +642,7 @@ const countEntries = Object.entries(countLabels) as [string, string][];
             ...(place ? { place: place.value } : {}),
             ...(count ? { count: Number(count.value) } : {}),
             ...(prefecture ? { prefecture } : {}),
+            ...(committedMunicipality ? { municipality: committedMunicipality } : {}),
             ...(note ? { note } : {}),
           }),
         });
@@ -560,5 +669,6 @@ const countEntries = Object.entries(countLabels) as [string, string][];
     });
 
     loadEntries();
+    loadMunicipalities();
   });
 </script>
