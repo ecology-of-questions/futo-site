@@ -93,7 +93,15 @@ Released from Parking Lot
   production), 0217–0219 (UI iteration on the two entry points), and
   0220 (prefecture + selection-only municipality + map). No individual
   production notes are published yet (`src/data/productionNotes.ts`
-  is an empty array).
+  is an empty array). A third tab, みはりモード (`SkyWatch.astro`,
+  2026-11-13, Decision Log 0221), ports a watch-mode feature the
+  Project Owner prototyped independently in a Claude Artifact: while
+  the page stays open and visible, it uses the microphone to turn
+  loudness into a number entirely on-device (never recording or
+  transmitting audio) and auto-creates one record when the level
+  stays above a configurable threshold for a configurable duration.
+  It stops the moment the tab is hidden — foreground-only, not a
+  background feature.
 
 If a task in this list comes up, record the reasoning in Decision Log
 and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
