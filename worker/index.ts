@@ -292,6 +292,15 @@ const SORA_LOG_LOUDNESS = new Set(["heard", "loud", "very-loud"]);
 const SORA_LOG_WEATHER = new Set(["sun", "cloud", "rain"]);
 const SORA_LOG_PLACE = new Set(["indoor", "outdoor"]);
 const SORA_LOG_COUNT = new Set([1, 2, 3]);
+const SORA_LOG_PREFECTURES = new Set([
+  "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+  "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+  "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県",
+  "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県",
+  "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+  "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県",
+  "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県",
+]);
 const MAX_NOTE_LENGTH = 300;
 
 // 複数回の観測を立て続けに記録することがある用途のため、交換ノートの
@@ -307,6 +316,7 @@ interface SoraLogRow {
   place: string | null;
   count: number | null;
   note: string | null;
+  prefecture: string | null;
   created_at: string;
 }
 
@@ -318,6 +328,7 @@ interface PublicSoraLogEntry {
   place?: string;
   count?: number;
   note?: string;
+  prefecture?: string;
   createdAt: string;
 }
 
@@ -330,13 +341,14 @@ function toPublicSoraLogEntry(row: SoraLogRow): PublicSoraLogEntry {
     ...(row.place ? { place: row.place } : {}),
     ...(row.count ? { count: row.count } : {}),
     ...(row.note ? { note: row.note } : {}),
+    ...(row.prefecture ? { prefecture: row.prefecture } : {}),
     createdAt: row.created_at,
   };
 }
 
 async function handleGetSoraLogEntries(env: Env): Promise<Response> {
   const { results } = await env.DB.prepare(
-    "SELECT id, kind, loudness, weather, place, count, note, created_at FROM sora_log_entries WHERE status = 'visible' ORDER BY created_at DESC LIMIT 500",
+    "SELECT id, kind, loudness, weather, place, count, note, prefecture, created_at FROM sora_log_entries WHERE status = 'visible' ORDER BY created_at DESC LIMIT 500",
   ).all<SoraLogRow>();
 
   return json({ entries: results.map(toPublicSoraLogEntry) });
@@ -395,6 +407,12 @@ async function handlePostSoraLogEntries(request: Request, env: Env): Promise<Res
     note = trimmed;
   }
 
+  let prefecture: string | null = null;
+  if (typeof payload.prefecture === "string" && payload.prefecture !== "") {
+    if (!SORA_LOG_PREFECTURES.has(payload.prefecture)) return json({ error: "invalid prefecture" }, 400);
+    prefecture = payload.prefecture;
+  }
+
   const ipHashSecret = env.IP_HASH_SECRET;
   if (!ipHashSecret) {
     return json({ error: "server misconfigured" }, 500);
@@ -425,13 +443,13 @@ async function handlePostSoraLogEntries(request: Request, env: Env): Promise<Res
   const createdAt = new Date().toISOString();
 
   await env.DB.prepare(
-    "INSERT INTO sora_log_entries (id, kind, loudness, weather, place, count, note, created_at, status, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 'visible', ?9)",
+    "INSERT INTO sora_log_entries (id, kind, loudness, weather, place, count, note, prefecture, created_at, status, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, 'visible', ?10)",
   )
-    .bind(id, kind, loudness, weather, place, count, note, createdAt, ipHash)
+    .bind(id, kind, loudness, weather, place, count, note, prefecture, createdAt, ipHash)
     .run();
 
   return json(
-    { entry: toPublicSoraLogEntry({ id, kind, loudness, weather, place, count, note, created_at: createdAt }) },
+    { entry: toPublicSoraLogEntry({ id, kind, loudness, weather, place, count, note, prefecture, created_at: createdAt }) },
     201,
   );
 }
