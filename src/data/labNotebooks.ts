@@ -46,6 +46,37 @@
  * (`LabNotebookList.astro`)はこの判定結果に応じてリンクの有無を
  * 切り替え、`[slug].astro`の`getStaticPaths`もこれでフィルタする
  * (中身の無いノートのページ自体を生成しない)。
+ *
+ * 【「頭上の記録」を追加、トップページの注目ノートに(2026-11-11)】
+ * プロジェクトオーナーの指示により、4冊目のノート「頭上の記録」
+ * (slug: zujo-no-kiroku)を追加した。自宅上空を飛ぶ飛行機・ヘリの音を
+ * 暮らしの観察として記録する道具の制作記録で、その制作過程を綴る
+ * 「制作ノート」連載を`/zujo/`に置く(まだ未実装、別タスクで追加)。
+ * 他の3冊と異なりGoogleスライドを使わないため、`slidesEmbedUrl`は
+ * 設定せず、代わりに`detailHref: "/zujo/"`で遷移先を明示している。
+ * Homeの注目セクション(`src/pages/index.astro`の`featured`)も、
+ * これまでの散歩譜(oto-no-michi)からこのノートに差し替えた。散歩譜
+ * 自体はこの一覧に残り、`/participate/oto-no-michi`からも引き続き
+ * 見られる(Homeで取り上げる1冊を変えただけで、削除ではない)。
+ *
+ * 【「頭上の記録」→「きょうの空」に改称、URLも変更(2026-11-11、
+ * まだmainにマージ前のため同日2件目)】プロジェクトオーナーの指示に
+ * より、表示名を「きょうの空」に変更した。このノートはまだ未公開
+ * (本PRでの新規追加、過去のURL・被リンクが存在しない)ため、散歩譜の
+ * 改称時(Decision Log 0182、slugは据え置き)とは異なり、今回は
+ * slug・URLも`zujo-no-kiroku`/`/zujo/`から`kyou-no-sora`/
+ * `/kyou-no-sora/`に合わせて変更した。制作ノート一覧も
+ * `src/pages/zujo/`から`src/pages/kyou-no-sora/`に移動している。
+ *
+ * 【「きょうの空」→「そらのようす」に改称、本番公開(2026-11-13)】
+ * プロジェクトオーナーが別途ドラフトした利用規約・プライバシーポリシー
+ * (そのものはfuto-siteの外、別プロジェクトの文書)がこのアプリを
+ * 「そらのようす」と呼んでいたため、futo-site側の表記をそちらに
+ * 合わせて統一した。あわせて、体験デモ(架空データ・保存されない)から
+ * 本番(Cloudflare Worker + D1に実際の記録を保存・公開)に切り替えた。
+ * slug・URLは今回もまだ未公開のため`kyou-no-sora`/`/kyou-no-sora/`から
+ * `sora-no-yousu`/`/sora-no-yousu/`に変更した。詳細はDecision Log 0216
+ * 参照。
  * ------------------------------------------------------------
  */
 import type { LabNotebook } from "@/types/labNotebook";
@@ -54,6 +85,20 @@ export const commonNotebookDescription =
   "このノートでは、つくっている途中の考えや試したことをひらいています。";
 
 export const labNotebooks: LabNotebook[] = [
+  {
+    slug: "sora-no-yousu",
+    category: "アプリ",
+    title: "そらのようす",
+    description: "頭上を飛ぶ飛行機やヘリの音を、暮らしの観察として記録する道具です。",
+    tone: "sky",
+    entries: [],
+    detailHref: "/sora-no-yousu/",
+    // Googleスライド本体の共有URL(コメント用リンクの遷移先、2026-11-14設定)。
+    // 「制作メモ」区画自体を表示するには、slidesEmbedUrl(Google側で
+    // 「ファイル→ウェブに公開→埋め込み」から発行する別形式のURL、
+    // oto-no-michiのslidesEmbedUrl参照)がまだ必要(未設定)。
+    slidesCommentUrl: "https://docs.google.com/presentation/d/1aFMRBlVGdvghk1YO3VQRkQGjQk-8Zp35hepFBmGTvHk/edit?usp=drivesdk",
+  },
   {
     slug: "oto-no-michi",
     category: "実験",
@@ -95,4 +140,24 @@ export const labNotebooks: LabNotebook[] = [
  */
 export function hasDetailPage(notebook: LabNotebook): boolean {
   return Boolean(notebook.slidesEmbedUrl);
+}
+
+/**
+ * Googleスライドの埋め込み用URL(「ウェブに公開」で取得したもの)に、
+ * 自動再生・ループを明示的に無効化するクエリを付加する。URLとして
+ * 解釈できない値は、壊れたiframeを作らないようnullを返す(呼び出し側で
+ * 区画自体を表示しない)。[slug].astro(散歩譜)・そらのようすのページ
+ * (/sora-no-yousu/)の両方から参照するため、ここに置いている
+ * (2026-09-17導入、2026-11-11に2箇所目の呼び出し元ができたため
+ * labNotebooks.tsに切り出した)。
+ */
+export function buildSlidesEmbedSrc(rawUrl: string): string | null {
+  try {
+    const url = new URL(rawUrl);
+    url.searchParams.set("start", "false");
+    url.searchParams.set("loop", "false");
+    return url.toString();
+  } catch {
+    return null;
+  }
 }

@@ -1,0 +1,93 @@
+---
+/**
+ * sora-no-yousu/index.astro (そらのようす — 記録ツール + 制作ノート一覧)
+ * ------------------------------------------------------------
+ * 役割: 「そらのようす」(実験室のノートの1つ、src/data/labNotebooks.ts
+ * の"sora-no-yousu"、旧名「きょうの空」「頭上の記録」)のページ。実際に
+ * 記録できるツール本体(`SkyLog`)と、その制作過程を綴る「制作ノート」の
+ * 一覧を1ページにまとめている。研究断面(/research)と同じ「一覧ページ+
+ * 番号つき詳細ページ」の構造を制作ノート部分に踏襲し、
+ * ResearchReviewListと同じ見た目のProductionNoteListで表示する。詳細
+ * ページ(/sora-no-yousu/01等)は、最初の回の本文が確定してから追加する。
+ *
+ * 制作ノートのデータは`src/data/productionNotes.ts`(現時点では空配列)
+ * を参照する。
+ *
+ * 実験室カードからの遷移先はこのページのまま(detailHref、Googleスライド
+ * の有無で判定する`/participate/[slug]`は使わない)。Googleスライドの
+ * 「制作メモ」区画は`notebook.slidesEmbedUrl`が設定されるまでは描画
+ * されない([slug].astroの散歩譜と同じ`buildSlidesEmbedSrc`を共有して
+ * 使う、壊れたiframeを作らない方針)。
+ *
+ * 【体験デモから本番へ(2026-11-13、Decision Log 0216)】`SkyLogDemo`
+ * (架空データ・保存されない体験デモ)を`SkyLog`(実際にCloudflare
+ * Worker + D1へ保存・公開される本番ツール)に差し替えた。あわせて、
+ * 「きょうの空」→「そらのようす」への改称(プロジェクトオーナーが
+ * 別途ドラフトした利用規約・プライバシーポリシーの呼び名に合わせた)、
+ * 利用上のお願い(利用規約ドラフトの一部を転載、法務確認前のため簡易版)
+ * を追加した。正式な利用規約(免責・準拠法等)は法務面の最終確認待ちの
+ * ため、このページには掲載していない。個人情報の取り扱いは`/privacy`
+ * に節を追加している。
+ * ------------------------------------------------------------
+ */
+import PageHeading from "@components/PageHeading.astro";
+import DefaultLayout from "@layouts/DefaultLayout.astro";
+import ResearchSection from "@components/ResearchSection.astro";
+import ArrowLink from "@components/ArrowLink.astro";
+import ProductionNoteList from "@components/ProductionNoteList.astro";
+import SkyLog from "@components/SkyLog.astro";
+import styles from "./index.module.css";
+import { productionNotes } from "@/data/productionNotes";
+import { labNotebooks, buildSlidesEmbedSrc } from "@/data/labNotebooks";
+
+const notebook = labNotebooks.find((n) => n.slug === "sora-no-yousu");
+const slidesEmbedSrc = notebook?.slidesEmbedUrl ? buildSlidesEmbedSrc(notebook.slidesEmbedUrl) : null;
+---
+
+<DefaultLayout title="そらのようす ｜ 公開研究室ふ、と" theme="editorial">
+  <ResearchSection ariaLabel="そらのようす" id="sora-no-yousu">
+    <a class={styles.back} href="/participate">← 実験室</a>
+    <PageHeading
+      label="APP"
+      title="そらのようす"
+      description="頭上を飛ぶ飛行機やヘリの音を、暮らしの観察として記録する道具です。記録は公開され、研究・報道・行政への要望など、目的を問わず利用できます。"
+    />
+
+    <section class={styles.toolSection} aria-labelledby="sora-no-yousu-tool-title">
+      <h2 id="sora-no-yousu-tool-title" class={styles.sectionHeading}>記録する</h2>
+      <SkyLog />
+    </section>
+
+    <section class={styles.noticeSection} aria-labelledby="sora-no-yousu-notice-title">
+      <h2 id="sora-no-yousu-notice-title" class={styles.sectionHeading}>ご利用にあたって</h2>
+      <ul class={styles.noticeList}>
+        <li>実際に自分で聞いた音だけを記録してください。</li>
+        <li>同じ音を何度も記録しないでください。</li>
+      </ul>
+      <p class={styles.noticeBody}>
+        集めた記録の集計は、参加者が自発的に送った内容をまとめたものであり、公的な測定値ではありません。正式な利用規約は現在調整中です。個人情報の取り扱いについては<a href="/privacy">個人情報の取り扱い</a>をご覧ください。お問い合わせは<a href="/contact">お問い合わせ</a>からお願いします。
+      </p>
+    </section>
+
+    {
+      slidesEmbedSrc && (
+        <section class={styles.slidesSection} aria-labelledby="sora-no-yousu-memo-title">
+          <h2 id="sora-no-yousu-memo-title" class={styles.sectionHeading}>制作メモ</h2>
+          <div class={styles.slidesEmbed}>
+            <iframe src={slidesEmbedSrc} title="そらのようすの制作メモ" loading="lazy" allowfullscreen />
+          </div>
+          {notebook?.slidesCommentUrl && (
+            <div class={styles.slidesComment}>
+              <ArrowLink href={notebook.slidesCommentUrl} label="この制作メモにコメントする" external />
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    <section class={styles.notesSection} aria-labelledby="sora-no-yousu-notes-title">
+      <h2 id="sora-no-yousu-notes-title" class={styles.sectionHeading}>制作ノート</h2>
+      <ProductionNoteList entries={[...productionNotes].reverse()} />
+    </section>
+  </ResearchSection>
+</DefaultLayout>

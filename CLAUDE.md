@@ -63,6 +63,45 @@ Released from Parking Lot
   of the top-page redesign. See Decision Log 0111.
 - 研究の本棚 (Bookshelf) — new content type, added 2026-09-10 as part
   of the same top-page redesign. See Decision Log 0111.
+- そらのようす 制作ノート (originally added 2026-11-11 as 頭上の記録,
+  renamed きょうの空 the same day, then renamed again to そらのようす
+  on 2026-11-13 to match the actual app's name in its own
+  terms-of-service/privacy draft — a side-project tool that records
+  aircraft/helicopter noise overhead as daily-life observation, and
+  publishes the aggregate as a public record usable for research,
+  journalism, administrative petitions, or litigation) — new content
+  type, added by explicit Project Owner request (ahead of beta
+  launch). Listing lives at `/sora-no-yousu/`; the notebook card lives
+  in 実験室 (`detailHref` on `LabNotebook`, since it doesn't use the
+  Google-Slides-based `/participate/[slug]` template). It also
+  replaced 散歩譜 as Home's featured 実験室 notebook (散歩譜 itself
+  was not removed). The page embeds a real (not demo) recording tool
+  (`SkyLog`) backed by a new Cloudflare D1 table + Worker API
+  (`/api/sora-log/entries`) — a second, explicitly-logged extension of
+  the scoped Cloudflare-dependency exception (see Architecture
+  section) — and, once a Google Slides URL is supplied, a 制作メモ
+  (production-memo) slides section. Entries carry an optional
+  prefecture (shown as a simple dot-position diagram, not a real
+  coastline map, on the 記録を見る tab) and an optional municipality
+  (selection-only, validated server-side against
+  `public/municipalities.json` — Geolonia's open address dataset,
+  CC BY 4.0 — never free text). `/privacy` carries an added section
+  for what this tool actually collects; a full 利用規約 is still
+  pending final review (interim usage notes only, on-page). See
+  Decision Log 0213 (original 頭上の記録 addition), 0214 (rename to
+  きょうの空 + demo/slides), 0216 (rename to そらのようす + demo →
+  production), 0217–0219 (UI iteration on the two entry points), and
+  0220 (prefecture + selection-only municipality + map). No individual
+  production notes are published yet (`src/data/productionNotes.ts`
+  is an empty array). A third tab, みはりモード (`SkyWatch.astro`,
+  2026-11-13, Decision Log 0221), ports a watch-mode feature the
+  Project Owner prototyped independently in a Claude Artifact: while
+  the page stays open and visible, it uses the microphone to turn
+  loudness into a number entirely on-device (never recording or
+  transmitting audio) and auto-creates one record when the level
+  stays above a configurable threshold for a configurable duration.
+  It stops the moment the tab is hidden — foreground-only, not a
+  background feature.
 
 If a task in this list comes up, record the reasoning in Decision Log
 and stop. Do not implement it. (Same list is kept in `PROJECT.md` for
@@ -97,6 +136,10 @@ human reference — keep both in sync when it changes.)
   `output: "static"`; every other page remains a portable static
   build served as static assets. Do not extend this Cloudflare
   dependency to other features without a new Decision Log entry.
+  **Second use of this exception (2026-11-13, Decision Log 0216):**
+  そらのようす's public noise-log records (`/api/sora-log/entries`,
+  same `worker/index.ts` + `migrations/`) reuse the same Worker + D1,
+  rather than introducing a second backend stack.
 
 ---
 

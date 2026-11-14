@@ -47,6 +47,12 @@
  * `<a>`ではなく`<div>`で同じ見た目(category/title/description)だけを
  * 表示し、CTA(`ctaLabel`の文字列+矢印)も出さない。詳細ページ自体が
  * 存在しない([slug].astro参照)ため、リンク切れを作らない。
+ *
+ * 【detailHrefによる遷移先の上書き(2026-11-11)】`notebook.detailHref`
+ * が設定されている場合、`hasDetailPage()`の判定(Googleスライドの
+ * 有無)に関わらずリンクにし、遷移先もそちらを使う。Googleスライドを
+ * 使わず別の場所(例: 「そらのようす」の`/sora-no-yousu/`)に本体を
+ * 持つノートのための分岐。
  * ------------------------------------------------------------
  */
 import HomeMotion from "./HomeMotion.astro";
@@ -78,13 +84,19 @@ const traces: Record<string, string> = {
   // 部分だけ、ごく淡い面(.overlap)が生まれる。線はその後も個別に
   // 続く。本・ページ・窓のような説明的図形にはしない。
   "research-fragments": `<svg viewBox="0 0 130 54" aria-hidden="true"><path class="overlap" d="M50 24 C 58 12 72 14 78 22 C 86 28 82 40 70 38 C 58 40 44 34 50 24 Z" /><path d="M8 44 C 40 28 70 42 122 16" /><path d="M8 16 C 42 38 68 16 122 40" /><path d="M8 32 C 46 6 62 50 122 24" /></svg>`,
+  // そらのようす(旧「きょうの空」「頭上の記録」): 上空を横切る緩い
+  // 軌跡(飛行機・ヘリの通過)と、それに気づいた瞬間を示す点、そこから
+  // 下へ向けて静かに広がる2つの弧(音が頭上から届く様子)。飛行機の形
+  // そのものは描かない(2026-11-11)。
+  "sora-no-yousu": `<svg viewBox="0 0 130 54" aria-hidden="true"><path d="M8 12 C 40 8 70 16 122 10" /><circle cx="70" cy="14" r="2" /><path d="M58 30 Q70 24 82 30" /><path d="M52 40 Q70 30 88 40" /></svg>`,
 };
 ---
 
 <ul class={styles.list}>
   {
     notebooks.map((notebook) => {
-      const linked = hasDetailPage(notebook);
+      const linked = hasDetailPage(notebook) || Boolean(notebook.detailHref);
+      const href = notebook.detailHref ?? `/participate/${notebook.slug}`;
       const body = (
         <>
           <p class={styles.label}>{notebook.category}</p>
@@ -102,7 +114,7 @@ const traces: Record<string, string> = {
       return (
         <li class={styles.item}>
           {linked ? (
-            <a class={styles.link} href={`/participate/${notebook.slug}`} aria-label={`「${notebook.title}」の${ctaLabel}`}>
+            <a class={styles.link} href={href} aria-label={`「${notebook.title}」の${ctaLabel}`}>
               {body}
             </a>
           ) : (

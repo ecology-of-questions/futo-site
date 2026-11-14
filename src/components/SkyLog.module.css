@@ -1,0 +1,415 @@
+/**
+ * SkyLog.module.css
+ * ------------------------------------------------------------
+ * 「そらのようす」記録ツールのスタイル(2026-11-13、Decision Log 0216で
+ * `SkyLogDemo.module.css`から改名・本番化)。空の色帯(`.hourSegment`の
+ * inline style、skyHourColors由来)のみ例外的にデータ由来の色を使い、
+ * それ以外の配色・書体はtokens.cssの既存トークンのみを使う。
+ * ------------------------------------------------------------
+ */
+
+.wrapper {
+  margin-top: var(--space-3);
+  max-width: 480px;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+
+.noscript {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.tab {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid var(--color-accent-beige);
+  background: var(--color-surface);
+  padding: 0.75em 0.5em;
+  border-radius: 10px;
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab[aria-selected="true"] {
+  background: var(--color-accent-blue);
+  color: var(--color-paper);
+  border-color: var(--color-accent-blue);
+}
+
+.panel {
+  min-width: 0;
+}
+
+.skyStrip {
+  position: relative;
+  height: 40px;
+}
+
+.skySegments {
+  display: flex;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-accent-beige);
+}
+
+.hourSegment {
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
+}
+
+.hourSegment[data-is-current] {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.skyMarkers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.skyMarker {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  border: 1.5px solid var(--color-paper);
+  transform: translate(-50%, -50%);
+}
+
+.skyMarker[data-loudness="loud"] {
+  width: 10px;
+  height: 10px;
+}
+
+.skyMarker[data-loudness="very-loud"] {
+  width: 13px;
+  height: 13px;
+}
+
+.skyNowMarker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  background: var(--color-accent-blue);
+  transform: translateX(-50%);
+}
+
+.skyCaption {
+  margin: var(--space-1) 0 var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.logger {
+  padding: var(--space-3);
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 12px;
+  background: var(--color-surface);
+  scroll-margin-top: var(--space-2);
+}
+
+.loggerLabel {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+.loggerSubLabel {
+  margin: var(--space-2) 0 var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+  border-top: 1px solid var(--color-accent-beige);
+  padding-top: var(--space-2);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.chip {
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 999px;
+  background: var(--color-paper);
+  color: var(--color-ink-muted);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  padding: 0.4em 0.9em;
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--color-accent-blue);
+  color: var(--color-ink);
+  font-weight: 700;
+  background: var(--color-paper);
+}
+
+.selectLabel {
+  display: block;
+  margin: 0 0 var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.prefectureSelect {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-2);
+  padding: 0.5em 0.6em;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+}
+
+.combobox {
+  position: relative;
+  margin-bottom: var(--space-2);
+}
+
+.municipalityInput {
+  display: block;
+  width: 100%;
+  padding: 0.5em 0.6em;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+}
+
+.municipalityInput:disabled {
+  background: var(--color-accent-beige);
+  color: var(--color-ink-muted);
+}
+
+.municipalityOptions {
+  /* 絶対配置で下の項目に重ねない(重なると、候補を閉じる前のクリックが
+     候補側に奪われてしまう)。通常のフローに置き、表示時は下の項目を
+     押し下げる。 */
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+
+.municipalityOptions li {
+  border-bottom: 1px solid var(--color-accent-beige);
+}
+
+.municipalityOptions li:last-child {
+  border-bottom: 0;
+}
+
+.municipalityOptions button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5em 0.7em;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.municipalityOptions button:hover,
+.municipalityOptions button:focus-visible {
+  background: var(--color-paper);
+}
+
+.noteInput {
+  width: 100%;
+  margin-bottom: var(--space-2);
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  resize: vertical;
+}
+
+.logButton {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-1);
+  padding: 0.75em 1em;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-accent-blue);
+  color: var(--color-paper);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logButton:disabled {
+  background: var(--color-accent-beige);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+.loggerStatus {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.loadingNotice {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entryList {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.entryRow {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-accent-beige);
+  font-size: var(--fs-sm);
+}
+
+.entryTime {
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.entryBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.entryMain {
+  color: var(--color-ink);
+}
+
+.entryMeta {
+  color: var(--color-ink-muted);
+  font-size: var(--fs-sm);
+}
+
+.entryNote {
+  color: var(--color-ink-muted);
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  margin: var(--space-3) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.mapSection {
+  margin-bottom: var(--space-3);
+}
+
+.mapTitle {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+.mapChart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.mapCaption {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.entriesSection {
+  scroll-margin-top: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.trendDetails {
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.trendSummary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--color-accent-blue);
+}
+
+.trendLead {
+  margin: var(--space-2) 0;
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+.trendChart {
+  margin-bottom: var(--space-2);
+}
+
+.trendChart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.caption {
+  margin-top: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.caption a {
+  color: var(--color-accent-blue);
+}

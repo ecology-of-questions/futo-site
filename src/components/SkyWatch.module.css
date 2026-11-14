@@ -1,0 +1,201 @@
+/**
+ * SkyWatch.module.css
+ * ------------------------------------------------------------
+ * 「みはりモード」(自動検知、2026-11-13、Decision Log 0221)のスタイル。
+ * SkyLog.module.cssと同じく、配色・書体・余白はすべてtokens.cssの
+ * 既存トークンのみを使う(独自の警告色・強調色は追加しない)。
+ * ------------------------------------------------------------
+ */
+
+.wrapper {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+}
+
+.intro {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.meter {
+  margin-bottom: var(--space-2);
+}
+
+.levelBar {
+  position: relative;
+  height: 28px;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 8px;
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.levelBarFill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-accent-blue);
+  transition: width 120ms linear;
+}
+
+.levelBarFill[data-over] {
+  background: var(--color-ink);
+}
+
+.levelThresholdMark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0%;
+  width: 2px;
+  background: var(--color-ink);
+}
+
+.levelReadout {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+}
+
+.settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.settingLabel {
+  display: block;
+  margin: 0 0 var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.settingInput {
+  display: block;
+  width: 100%;
+  padding: 0.5em 0.6em;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 10px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+}
+
+.toggleButton {
+  display: block;
+  width: 100%;
+  padding: 0.75em 1em;
+  border: 0;
+  border-radius: 8px;
+  background: var(--color-accent-blue);
+  color: var(--color-paper);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toggleButton:disabled {
+  background: var(--color-accent-beige);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+.watchStatus {
+  margin: var(--space-1) 0 0;
+  min-height: 1.2em;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.calibration {
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.calibrationSummary {
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--color-accent-blue);
+}
+
+.calibrationNote {
+  margin: var(--space-2) 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.calibrationButton {
+  display: inline-block;
+  margin: var(--space-1) var(--space-1) 0 0;
+  padding: 0.5em 0.9em;
+  border: 1px solid var(--color-accent-beige);
+  border-radius: 999px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.calibrationStatus {
+  margin: var(--space-1) 0 0;
+  min-height: 1.2em;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.recordsSection {
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-accent-beige);
+}
+
+.recordsTitle {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+.recordsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.recordRow {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--color-accent-beige);
+  font-size: var(--fs-sm);
+}
+
+.recordTime {
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.recordsEmpty {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.cautionList {
+  margin: var(--space-3) 0 0;
+  padding-left: 1.2em;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-muted);
+}
+
+.cautionList li {
+  margin-bottom: var(--space-1);
+}

@@ -1,0 +1,711 @@
+---
+/**
+ * SkyLog.astro
+ * ------------------------------------------------------------
+ * 「そらのようす」(/sora-no-yousu/)の記録ツール本体(2026-11-13、
+ * Decision Log 0216)。2026-11-11に体験デモ(`SkyLogDemo.astro`、架空
+ * データ・保存されない)として実装したものを、プロジェクトオーナーの
+ * 指示により本番(実際の記録として保存・公開される)に切り替えた。
+ *
+ * 【本番化にあたっての設計】
+ * - 記録は`src/pages/sora-no-yousu/index.astro`が静的ビルド時に埋め込む
+ *   ことはできない(このリポジトリはAstro `output: "static"`で、実際の
+ *   記録はビルド後も増え続けるため)。そのため、このコンポーネントは
+ *   マウント時に`GET /api/sora-log/entries`(worker/index.ts、
+ *   Cloudflare D1の`sora_log_entries`テーブル)から実際の記録を取得し、
+ *   JSで描画する。ビルド時に渡すpropsは持たない。
+ * - 記録時刻はサーバー側(`created_at`)だけを信頼する。クライアントから
+ *   時刻を送らない・時刻の修正機能を持たせない(「あとから時刻を
+ *   書き換えていない」という記録の確からしさを保つための単純化。
+ *   `migrations/0002_sora_log_entries.sql`参照)。
+ * - 「天気」「場所」「機数」「都道府県」「メモ」は任意。
+ * - JavaScriptが無い場合、公開記録の取得・送信そのものができないため
+ *   (サーバー側の実データに依存するため、ビルド時描画でごまかさない)、
+ *   `<noscript>`で明示する。
+ * - 配色は空の時刻ごとの色(`skyHourColors`)のみ例外的にデータファイル
+ *   側で管理し、それ以外はすべて`tokens.css`の既存トークンを使う
+ *   (`SkyLog.module.css`参照)。
+ *
+ * 【「記録する」「記録を見る」の2タブ構成(2026-11-13、Decision Log
+ * 0217で一度アンカーリンク+常時表示に変更、同日Decision Log 0218で
+ * タブ切り替え式に戻した)】プロジェクトオーナーから、2つの入り口を
+ * 「同じページ内で、一方しか表示しない切り替え式タブ」にしたいとの
+ * フィードバックを受けた。「記録する」タブは空の帯+記録フォームのみ、
+ * 「記録を見る」タブは地図+一覧+ふりかえりをまとめている。
+ * 「種類」「うるささ」は選ばなくても記録ボタンを押せる(未選択の場合は
+ * クライアント側で「わからない」「きこえた」を既定値にしてから送信する。
+ * APIの必須パラメータ自体は変更していない)。「すぐに記録できる」ことを
+ * 優先し、チップは選べば記録が詳しくなる任意の補足という位置づけ。
+ *
+ * 【都道府県(任意)+簡易な位置図を追加(2026-11-13、Decision Log 0218)】
+ * 「記録を見る」を地図で見たいとの指示を受け、記録時に都道府県を任意で
+ * 選べるようにし、「記録を見る」タブに都道府県ごとの件数を示す簡易な
+ * 位置図を追加した。実際の海岸線・行政境界の形状は描かず、都道府県庁
+ * 所在地のおおよその緯度経度(`src/data/skyLog.ts`の`prefectureCoords`)
+ * を単純な等間隔図法でSVG上に点として配置しただけの、正確な地図では
+ * ない簡易な図であることをキャプションで明示している(市区町村・GPS
+ * 等の詳細な位置情報は引き続き収集しない)。
+ *
+ * 【「みはりモード」タブを追加(2026-11-13、Decision Log 0221)】
+ * プロジェクトオーナー自身がClaude Artifactで試作した自動検知機能を、
+ * 3番目のタブ(`SkyWatch.astro`)として追加した。タブの切り替えロジック
+ * 自体は`[data-view-tab]`/`[data-view-panel]`を総称的に扱っているため、
+ * 変更不要だった。`SkyWatch`が自動検知した記録を、このコンポーネントの
+ * 「記録を見る」タブ(一覧・空の帯・地図)にも反映できるよう、
+ * `document`に対する`sora-log:entry-created`というカスタムイベントで
+ * 疎結合に連携している(新しい状態管理ライブラリは導入しない)。
+ * ------------------------------------------------------------
+ */
+import {
+  skyHourColors,
+  kindLabels,
+  loudnessLabels,
+  weatherLabels,
+  placeLabels,
+  countLabels,
+  prefectures,
+} from "@/data/skyLog";
+import SkyWatch from "./SkyWatch.astro";
+import styles from "./SkyLog.module.css";
+
+const kindEntries = Object.entries(kindLabels) as [keyof typeof kindLabels, string][];
+const loudnessEntries = Object.entries(loudnessLabels) as [keyof typeof loudnessLabels, string][];
+const weatherEntries = Object.entries(weatherLabels) as [keyof typeof weatherLabels, string][];
+const placeEntries = Object.entries(placeLabels) as [keyof typeof placeLabels, string][];
+const countEntries = Object.entries(countLabels) as [string, string][];
+---
+
+<div class={styles.wrapper} data-sky-log>
+  <noscript>
+    <p class={styles.noscript}>この記録ツールの利用にはJavaScriptが必要です。</p>
+  </noscript>
+
+  <div class={styles.tabs} role="tablist">
+    <button type="button" role="tab" data-view-tab="record" class={styles.tab} aria-selected="true">記録する</button>
+    <button type="button" role="tab" data-view-tab="view" class={styles.tab} aria-selected="false">記録を見る</button>
+    <button type="button" role="tab" data-view-tab="watch" class={styles.tab} aria-selected="false">みはりモード</button>
+  </div>
+
+  <div data-view-panel="record" class={styles.panel}>
+    <div class={styles.skyStrip}>
+      <div class={styles.skySegments} aria-hidden="true">
+        {skyHourColors.map((color, hour) => <span class={styles.hourSegment} style={`background-color: ${color}`} data-hour={hour} />)}
+      </div>
+      <div class={styles.skyMarkers} data-sky-markers aria-hidden="true">
+        <span class={styles.skyNowMarker} data-sky-now-marker hidden />
+      </div>
+    </div>
+    <p class={styles.skyCaption}>いまは<span data-current-hour-label>—</span>の空です。</p>
+
+    <div class={styles.logger}>
+      <p class={styles.loggerLabel}>なにがきこえた?(選ばなくても記録できます)</p>
+      <div class={styles.chipRow} role="group" aria-label="きこえたものの種類">
+        {kindEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-kind-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="うるささ">
+        {loudnessEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-loudness-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <p class={styles.loggerSubLabel}>くわしく(わかる範囲で・任意)</p>
+      <div class={styles.chipRow} role="group" aria-label="空のようす">
+        {weatherEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-weather-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="どこで聞いたか">
+        {placeEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-place-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <div class={styles.chipRow} role="group" aria-label="機数">
+        {countEntries.map(([key, label]) => (
+          <button type="button" class={styles.chip} data-count-choice={key} aria-pressed="false">
+            {label}
+          </button>
+        ))}
+      </div>
+      <label class={styles.selectLabel} for="sora-log-prefecture">都道府県</label>
+      <select id="sora-log-prefecture" class={styles.prefectureSelect} data-prefecture-select>
+        <option value="">選ばない</option>
+        {prefectures.map((pref) => (
+          <option value={pref}>{pref}</option>
+        ))}
+      </select>
+
+      <label class={styles.selectLabel} for="sora-log-municipality">市区町村(都道府県を選ぶと入力できます)</label>
+      <div class={styles.combobox}>
+        <input
+          type="text"
+          id="sora-log-municipality"
+          class={styles.municipalityInput}
+          data-municipality-input
+          placeholder="ひらがなや漢字で探す"
+          autocomplete="off"
+          disabled
+        />
+        <ul class={styles.municipalityOptions} data-municipality-options hidden></ul>
+      </div>
+      <textarea class={styles.noteInput} data-note-input placeholder="メモ(任意)" rows={2}></textarea>
+
+      <button type="button" class={styles.logButton} data-log-button>記録する</button>
+      <p class={styles.loggerStatus} data-logger-status role="status" aria-live="polite" hidden></p>
+    </div>
+  </div>
+
+  <div data-view-panel="view" class={styles.panel} hidden>
+    <section class={styles.mapSection} aria-labelledby="sora-log-map-title">
+      <h3 id="sora-log-map-title" class={styles.mapTitle}>都道府県ごとの件数</h3>
+      <p class={styles.loadingNotice} data-map-loading>記録を読み込んでいます…</p>
+      <div class={styles.mapChart} data-map-chart aria-hidden="true" hidden></div>
+      <p class={styles.mapCaption} data-map-caption hidden>
+        丸の大きさは件数です。都道府県庁所在地を基準にした簡易な位置図で、海岸線や行政境界の実際の形は描いていません。都道府県を選ばずに記録されたものは含みません。
+      </p>
+    </section>
+
+    <section class={styles.entriesSection} aria-labelledby="sora-log-list-title">
+      <h3 id="sora-log-list-title" class={styles.mapTitle}>記録の一覧</h3>
+      <p class={styles.loadingNotice} data-entries-loading>記録を読み込んでいます…</p>
+      <ul class={styles.entryList} data-entry-list hidden></ul>
+      <p class={styles.empty} data-entry-empty hidden>まだ記録がありません。</p>
+    </section>
+
+    <details class={styles.trendDetails} data-trend-details>
+      <summary class={styles.trendSummary}>ふりかえり(時間帯の集計)を見る</summary>
+      <p class={styles.trendLead} data-trend-lead>記録を読み込んでいます…</p>
+      <div class={styles.trendChart} data-trend-chart aria-hidden="true"></div>
+    </details>
+  </div>
+
+  <div data-view-panel="watch" class={styles.panel} hidden>
+    <SkyWatch />
+  </div>
+
+  <template data-entry-template>
+    <li class={styles.entryRow}>
+      <span class={styles.entryTime} data-entry-time></span>
+      <span class={styles.entryBody}>
+        <span class={styles.entryMain} data-entry-main></span>
+        <span class={styles.entryMeta} data-entry-meta hidden></span>
+        <span class={styles.entryNote} data-entry-note hidden></span>
+      </span>
+    </li>
+  </template>
+
+  <template data-sky-marker-template>
+    <span class={styles.skyMarker} data-loudness=""></span>
+  </template>
+
+  <p class={styles.caption}>
+    ここで記録した内容は、「そらのようす」の公開記録として保存され、サイト上で公開されます。名前やメールアドレスなどの個人を特定できる情報は送信されません。詳しくは<a href="/privacy">個人情報の取り扱い</a>をご覧ください。
+  </p>
+</div>
+
+<script>
+  interface ApiEntry {
+    id: string;
+    kind: string;
+    loudness: string;
+    weather?: string;
+    place?: string;
+    count?: number;
+    note?: string;
+    prefecture?: string;
+    municipality?: string;
+    source?: string;
+    durationSeconds?: number;
+    maxLevelDb?: number;
+    createdAt: string;
+  }
+
+  const KIND_LABELS: Record<string, string> = { plane: "ひこうき", heli: "ヘリコプター", unknown: "わからない" };
+  const LOUDNESS_LABELS: Record<string, string> = { heard: "きこえた", loud: "うるさい", "very-loud": "とてもうるさい" };
+  const WEATHER_LABELS: Record<string, string> = { sun: "はれ", cloud: "くもり", rain: "あめ" };
+  const PLACE_LABELS: Record<string, string> = { indoor: "いえのなか", outdoor: "そと" };
+  const COUNT_LABELS: Record<string, string> = { "1": "1機", "2": "2機", "3": "3機以上" };
+
+  /** 都道府県庁所在地のおおよその緯度経度(src/data/skyLog.tsのprefectureCoordsと同じ値)。 */
+  const PREFECTURE_COORDS: Record<string, [number, number]> = {
+    "北海道": [43.06, 141.35], "青森県": [40.82, 140.74], "岩手県": [39.70, 141.15],
+    "宮城県": [38.27, 140.87], "秋田県": [39.72, 140.10], "山形県": [38.24, 140.36],
+    "福島県": [37.75, 140.47], "茨城県": [36.34, 140.45], "栃木県": [36.57, 139.88],
+    "群馬県": [36.39, 139.06], "埼玉県": [35.86, 139.65], "千葉県": [35.60, 140.12],
+    "東京都": [35.69, 139.69], "神奈川県": [35.45, 139.64], "新潟県": [37.90, 139.02],
+    "富山県": [36.70, 137.21], "石川県": [36.59, 136.63], "福井県": [36.07, 136.22],
+    "山梨県": [35.66, 138.57], "長野県": [36.65, 138.18], "岐阜県": [35.39, 136.72],
+    "静岡県": [34.98, 138.38], "愛知県": [35.18, 136.91], "三重県": [34.73, 136.51],
+    "滋賀県": [35.00, 135.87], "京都府": [35.02, 135.76], "大阪府": [34.69, 135.50],
+    "兵庫県": [34.69, 135.18], "奈良県": [34.69, 135.83], "和歌山県": [34.23, 135.17],
+    "鳥取県": [35.50, 134.24], "島根県": [35.47, 133.05], "岡山県": [34.66, 133.93],
+    "広島県": [34.40, 132.46], "山口県": [34.19, 131.47], "徳島県": [34.07, 134.56],
+    "香川県": [34.34, 134.04], "愛媛県": [33.84, 132.77], "高知県": [33.56, 133.53],
+    "福岡県": [33.61, 130.42], "佐賀県": [33.25, 130.30], "長崎県": [32.74, 129.87],
+    "熊本県": [32.79, 130.74], "大分県": [33.24, 131.61], "宮崎県": [31.91, 131.42],
+    "鹿児島県": [31.56, 130.56], "沖縄県": [26.21, 127.68],
+  };
+
+  function formatTime(iso: string): string {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-sky-log]").forEach((root) => {
+    const currentHourLabel = root.querySelector<HTMLElement>("[data-current-hour-label]");
+    const hourSegments = root.querySelectorAll<HTMLElement>("[data-hour]");
+    const skyMarkers = root.querySelector<HTMLElement>("[data-sky-markers]");
+    const nowMarker = root.querySelector<HTMLElement>("[data-sky-now-marker]");
+    const entryList = root.querySelector<HTMLElement>("[data-entry-list]");
+    const entryTemplate = root.querySelector<HTMLTemplateElement>("[data-entry-template]");
+    const markerTemplate = root.querySelector<HTMLTemplateElement>("[data-sky-marker-template]");
+    const loadingNotice = root.querySelector<HTMLElement>("[data-entries-loading]");
+    const emptyMessage = root.querySelector<HTMLElement>("[data-entry-empty]");
+    const logButton = root.querySelector<HTMLButtonElement>("[data-log-button]");
+    const loggerStatus = root.querySelector<HTMLElement>("[data-logger-status]");
+    const noteInput = root.querySelector<HTMLTextAreaElement>("[data-note-input]");
+    const prefectureSelect = root.querySelector<HTMLSelectElement>("[data-prefecture-select]");
+    const municipalityInput = root.querySelector<HTMLInputElement>("[data-municipality-input]");
+    const municipalityOptions = root.querySelector<HTMLElement>("[data-municipality-options]");
+    const mapLoading = root.querySelector<HTMLElement>("[data-map-loading]");
+    const mapChart = root.querySelector<HTMLElement>("[data-map-chart]");
+    const mapCaption = root.querySelector<HTMLElement>("[data-map-caption]");
+    if (!entryList || !entryTemplate || !markerTemplate || !logButton || !loadingNotice) return;
+
+    let entries: ApiEntry[] = [];
+    let mapRendered = false;
+
+    const currentHour = new Date().getHours();
+    hourSegments.forEach((segment) => {
+      segment.toggleAttribute("data-is-current", Number(segment.dataset.hour) === currentHour);
+    });
+    if (currentHourLabel) currentHourLabel.textContent = `${currentHour}時`;
+    if (nowMarker) {
+      const now = new Date();
+      nowMarker.style.left = `${((now.getHours() * 60 + now.getMinutes()) / (24 * 60)) * 100}%`;
+      nowMarker.hidden = false;
+    }
+
+    /** 単一選択のチップ群。選択中の値(data属性)とラベルの両方を保持する。 */
+    function exclusiveChipGroup(selector: string, datasetKey: string, onChange?: () => void) {
+      const buttons = root.querySelectorAll<HTMLElement>(selector);
+      let selected: { label: string; value: string } | null = null;
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const wasSelected = btn.getAttribute("aria-pressed") === "true";
+          buttons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+          if (!wasSelected) {
+            btn.setAttribute("aria-pressed", "true");
+            selected = { label: btn.textContent?.trim() ?? "", value: btn.dataset[datasetKey] ?? "" };
+          } else {
+            selected = null;
+          }
+          onChange?.();
+        });
+      });
+      return { get: () => selected };
+    }
+
+    const kindGroup = exclusiveChipGroup("[data-kind-choice]", "kindChoice");
+    const loudnessGroup = exclusiveChipGroup("[data-loudness-choice]", "loudnessChoice");
+    const weatherGroup = exclusiveChipGroup("[data-weather-choice]", "weatherChoice");
+    const placeGroup = exclusiveChipGroup("[data-place-choice]", "placeChoice");
+    const countGroup = exclusiveChipGroup("[data-count-choice]", "countChoice");
+
+    // --- 市区町村: 選択式のコンボボックス(自由入力を認めない、Decision Log 0219・0220) ---
+    interface MunicipalityOption {
+      name: string;
+      kana: string;
+    }
+    let municipalitiesByPrefecture: Record<string, MunicipalityOption[]> | null = null;
+    let committedMunicipality: string | null = null;
+
+    function kataToHira(value: string): string {
+      return value.replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+    }
+
+    function hideMunicipalityOptions() {
+      if (!municipalityOptions) return;
+      municipalityOptions.hidden = true;
+      municipalityOptions.innerHTML = "";
+    }
+
+    function renderMunicipalityOptions(matches: MunicipalityOption[]) {
+      if (!municipalityOptions) return;
+      municipalityOptions.innerHTML = "";
+      if (matches.length === 0) {
+        municipalityOptions.hidden = true;
+        return;
+      }
+      matches.slice(0, 20).forEach((m) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = m.name;
+        btn.addEventListener("mousedown", (event) => {
+          // blurより先にclickが走るよう、pointerdown相当のmousedownでpreventDefaultする
+          event.preventDefault();
+        });
+        btn.addEventListener("click", () => {
+          if (municipalityInput) municipalityInput.value = m.name;
+          committedMunicipality = m.name;
+          hideMunicipalityOptions();
+        });
+        li.appendChild(btn);
+        municipalityOptions.appendChild(li);
+      });
+      municipalityOptions.hidden = false;
+    }
+
+    function updateMunicipalityAvailability() {
+      if (!municipalityInput || !prefectureSelect) return;
+      municipalityInput.disabled = !prefectureSelect.value || !municipalitiesByPrefecture;
+    }
+
+    async function loadMunicipalities() {
+      try {
+        const response = await fetch("/municipalities.json");
+        if (!response.ok) return;
+        municipalitiesByPrefecture = (await response.json()) as Record<string, MunicipalityOption[]>;
+      } catch {
+        // 読み込めなくても都道府県の記録自体は妨げない(市区町村欄が使えないだけ)
+      } finally {
+        updateMunicipalityAvailability();
+      }
+    }
+
+    prefectureSelect?.addEventListener("change", () => {
+      committedMunicipality = null;
+      if (municipalityInput) municipalityInput.value = "";
+      hideMunicipalityOptions();
+      updateMunicipalityAvailability();
+    });
+
+    municipalityInput?.addEventListener("input", () => {
+      committedMunicipality = null;
+      const rawQuery = municipalityInput.value.trim();
+      if (!rawQuery || !prefectureSelect?.value || !municipalitiesByPrefecture) {
+        hideMunicipalityOptions();
+        return;
+      }
+      const list = municipalitiesByPrefecture[prefectureSelect.value] ?? [];
+      const hiraQuery = kataToHira(rawQuery);
+      const matches = list.filter((m) => m.name.includes(rawQuery) || m.kana.includes(hiraQuery));
+      renderMunicipalityOptions(matches);
+    });
+
+    municipalityInput?.addEventListener("blur", () => {
+      // 候補ボタンのmousedownでpreventDefaultしているため、候補クリック時は
+      // blurが発生しない。ここに来るのは候補以外をクリック/フォーカス移動
+      // したときだけなので、遅延せずすぐ閉じてよい。
+      hideMunicipalityOptions();
+      if (!committedMunicipality && municipalityInput) municipalityInput.value = "";
+    });
+
+    function addSkyMarker(createdAt: string, loudness: string) {
+      if (!skyMarkers || !markerTemplate) return;
+      const clone = markerTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+      if (!clone) return;
+      const d = new Date(createdAt);
+      clone.dataset.loudness = loudness;
+      clone.style.left = `${((d.getHours() * 60 + d.getMinutes()) / (24 * 60)) * 100}%`;
+      skyMarkers.insertBefore(clone, nowMarker);
+    }
+
+    function metaLine(entry: ApiEntry): string {
+      const area = [entry.prefecture, entry.municipality].filter(Boolean).join("");
+      const parts = [
+        entry.weather ? WEATHER_LABELS[entry.weather] : null,
+        entry.place ? PLACE_LABELS[entry.place] : null,
+        entry.count ? COUNT_LABELS[String(entry.count)] : null,
+        area || null,
+      ].filter((v): v is string => Boolean(v));
+      return parts.join("・");
+    }
+
+    function renderEntryRow(entry: ApiEntry, prepend: boolean) {
+      if (!entryTemplate || !entryList) return;
+      const clone = entryTemplate.content.firstElementChild?.cloneNode(true) as HTMLElement | undefined;
+      if (!clone) return;
+      const timeEl = clone.querySelector<HTMLElement>("[data-entry-time]");
+      const mainEl = clone.querySelector<HTMLElement>("[data-entry-main]");
+      const metaEl = clone.querySelector<HTMLElement>("[data-entry-meta]");
+      const noteEl = clone.querySelector<HTMLElement>("[data-entry-note]");
+      if (timeEl) timeEl.textContent = formatTime(entry.createdAt);
+      if (mainEl) {
+        mainEl.textContent =
+          entry.source === "watch"
+            ? `自動検知(みはりモード)・最大${entry.maxLevelDb ?? "?"}dB相当・${entry.durationSeconds ?? "?"}秒`
+            : `${KIND_LABELS[entry.kind] ?? entry.kind}・${LOUDNESS_LABELS[entry.loudness] ?? entry.loudness}`;
+      }
+      const meta = metaLine(entry);
+      if (metaEl) {
+        if (meta) {
+          metaEl.textContent = meta;
+          metaEl.hidden = false;
+        } else {
+          metaEl.hidden = true;
+        }
+      }
+      if (noteEl) {
+        if (entry.note) {
+          noteEl.textContent = entry.note;
+          noteEl.hidden = false;
+        } else {
+          noteEl.hidden = true;
+        }
+      }
+      if (prepend) entryList.prepend(clone);
+      else entryList.appendChild(clone);
+    }
+
+    function renderMap() {
+      if (!mapChart || !mapCaption || !mapLoading) return;
+      const counts = new Map<string, number>();
+      for (const e of entries) {
+        if (!e.prefecture) continue;
+        counts.set(e.prefecture, (counts.get(e.prefecture) ?? 0) + 1);
+      }
+      mapLoading.hidden = true;
+      if (counts.size === 0) {
+        mapChart.hidden = true;
+        mapCaption.hidden = true;
+        mapLoading.hidden = false;
+        mapLoading.textContent = "都道府県が選ばれた記録はまだありません。";
+        return;
+      }
+      mapChart.hidden = false;
+      mapCaption.hidden = false;
+      mapChart.innerHTML = "";
+
+      const lonMin = 127;
+      const lonMax = 146;
+      const latMin = 24;
+      const latMax = 46;
+      const width = 320;
+      const height = 400;
+      const X = (lon: number) => ((lon - lonMin) / (lonMax - lonMin)) * width;
+      const Y = (lat: number) => height - ((lat - latMin) / (latMax - latMin)) * height;
+
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("role", "img");
+      const title = document.createElementNS(svgNS, "title");
+      title.textContent = "都道府県ごとの記録件数(簡易な位置図)";
+      svg.appendChild(title);
+
+      const max = Math.max(...counts.values());
+      for (const [pref, [lat, lon]] of Object.entries(PREFECTURE_COORDS)) {
+        const count = counts.get(pref) ?? 0;
+        const x = X(lon);
+        const y = Y(lat);
+        if (count === 0) {
+          const dot = document.createElementNS(svgNS, "circle");
+          dot.setAttribute("cx", String(x));
+          dot.setAttribute("cy", String(y));
+          dot.setAttribute("r", "2");
+          dot.setAttribute("fill", "var(--color-accent-beige)");
+          svg.appendChild(dot);
+          continue;
+        }
+        const r = 4 + (Math.sqrt(count / max) * 14);
+        const circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("cx", String(x));
+        circle.setAttribute("cy", String(y));
+        circle.setAttribute("r", String(r));
+        circle.setAttribute("fill", "var(--color-accent-blue)");
+        circle.setAttribute("fill-opacity", "0.75");
+        circle.setAttribute("stroke", "var(--color-paper)");
+        circle.setAttribute("stroke-width", "1.5");
+        const circleTitle = document.createElementNS(svgNS, "title");
+        circleTitle.textContent = `${pref}: ${count}件`;
+        circle.appendChild(circleTitle);
+        svg.appendChild(circle);
+
+        const label = document.createElementNS(svgNS, "text");
+        label.setAttribute("x", String(x));
+        label.setAttribute("y", String(y - r - 3));
+        label.setAttribute("text-anchor", "middle");
+        label.setAttribute("font-size", "10");
+        label.setAttribute("fill", "var(--color-ink)");
+        label.textContent = `${pref.replace(/[都道府県]$/, "")} ${count}`;
+        svg.appendChild(label);
+      }
+      mapChart.appendChild(svg);
+    }
+
+    function renderTrend() {
+      const lead = root.querySelector<HTMLElement>("[data-trend-lead]");
+      const chart = root.querySelector<HTMLElement>("[data-trend-chart]");
+      if (!lead || !chart) return;
+      if (entries.length === 0) {
+        lead.textContent = "まだ記録がありません。";
+        chart.innerHTML = "";
+        return;
+      }
+      const hours = Array(24).fill(0);
+      for (const e of entries) hours[new Date(e.createdAt).getHours()]++;
+      const peak = Math.max(...hours);
+      const peakHours = hours.map((v, h) => (v === peak ? h : -1)).filter((h) => h >= 0);
+      lead.textContent = `いちばん多く聞こえたのは ${peakHours.map((h) => `${h}時台`).join("と")}(${peak}回)。記録の合計は ${entries.length}件です。`;
+
+      chart.innerHTML = "";
+      const svgNS = "http://www.w3.org/2000/svg";
+      const width = 520;
+      const height = 120;
+      const barWidth = width / 24;
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("role", "img");
+      const title = document.createElementNS(svgNS, "title");
+      title.textContent = "時間帯ごとの記録回数";
+      svg.appendChild(title);
+      hours.forEach((count, hour) => {
+        if (count === 0) return;
+        const barHeight = Math.max(4, (height - 24) * (count / peak));
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", String(hour * barWidth + 1));
+        rect.setAttribute("y", String(height - 20 - barHeight));
+        rect.setAttribute("width", String(barWidth - 2));
+        rect.setAttribute("height", String(barHeight));
+        rect.setAttribute("rx", "3");
+        rect.setAttribute("fill", "var(--color-accent-blue)");
+        svg.appendChild(rect);
+      });
+      [0, 6, 12, 18].forEach((hour) => {
+        const text = document.createElementNS(svgNS, "text");
+        text.setAttribute("x", String(hour * barWidth + 2));
+        text.setAttribute("y", String(height - 4));
+        text.setAttribute("font-size", "11");
+        text.setAttribute("fill", "var(--color-ink-muted)");
+        text.textContent = `${hour}時`;
+        svg.appendChild(text);
+      });
+      chart.appendChild(svg);
+    }
+
+    const trendDetails = root.querySelector<HTMLDetailsElement>("[data-trend-details]");
+    trendDetails?.addEventListener("toggle", () => {
+      if (trendDetails.open) renderTrend();
+    });
+
+    root.querySelectorAll<HTMLElement>("[data-view-tab]").forEach((tabButton) => {
+      tabButton.addEventListener("click", () => {
+        const view = tabButton.dataset.viewTab;
+        root.querySelectorAll<HTMLElement>("[data-view-tab]").forEach((b) => b.setAttribute("aria-selected", b === tabButton ? "true" : "false"));
+        root.querySelectorAll<HTMLElement>("[data-view-panel]").forEach((panel) => {
+          panel.hidden = panel.dataset.viewPanel !== view;
+        });
+        if (view === "view" && !mapRendered) {
+          mapRendered = true;
+          renderMap();
+        }
+      });
+    });
+
+    function showStatus(message: string) {
+      if (!loggerStatus) return;
+      loggerStatus.textContent = message;
+      loggerStatus.hidden = false;
+    }
+
+    async function loadEntries() {
+      if (!loadingNotice) return;
+      try {
+        const response = await fetch("/api/sora-log/entries");
+        if (!response.ok) throw new Error(`status ${response.status}`);
+        const data = (await response.json()) as { entries: ApiEntry[] };
+        entries = data.entries;
+        loadingNotice.hidden = true;
+        if (entries.length === 0) {
+          emptyMessage?.removeAttribute("hidden");
+        } else {
+          entryList!.hidden = false;
+          for (const entry of entries) {
+            renderEntryRow(entry, false);
+            addSkyMarker(entry.createdAt, entry.loudness);
+          }
+        }
+      } catch {
+        loadingNotice.textContent = "記録を読み込めませんでした。時間をおいて再度開いてみてください。";
+      }
+    }
+
+    logButton.addEventListener("click", async () => {
+      // 種類・うるささは任意: 選ばれていなければ既定値を使い、すぐ記録できるようにする。
+      const kind = kindGroup.get()?.value ?? "unknown";
+      const loudness = loudnessGroup.get()?.value ?? "heard";
+      const weather = weatherGroup.get();
+      const place = placeGroup.get();
+      const count = countGroup.get();
+      const prefecture = prefectureSelect?.value || undefined;
+      const note = noteInput?.value.trim() || undefined;
+
+      logButton.disabled = true;
+      showStatus("記録しています…");
+
+      try {
+        const response = await fetch("/api/sora-log/entries", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            kind,
+            loudness,
+            ...(weather ? { weather: weather.value } : {}),
+            ...(place ? { place: place.value } : {}),
+            ...(count ? { count: Number(count.value) } : {}),
+            ...(prefecture ? { prefecture } : {}),
+            ...(committedMunicipality ? { municipality: committedMunicipality } : {}),
+            ...(note ? { note } : {}),
+          }),
+        });
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as { error?: string } | null;
+          if (response.status === 429) showStatus("少し時間をおいてから、もう一度お試しください。");
+          else showStatus(body?.error ? `記録できませんでした(${body.error})` : "記録できませんでした。");
+          return;
+        }
+        const data = (await response.json()) as { entry: ApiEntry };
+        entries.unshift(data.entry);
+        emptyMessage?.setAttribute("hidden", "");
+        entryList!.hidden = false;
+        renderEntryRow(data.entry, true);
+        addSkyMarker(data.entry.createdAt, data.entry.loudness);
+        if (noteInput) noteInput.value = "";
+        if (mapRendered) renderMap();
+        showStatus("記録しました。");
+      } catch {
+        showStatus("通信に失敗しました。もう一度お試しください。");
+      } finally {
+        logButton.disabled = false;
+      }
+    });
+
+    // みはりモード(SkyWatch.astro)が自動検知した記録を、このコンポーネントの
+    // 一覧・空の帯・地図にも反映する(Decision Log 0221)。別コンポーネント間の
+    // 連携をイベント経由に留め、状態管理ライブラリ等は導入しない。
+    document.addEventListener("sora-log:entry-created", (event) => {
+      const entry = (event as CustomEvent<ApiEntry>).detail;
+      if (!entry) return;
+      entries.unshift(entry);
+      emptyMessage?.setAttribute("hidden", "");
+      entryList!.hidden = false;
+      renderEntryRow(entry, true);
+      addSkyMarker(entry.createdAt, entry.loudness);
+      if (mapRendered) renderMap();
+    });
+
+    loadEntries();
+    loadMunicipalities();
+  });
+</script>

@@ -9,7 +9,17 @@ import { labNotebooks } from "@/data/labNotebooks";
 
 const reviews = [...publishedReviews].reverse().slice(0, 2);
 const reading = books.filter((book) => book.status === "reading").slice(0, 3);
-const featured = labNotebooks.find((notebook) => notebook.slug === "oto-no-michi");
+/**
+ * Homeの実験室セクションが取り上げる1冊(2026-11-11、散歩譜から
+ * 「そらのようす」(頭上の記録→きょうの空→そらのようすの順に改称、
+ * Decision Log 0213/0214/0216)に差し替え)。散歩譜自体は
+ * `labNotebooks`配列に残っており、`/participate`一覧・
+ * `/participate/oto-no-michi`からは引き続き見られる(Homeで取り上げる
+ * 1冊を変えただけで、削除ではない)。タグライン・HomeMotionの種類
+ * (question)も、新しく取り上げるノートの内容に合わせて変更した
+ * (src/data/labNotebooks.ts参照)。
+ */
+const featured = labNotebooks.find((notebook) => notebook.slug === "sora-no-yousu");
 // Replace only this asset URL when the owner selects the main visual.
 const featureImage: string | undefined = undefined;
 // Owner-provided photo of the actual book spines; leave unset until supplied.
@@ -93,11 +103,11 @@ const bookshelfPhoto: string | undefined = undefined;
       <div class={styles.featureCopy}>
         <a class:list={[styles.eyebrow, styles.featureEyebrow]} href="/participate">実験室</a>
         <h2 id="feature-title">{featured.title}</h2>
-        <p>散歩中の気づきを動きから辿る。</p>
-        <div class={styles.soundMotion}><HomeMotion kind="sound" /></div>
-        <a class={styles.textLink} href={`/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
+        <p>頭上を通る音から、暮らしの記録をたどる。</p>
+        <div class={styles.soundMotion}><HomeMotion kind="question" /></div>
+        <a class={styles.textLink} href={featured.detailHref ?? `/participate/${featured.slug}`}>実験をのぞく <span aria-hidden="true">↗</span></a>
       </div>
-      {featureImage && <a class={styles.featureVisual} href={`/participate/${featured.slug}`} aria-label={`${featured.title}のノートを開く`}>
+      {featureImage && <a class={styles.featureVisual} href={featured.detailHref ?? `/participate/${featured.slug}`} aria-label={`${featured.title}のノートを開く`}>
         <img src={featureImage} alt="" width="960" height="640" fetchpriority="high" />
       </a>}
     </section>}

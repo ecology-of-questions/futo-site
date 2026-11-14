@@ -72,6 +72,18 @@
  * `/participate/[slug]`が共有、二重管理しない)。Miro board等の外部
  * 資産はrepository内に存在しないため(2026-09-16確認、Decision Log
  * 0155)、「音の道」専用の埋め込み・探究マップ体験は実装していない。
+ *
+ * 【「そらのようす」を追加(2026-11-11、「頭上の記録」→「きょうの空」→
+ * 「そらのようす」の順に改称、Decision Log 0213/0214/0216)】4冊目の
+ * ノートを追加したことに伴い、ランディング専用の説明文を1件追加した。
+ * このノートは`detailHref`で`/sora-no-yousu/`へ直接遷移するため
+ * (Googleスライドを使わない)、`liveExperimentSlugs`・
+ * `getStaticPaths`まわりのロジックは変更していない。
+ *
+ * 【体験デモから本番へ(2026-11-13、Decision Log 0216)】記録ツール
+ * 自体がCloudflare Worker + D1で実際に動く本番機能になったため、
+ * 説明文も「考えています」(検討中)から、実際に使える道具であることが
+ * 分かる表現に変更した。
  * ------------------------------------------------------------
  */
 import PageHeading from "@components/PageHeading.astro";
@@ -90,6 +102,8 @@ import { labNotebooks } from "@/data/labNotebooks";
  * いない。`labNotebooks.ts`自体は変更していない。
  */
 const landingDescriptions: Record<string, string> = {
+  "sora-no-yousu":
+    "頭上を飛ぶ飛行機やヘリの音を、暮らしの観察として記録できる道具です。",
   "oto-no-michi":
     "散歩しながら、どこで立ち止まり、何に気付いたのか。その人の注意の道筋を音符のように辿れる方法を考えています。",
   fieldnote:
