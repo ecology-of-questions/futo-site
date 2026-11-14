@@ -93,6 +93,11 @@ export const labNotebooks: LabNotebook[] = [
     tone: "sky",
     entries: [],
     detailHref: "/sora-no-yousu/",
+    // Googleスライド本体の共有URL(コメント用リンクの遷移先、2026-11-14設定)。
+    // 「制作メモ」区画自体を表示するには、slidesEmbedUrl(Google側で
+    // 「ファイル→ウェブに公開→埋め込み」から発行する別形式のURL、
+    // oto-no-michiのslidesEmbedUrl参照)がまだ必要(未設定)。
+    slidesCommentUrl: "https://docs.google.com/presentation/d/1aFMRBlVGdvghk1YO3VQRkQGjQk-8Zp35hepFBmGTvHk/edit?usp=drivesdk",
   },
   {
     slug: "oto-no-michi",
